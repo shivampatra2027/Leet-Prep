@@ -1,2 +1,2 @@
 # LEETIO
-### Website showing diffrent Company wise problems..
+### Website showing Leetcode's diffrent Company wise problems..
