@@ -18,7 +18,7 @@ app.use(helmet());
 // Routes
 app.use("/api", problemRoutes);
 
-// Start server after DB connection
+
 const PORT = process.env.PORT || 8080;
 
 connectDb().then(() => {

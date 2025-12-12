@@ -1,39 +1,57 @@
+
 import Problem from "../models/Problem.js";
 
+// Get all problems (with filters + pagination)
 export const getAllProblems = async (req, res) => {
     try {
-        const { difficulty, page = 1, limit = 20 } = req.query;
-        
+        const { difficulty, company, q, page = 1, limit = 20 } = req.query;
+
         const query = {};
-        if (difficulty) {
-            query.difficulty = difficulty;
-        }
+        if (difficulty) query.difficulty = difficulty;
+        if (company) query.companies = new RegExp(`^${company}$`, "i");
+        if (q) query.title = { $regex: q, $options: "i" };
 
-        const skip = (parseInt(page) - 1) * parseInt(limit);
+        const pageNum = parseInt(page, 10);
+        const limitNum = parseInt(limit, 10);
+        const skip = (pageNum - 1) * limitNum;
 
-        const problems = await Problem.find(query)
-            .skip(skip)
-            .limit(parseInt(limit))
-            .sort({ createdAt: -1 });
+        const [problems, total] = await Promise.all([
+            Problem.find(query).skip(skip).limit(limitNum).sort({ createdAt: -1 }).lean(),
+            Problem.countDocuments(query)
+        ]);
 
-        const total = await Problem.countDocuments(query);
-
-        return res.status(200).json({
+        res.json({
             ok: true,
             data: problems,
             pagination: {
-                currentPage: parseInt(page),
-                totalPages: Math.ceil(total / parseInt(limit)),
+                currentPage: pageNum,
+                totalPages: Math.ceil(total / limitNum),
                 totalProblems: total,
-                limit: parseInt(limit)
+                limit: limitNum
             }
         });
-    } catch (error) {
-        console.error("Error fetching problems:", error);
-        return res.status(500).json({
-            ok: false,
-            message: "Failed to fetch problems",
-            error: error.message
-        });
+    } catch (err) {
+        res.status(500).json({ ok: false, message: "Failed to fetch problems", error: err.message });
+    }
+};
+
+
+export const getCompanies = async (req, res) => {
+    try {
+        const companies = await Problem.distinct("companies");
+        res.json({ ok: true, data: companies.sort() });
+    } catch (err) {
+        res.status(500).json({ ok: false, message: "Failed to fetch companies", error: err.message });
+    }
+};
+
+
+export const getProblemById = async (req, res) => {
+    try {
+        const problem = await Problem.findById(req.params.id).lean();
+        if (!problem) return res.status(404).json({ ok: false, message: "Problem not found" });
+        res.json({ ok: true, data: problem });
+    } catch (err) {
+        res.status(500).json({ ok: false, message: "Failed to fetch problem", error: err.message });
     }
 };

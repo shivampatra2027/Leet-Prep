@@ -23,9 +23,8 @@ const ProblemSchema = new Schema({
         index:true
     },
     topics:{
-        type:String,
-        enum:["Easy","Medium","Hard"],
-        default:["Medium"]
+        type:[String],
+        default:[]
     },
     acceptance:{
         type:Number

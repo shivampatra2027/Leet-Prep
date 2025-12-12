@@ -1,8 +1,11 @@
 import express from "express";
-import { getAllProblems } from "../controllers/problemController.js";
+import { getAllProblems,getCompanies,getProblemById} from "../controllers/problemController.js";
 
 const router = express.Router();
 
-router.get("/", getAllProblems);
+
+router.get("/problems", getAllProblems);
+router.get("/problems/:id", getProblemById);
+router.get("/companies", getCompanies);
 
 export default router;
