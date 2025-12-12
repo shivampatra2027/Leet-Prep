@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import { connectDb } from "./config/db.js";
 import helmet from "helmet";
 import cors from "cors";
+import problemRoutes from "./routes/problemRoutes.js";
 
 dotenv.config();
 
@@ -23,6 +24,10 @@ async function startServer() {
                 service: "leetIO-backend-service",
             });
         });
+
+        // API ROUTES
+        app.use("/api/problems", problemRoutes);
+
         app.use((_, res) => {
             return res.status(404).json({
                 status: "failure",
