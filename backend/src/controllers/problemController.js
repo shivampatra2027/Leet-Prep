@@ -1,7 +1,5 @@
 
 import Problem from "../models/Problem.js";
-
-// Get all problems (with filters + pagination)
 export const getAllProblems = async (req, res) => {
     try {
         const { difficulty, company, q, page = 1, limit = 20 } = req.query;
