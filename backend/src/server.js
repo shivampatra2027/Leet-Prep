@@ -1,14 +1,16 @@
-
+import 'dotenv/config';
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import helmet from "helmet";
 import { connectDb } from "./config/db.js";
 import problemRoutes from "./routes/problemRoutes.js";
-import authRouter from "./routes/auth.js"
-import {authMiddleware} from "./routes/auth.js"
+import authRouter, { authMiddleware } from "./routes/auth.js"; // ✅ fixed import
+import passport, { configureGoogleStrategy } from "./auth/google.js";
 
+configureGoogleStrategy();
 dotenv.config();
+
 
 
 const app = express();
@@ -19,12 +21,13 @@ app.use(helmet());
 
 // Routes
 app.use("/api", problemRoutes);
-app.use("/auth",authRouter);
-app.get("/api/problems",authMiddleware,async(req,res)=>{
+app.use("/auth", authRouter);
+
+app.get("/api/problems", authMiddleware, async (req, res) => {
     res.json({
-        message:"Protected problem list"
+        message: "Protected problem list",
     });
-})
+});
 
 const PORT = process.env.PORT || 8080;
 
