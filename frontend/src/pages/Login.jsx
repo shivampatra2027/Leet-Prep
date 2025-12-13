@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import axios from "axios";
+import { authAPI } from "../lib/api";
 
 export default function Login() {
   useEffect(() => {
@@ -16,7 +16,7 @@ export default function Login() {
     const password = e.target.password.value;
 
     try {
-      const res = await axios.post("http://localhost:8080/auth/login", { email, password });
+      const res = await authAPI.login({ email, password });
       localStorage.setItem("authToken", res.data.token);
       window.location.href = "/dashboard";
     } catch (err) {
@@ -57,7 +57,7 @@ export default function Login() {
         <div className="my-4 text-center text-gray-500">OR</div>
 
         {/* Google OAuth Button */}
-        <a href="http://localhost:8080/auth/google">
+        <a href={authAPI.googleAuthUrl()}>
           <button className="w-full bg-red-500 text-white py-2 rounded hover:bg-red-600">
             Login with Google
           </button>
