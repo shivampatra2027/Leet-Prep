@@ -39,7 +39,7 @@ router.get("/google/callback",
     passport.authenticate("google", { failureRedirect: "/auth/fail", session: false }),
     (req, res) => {
         const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
-        const frontend = process.env.CORS_ORIGIN || "http://localhost:3000";
+        const frontend = process.env.CORS_ORIGIN || "http://localhost:5173";
         res.redirect(`${frontend}/login?token=${token}`);
     }
 );
