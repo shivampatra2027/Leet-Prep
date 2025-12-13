@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import axios from "axios";
 
 export default function Login() {
-  // ✅ Handle token from Google OAuth redirect
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
@@ -11,8 +10,6 @@ export default function Login() {
       window.location.href = "/dashboard";
     }
   }, []);
-
-  // ✅ Handle email/password login
   const handleLogin = async (e) => {
     e.preventDefault();
     const email = e.target.email.value;
