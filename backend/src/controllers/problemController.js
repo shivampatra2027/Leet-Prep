@@ -1,5 +1,6 @@
 
 import Problem from "../models/Problem.js";
+
 export const getAllProblems = async (req, res) => {
     try {
         const { difficulty, company, q, page = 1, limit = 50 } = req.query;
@@ -33,7 +34,6 @@ export const getAllProblems = async (req, res) => {
     }
 };
 
-
 export const getCompanies = async (req, res) => {
     try {
         const companies = await Problem.distinct("companies");
@@ -42,7 +42,6 @@ export const getCompanies = async (req, res) => {
         res.status(500).json({ ok: false, message: "Failed to fetch companies", error: err.message });
     }
 };
-
 
 export const getProblemById = async (req, res) => {
     try {
