@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Layout from "../components/Layout";
 import { problemsAPI } from "../lib/api";
 
@@ -8,38 +8,18 @@ export default function Dashboard() {
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
     difficulty: "",
-    company: "",
     search: "",
     page: 1,
     limit: 50
   });
   const [pagination, setPagination] = useState(null);
-  const [companies, setCompanies] = useState([]);
 
-  useEffect(() => {
-    fetchCompanies();
-  }, []);
-
-  useEffect(() => {
-    fetchProblems();
-  }, [filters]);
-
-  const fetchCompanies = async () => {
-    try {
-      const res = await problemsAPI.getCompanies();
-      setCompanies(res.data.data || []);
-    } catch (err) {
-      console.error("Failed to fetch companies:", err);
-    }
-  };
-
-  const fetchProblems = async () => {
+  const fetchProblems = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const params = {};
       if (filters.difficulty) params.difficulty = filters.difficulty;
-      if (filters.company) params.company = filters.company;
       if (filters.search) params.q = filters.search;
       params.page = filters.page;
       params.limit = filters.limit;
@@ -52,7 +32,13 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
+
+  useEffect(() => {
+    fetchProblems();
+  }, [fetchProblems]);
+
+
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value, page: 1 }));
@@ -64,125 +50,139 @@ export default function Dashboard() {
 
   const getDifficultyColor = (difficulty) => {
     switch (difficulty?.toLowerCase()) {
-      case "easy": return "text-green-600 bg-green-50";
-      case "medium": return "text-yellow-600 bg-yellow-50";
-      case "hard": return "text-red-600 bg-red-50";
-      default: return "text-gray-600 bg-gray-50";
+      case "easy": return "text-green-600";
+      case "medium": return "text-yellow-600";
+      case "hard": return "text-red-600";
+      default: return "text-gray-600";
     }
   };
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <h2 className="text-3xl font-bold">Problems</h2>
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-semibold text-gray-900">
+            Problems <span className="text-gray-400 font-normal text-lg">({pagination?.totalProblems || 0})</span>
+          </h1>
+        </div>
 
         {/* Filters */}
-        <div className="bg-white p-4 rounded-lg shadow space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <input
-              type="text"
-              placeholder="Search problems..."
-              value={filters.search}
-              onChange={(e) => handleFilterChange("search", e.target.value)}
-              className="px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            
-            <select
-              value={filters.difficulty}
-              onChange={(e) => handleFilterChange("difficulty", e.target.value)}
-              className="px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">All Difficulties</option>
-              <option value="Easy">Easy</option>
-              <option value="Medium">Medium</option>
-              <option value="Hard">Hard</option>
-            </select>
-
-            <select
-              value={filters.company}
-              onChange={(e) => handleFilterChange("company", e.target.value)}
-              className="px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">All Companies</option>
-              {companies.map(company => (
-                <option key={company} value={company}>{company}</option>
-              ))}
-            </select>
-          </div>
+        <div className="mb-6 flex gap-3">
+          <input
+            type="text"
+            placeholder="Search..."
+            value={filters.search}
+            onChange={(e) => handleFilterChange("search", e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-gray-900"
+          />
+          
+          <select
+            value={filters.difficulty}
+            onChange={(e) => handleFilterChange("difficulty", e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-gray-900 bg-white"
+          >
+            <option value="">All Difficulty</option>
+            <option value="Easy">Easy</option>
+            <option value="Medium">Medium</option>
+            <option value="Hard">Hard</option>
+          </select>
         </div>
 
         {/* Problems Table */}
         {loading ? (
-          <div className="text-center py-8">Loading problems...</div>
+          <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-gray-300 border-t-blue-600"></div>
+          </div>
         ) : error ? (
-          <div className="text-center py-8 text-red-600">{error}</div>
+          <div className="bg-white rounded-lg border border-gray-200 p-12 text-center text-red-600">
+            {error}
+          </div>
         ) : problems.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">No problems found</div>
+          <div className="bg-white rounded-lg border border-gray-200 p-12 text-center text-gray-500">
+            No problems found
+          </div>
         ) : (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Difficulty</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acceptance</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Companies</th>
+              <thead>
+                <tr className="border-b border-gray-200 bg-gray-50">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-12">
+                    Status
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    Title
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-32">
+                    Acceptance
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-32">
+                    Difficulty
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {problems.map((problem) => (
-                  <tr key={problem.id || problem._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 text-sm text-gray-900">{problem.problemId}</td>
-                    <td className="px-6 py-4">
-                      <a
-                        href={problem.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline font-medium"
-                      >
-                        {problem.title}
-                      </a>
+                  <tr key={problem.id || problem._id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3">
+                      <div className="w-5 h-5 rounded-full border-2 border-gray-300"></div>
                     </td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(problem.difficulty)}`}>
-                        {problem.difficulty}
-                      </span>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={problem.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-gray-900 hover:text-blue-600 font-medium text-sm"
+                        >
+                          {problem.problemId}. {problem.title}
+                        </a>
+                      </div>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {problem.companies?.slice(0, 3).map((company, idx) => (
+                          <span key={idx} className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                            {company}
+                          </span>
+                        ))}
+                      </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
+                    <td className="px-4 py-3 text-sm text-gray-600">
                       {problem.acceptance ? `${problem.acceptance}%` : "N/A"}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {problem.companies?.slice(0, 3).join(", ")}
-                      {problem.companies?.length > 3 && "..."}
+                    <td className="px-4 py-3">
+                      <span className={`text-sm font-medium ${getDifficultyColor(problem.difficulty)}`}>
+                        {problem.difficulty}
+                      </span>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
-        )}
 
-        {/* Pagination */}
-        {pagination && pagination.totalPages > 1 && (
-          <div className="flex justify-center items-center space-x-2">
-            <button
-              onClick={() => handlePageChange(pagination.currentPage - 1)}
-              disabled={pagination.currentPage === 1}
-              className="px-4 py-2 border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-            >
-              Previous
-            </button>
-            <span className="text-gray-700">
-              Page {pagination.currentPage} of {pagination.totalPages}
-            </span>
-            <button
-              onClick={() => handlePageChange(pagination.currentPage + 1)}
-              disabled={pagination.currentPage === pagination.totalPages}
-              className="px-4 py-2 border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-            >
-              Next
-            </button>
+            {/* Pagination */}
+            {pagination && pagination.totalPages > 1 && (
+              <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-between bg-gray-50">
+                <div className="text-sm text-gray-600">
+                  Page {pagination.currentPage} of {pagination.totalPages}
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handlePageChange(pagination.currentPage - 1)}
+                    disabled={pagination.currentPage === 1}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={() => handlePageChange(pagination.currentPage + 1)}
+                    disabled={pagination.currentPage === pagination.totalPages}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
