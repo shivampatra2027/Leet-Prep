@@ -18,6 +18,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -25,15 +32,38 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationPrevious,
+  PaginationNext,
+  PaginationEllipsis,
+} from "@/components/ui/pagination";
 
-export function DataTable({ columns, data }) {
+export function DataTable({ columns, data, onFilteredCountChange }) {
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState([]);
   const [columnVisibility, setColumnVisibility] = React.useState({});
   const [rowSelection, setRowSelection] = React.useState({});
+  const [difficultyFilter, setDifficultyFilter] = React.useState("all");
+
+  // Filter data based on difficulty
+  const filteredData = React.useMemo(() => {
+    if (difficultyFilter === "all") return data;
+    return data.filter((item) => item.difficulty === difficultyFilter);
+  }, [data, difficultyFilter]);
+
+  // Update filtered count when filteredData changes
+  React.useEffect(() => {
+    if (onFilteredCountChange) {
+      onFilteredCountChange(filteredData.length);
+    }
+  }, [filteredData, onFilteredCountChange]);
 
   const table = useReactTable({
-    data,
+    data: filteredData,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -43,6 +73,11 @@ export function DataTable({ columns, data }) {
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
+    initialState: {
+      pagination: {
+        pageSize: 30,
+      },
+    },
     state: {
       sorting,
       columnFilters,
@@ -53,7 +88,7 @@ export function DataTable({ columns, data }) {
 
   return (
     <div className="w-full">
-      <div className="flex items-center py-4">
+      <div className="flex items-center gap-4 py-4">
         <Input
           placeholder="Filter titles..."
           value={table.getColumn("title")?.getFilterValue() ?? ""}
@@ -62,6 +97,17 @@ export function DataTable({ columns, data }) {
           }
           className="max-w-sm"
         />
+        <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="All Difficulty" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Difficulty</SelectItem>
+            <SelectItem value="Easy">Easy</SelectItem>
+            <SelectItem value="Medium">Medium</SelectItem>
+            <SelectItem value="Hard">Hard</SelectItem>
+          </SelectContent>
+        </Select>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
@@ -139,29 +185,76 @@ export function DataTable({ columns, data }) {
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
+      <div className="flex items-center justify-between py-4">
         <div className="flex-1 text-sm text-muted-foreground">
           {table.getFilteredSelectedRowModel().rows.length} of{" "}
           {table.getFilteredRowModel().rows.length} row(s) selected.
         </div>
-        <div className="space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Next
-          </Button>
-        </div>
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious 
+                onClick={() => table.previousPage()}
+                className={!table.getCanPreviousPage() ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              />
+            </PaginationItem>
+            
+            {Array.from({ length: table.getPageCount() }, (_, i) => i + 1)
+              .filter((page) => {
+                const currentPage = table.getState().pagination.pageIndex + 1;
+                const totalPages = table.getPageCount();
+                
+                // Always show first page, last page, current page, and pages around current
+                if (page === 1 || page === totalPages || 
+                    Math.abs(page - currentPage) <= 1) {
+                  return true;
+                }
+                return false;
+              })
+              .map((page, idx, arr) => {
+                const currentPage = table.getState().pagination.pageIndex + 1;
+                
+                // Add ellipsis if there's a gap
+                if (idx > 0 && page - arr[idx - 1] > 1) {
+                  return (
+                    <React.Fragment key={`group-${page}`}>
+                      <PaginationItem>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                      <PaginationItem>
+                        <PaginationLink
+                          onClick={() => table.setPageIndex(page - 1)}
+                          isActive={currentPage === page}
+                          className="cursor-pointer"
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    </React.Fragment>
+                  );
+                }
+                
+                return (
+                  <PaginationItem key={page}>
+                    <PaginationLink
+                      onClick={() => table.setPageIndex(page - 1)}
+                      isActive={currentPage === page}
+                      className="cursor-pointer"
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                );
+              })}
+            
+            <PaginationItem>
+              <PaginationNext 
+                onClick={() => table.nextPage()}
+                className={!table.getCanNextPage() ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
       </div>
     </div>
   );
