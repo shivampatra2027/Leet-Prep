@@ -1,25 +1,54 @@
 import mongoose from 'mongoose';
 const { Schema } = mongoose;
 const AttemptSchema = new Schema({
-    problem: { type: Schema.Types.ObjectId, ref: 'Problem', required: false },
-    problemId: { type: String, required: false }, 
+    problem: { 
+        type: Schema.Types.ObjectId, 
+        ref: 'Problem', required: false 
+    },
+    problemId: { 
+        type: String, 
+        required: false 
+    }, 
 
-    status: { type: String, enum: ['unsolved', 'attempted', 'solved'], default: 'unsolved' },
-    language: { type: String },       
-    notes: { type: String },         
-    lastAttemptAt: { type: Date }
+    status: { 
+        type: String, 
+        enum: ['unsolved', 'attempted', 'solved'], 
+        default: 'unsolved' 
+    },
+    language: { 
+        type: String 
+    },       
+    notes: { 
+        type: String 
+    },         
+    lastAttemptAt: { 
+        type: Date 
+    }
 }, { _id: false });
 
 const UserSchema = new Schema({
-    email: { type: String, unique: true, sparse: true, index: true }, 
-    name: { type: String },
-    passwordHash: { type: String }, 
+    email: { 
+        type: String, 
+        unique: true, 
+        sparse: true, 
+        index: true 
+    }, 
+    name: { 
+        type: String 
+    },
+    passwordHash: { 
+        type: String 
+    }, 
 
-    isAdmin: { type: Boolean, default: false },
+    isAdmin: { 
+        type: Boolean, 
+        default: false 
+    },
     attempts: [AttemptSchema]
 }, {
     timestamps: true
 });
+
 UserSchema.methods.upsertAttempt = function (attemptObj) {
     const { problemId, status, language, notes } = attemptObj;
     const idx = this.attempts.findIndex(a => (a.problemId && a.problemId === problemId) || (a.problem && a.problem.toString() === (attemptObj.problem ? attemptObj.problem.toString() : null)));
