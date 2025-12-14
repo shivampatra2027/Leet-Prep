@@ -11,7 +11,7 @@ export default function Dashboard() {
     company: "",
     search: "",
     page: 1,
-    limit: 20
+    limit: 50
   });
   const [pagination, setPagination] = useState(null);
   const [companies, setCompanies] = useState([]);

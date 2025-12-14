@@ -2,7 +2,7 @@
 import Problem from "../models/Problem.js";
 export const getAllProblems = async (req, res) => {
     try {
-        const { difficulty, company, q, page = 1, limit = 20 } = req.query;
+        const { difficulty, company, q, page = 1, limit = 50 } = req.query;
 
         const query = {};
         if (difficulty) query.difficulty = difficulty;
