@@ -34,14 +34,7 @@ export const getAllProblems = async (req, res) => {
 };
 
 
-export const getCompanies = async (req, res) => {
-    try {
-        const companies = await Problem.distinct("companies");
-        res.json({ ok: true, data: companies.sort() });
-    } catch (err) {
-        res.status(500).json({ ok: false, message: "Failed to fetch companies", error: err.message });
-    }
-};
+
 
 
 export const getProblemById = async (req, res) => {
@@ -53,3 +46,19 @@ export const getProblemById = async (req, res) => {
         res.status(500).json({ ok: false, message: "Failed to fetch problem", error: err.message });
     }
 };
+
+export const getCompanies = async(req,res)=>{
+    try {
+        const companies = await Problem.distinct("companies");
+        res.json({
+            ok:true,
+            data:companies.sort()
+        })   
+    } catch (error) {    
+        return res.status(500).json({
+            ok:false,
+            message:"Failed to fetch companies..",
+            error:error.message
+        })
+    }
+}
