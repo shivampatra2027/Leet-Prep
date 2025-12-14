@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import { authAPI } from "../lib/api";
+import { GalleryVerticalEnd } from "lucide-react";
+import { LoginForm } from "@/components/ui/login-form";
 
 export default function Login() {
   useEffect(() => {
@@ -10,58 +11,30 @@ export default function Login() {
       window.location.href = "/dashboard";
     }
   }, []);
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    const email = e.target.email.value;
-    const password = e.target.password.value;
-
-    try {
-      const res = await authAPI.login({ email, password });
-      localStorage.setItem("authToken", res.data.token);
-      window.location.href = "/dashboard";
-    } catch (err) {
-      alert(err.response?.data?.error || "Login failed");
-    }
-  };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-100">
-      <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 w-96">
-        <h1 className="text-2xl font-bold mb-6 text-center">Login</h1>
-
-        {/* Email/Password Form */}
-        <form onSubmit={handleLogin} className="space-y-4">
-          <input
-            name="email"
-            type="email"
-            placeholder="KIIT Email"
-            className="w-full px-3 py-2 border rounded"
-            required
-          />
-          <input
-            name="password"
-            type="password"
-            placeholder="Password"
-            className="w-full px-3 py-2 border rounded"
-            required
-          />
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
-          >
-            Login
-          </button>
-        </form>
-
-        {/* Divider */}
-        <div className="my-4 text-center text-gray-500">OR</div>
-
-        {/* Google OAuth Button */}
-        <a href={authAPI.googleAuthUrl()}>
-          <button className="w-full bg-red-500 text-white py-2 rounded hover:bg-red-600">
-            Login with Google
-          </button>
-        </a>
+    <div className="grid min-h-svh lg:grid-cols-2">
+      <div className="flex flex-col gap-4 p-6 md:p-10">
+        <div className="flex justify-center gap-2 md:justify-start">
+          <a href="/" className="flex items-center gap-2 font-medium">
+            <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
+              <GalleryVerticalEnd className="size-4" />
+            </div>
+            Leet.IO
+          </a>
+        </div>
+        <div className="flex flex-1 items-center justify-center">
+          <div className="w-full max-w-xs">
+            <LoginForm />
+          </div>
+        </div>
+      </div>
+      <div className="bg-muted relative hidden lg:block">
+        <img
+          src="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=1200&auto=format&fit=crop&q=80"
+          alt="Coding workspace"
+          className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
+        />
       </div>
     </div>
   );

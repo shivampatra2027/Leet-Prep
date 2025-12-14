@@ -1,16 +1,14 @@
-import Navbar from "./Navbar";
-import Sidebar from "./Sidebar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { AppSidebar } from "@/components/ui/app-sidebar"
 
 export default function Layout({ children }) {
   return (
-    <div className="flex h-screen">
-      <Sidebar />
-      <div className="flex flex-col flex-1">
-        <Navbar />
-        <main className="p-6 bg-gray-50 flex-1 overflow-y-auto">
-          {children}
-        </main>
-      </div>
-    </div>
-  );
+    <SidebarProvider>
+      <AppSidebar />
+      <main>
+        <SidebarTrigger />
+        {children}
+      </main>
+    </SidebarProvider>
+  )
 }
