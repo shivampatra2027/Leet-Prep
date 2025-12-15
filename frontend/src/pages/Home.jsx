@@ -6,7 +6,99 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { TestimonialSection } from "@/components/TestimonialSection"
+import { Feature } from "@/components/Feature"
+import { 
+  Code, 
+  FileCode, 
+  FileCode2, 
+  Coffee, 
+  Binary, 
+  Layers, 
+  Atom, 
+  Server, 
+  Database, 
+  DatabaseZap, 
+  Flame, 
+  Figma, 
+  Palette, 
+  Sparkles, 
+  Cloud, 
+  CloudCog, 
+  GitBranch 
+} from "lucide-react"
 import Navbar from "@/components/Navbar";
+import { Footer7 } from "@/components/Footer";
+
+const HeroSection = () => {
+  return (
+    <section className='flex min-h-[calc(100dvh-4rem)] flex-1 flex-col justify-between gap-12 overflow-x-hidden pt-8 sm:gap-16 sm:pt-16 lg:gap-24 lg:pt-24'>
+      {/* Hero Content */}
+      <div className='mx-auto flex max-w-7xl flex-col items-center gap-8 px-4 text-center sm:px-6 lg:px-8'>
+        <div className='bg-muted flex items-center gap-2.5 rounded-full border px-3 py-2'>
+          <Badge>AI-Powered</Badge>
+          <span className='text-muted-foreground'>Solution for client-facing businesses</span>
+        </div>
+
+        <h1 className='text-3xl leading-[1.29167] font-bold text-balance sm:text-4xl lg:text-5xl'>
+          Sizzling Summer Delights
+          <br />
+          <span className='relative'>
+            Effortless
+            <svg
+              width='223'
+              height='12'
+              viewBox='0 0 223 12'
+              fill='none'
+              xmlns='http://www.w3.org/2000/svg'
+              className='absolute inset-x-0 bottom-0 w-full translate-y-1/2 max-sm:hidden'
+            >
+              <path
+                d='M1.11716 10.428C39.7835 4.97282 75.9074 2.70494 114.894 1.98894C143.706 1.45983 175.684 0.313587 204.212 3.31596C209.925 3.60546 215.144 4.59884 221.535 5.74551'
+                stroke='url(#paint0_linear_10365_68643)'
+                strokeWidth='2'
+                strokeLinecap='round'
+              />
+              <defs>
+                <linearGradient
+                  id='paint0_linear_10365_68643'
+                  x1='18.8541'
+                  y1='3.72033'
+                  x2='42.6487'
+                  y2='66.6308'
+                  gradientUnits='userSpaceOnUse'
+                >
+                  <stop stopColor='var(--primary)' />
+                  <stop offset='1' stopColor='var(--primary-foreground)' />
+                </linearGradient>
+              </defs>
+            </svg>
+          </span>{' '}
+          Recipes for Parties!
+        </h1>
+
+        <p className='text-muted-foreground'>
+          Dive into a world of flavor this summer with our collection of Sizzling Summer Delights!
+          <br />
+          From refreshing appetizers to delightful desserts
+        </p>
+
+        <Button size='lg' asChild>
+          <a href='#'>Try It Now</a>
+        </Button>
+      </div>
+
+      {/* Image */}
+      <img
+        src='https://cdn.shadcnstudio.com/ss-assets/blocks/marketing/hero/image-19.png'
+        alt='Dishes'
+        className='min-h-67 w-full object-cover'
+      />
+    </section>
+  )
+}
 
 export default function Home() {
   const [openFaq, setOpenFaq] = useState(null);
@@ -16,132 +108,25 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 font-sans">
+    <div className="min-h-screen bg-background text-foreground font-sans">
         <Navbar />
+      
       {/* Hero Section */}
-      <section className="relative pt-20 pb-32 overflow-hidden bg-slate-900">
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-indigo-500/30 rounded-full blur-[120px] -z-10"></div>
-        
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-medium mb-8">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
-            </span>
-            v2.0 is now live
-          </div>
-          
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white mb-6 leading-tight">
-            Great platform <br/>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">
-              developers love
-            </span>
-          </h1>
-          
-          <p className="text-lg md:text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-            Discover tips, resources, and guidance to maximize your coding interview performance with Leet.IO.
-          </p>
-
-          {/* Search Bar Mockup */}
-          <div className="max-w-xl mx-auto mb-8 relative group">
-            <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-cyan-500 rounded-xl blur opacity-25 group-hover:opacity-50 transition duration-200"></div>
-            <div className="relative flex items-center bg-slate-800 border border-slate-700 rounded-xl p-2 shadow-2xl">
-              <svg className="w-5 h-5 text-slate-400 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-              <input 
-                type="text" 
-                placeholder="Search for problems, topics, or companies..." 
-                className="w-full bg-transparent border-none text-white placeholder-slate-400 focus:ring-0 px-4 py-2"
-                readOnly
-              />
-              <div className="hidden sm:flex items-center gap-1 px-2 py-1 bg-slate-700 rounded text-xs text-slate-400 font-mono border border-slate-600">
-                <span>Ctrl</span><span>K</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap justify-center gap-4 text-sm text-slate-400">
-            <span className="text-slate-500">Popular:</span>
-            {["Arrays", "Dynamic Programming", "Graphs", "System Design"].map((tag) => (
-              <Link key={tag} to="/login" className="hover:text-indigo-400 transition-colors border-b border-transparent hover:border-indigo-400/50 pb-0.5">
-                {tag}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+      <HeroSection />
 
       {/* Features Section */}
-      <section id="features" className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-20">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-              Powerful features for interview prep
-            </h2>
-            <p className="text-lg text-slate-600">
-              Explore the tools and design choices that make preparation efficient.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
-            {[
-              {
-                title: "Well organized",
-                desc: "The transparency of our data will help you make the informed decisions you need to.",
-                icon: (
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
-                ),
-                color: "bg-blue-500"
-              },
-              {
-                title: "Lightning fast",
-                desc: "Our performance optimization ensures quick load times and a smooth user experience.",
-                icon: (
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                ),
-                color: "bg-amber-500"
-              },
-              {
-                title: "Powerful search",
-                desc: "Our search functionality helps users find information quickly and easily.",
-                icon: (
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                ),
-                color: "bg-emerald-500"
-              },
-              {
-                title: "Very customized",
-                desc: "Tailor the documentation to fit your brand and project needs with ease.",
-                icon: (
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
-                ),
-                color: "bg-purple-500"
-              }
-            ].map((feature, idx) => (
-              <div key={idx} className="flex gap-6 p-6 rounded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100">
-                <div className={`w-12 h-12 ${feature.color} rounded-xl flex-shrink-0 flex items-center justify-center shadow-lg shadow-${feature.color}/20`}>
-                  {feature.icon}
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-2">{feature.title}</h3>
-                  <p className="text-slate-600 leading-relaxed">{feature.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <Feature />
 
       {/* Steps Section */}
-      <section className="py-24 bg-slate-50">
+      <section className="py-24 bg-muted/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6">
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
                 Get started quickly <br/>
-                <span className="text-indigo-600">in just 3 simple steps</span>
+                <span className="text-primary">in just 3 simple steps</span>
               </h2>
-              <p className="text-lg text-slate-600 mb-10">
+              <p className="text-lg text-muted-foreground mb-10">
                 A fast and frustration-free way to set up and start your preparation journey.
               </p>
 
@@ -152,21 +137,21 @@ export default function Home() {
                   { step: "3", title: "Start coding", desc: "Solve problems and get instant feedback." }
                 ].map((item, idx) => (
                   <div key={idx} className="flex gap-6">
-                    <div className="w-10 h-10 rounded-full bg-white border-2 border-indigo-100 flex items-center justify-center text-indigo-600 font-bold shadow-sm flex-shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-background border-2 border-primary/20 flex items-center justify-center text-primary font-bold shadow-sm flex-shrink-0">
                       {item.step}
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-slate-900 mb-1">{item.title}</h3>
-                      <p className="text-slate-600">{item.desc}</p>
+                      <h3 className="text-lg font-bold text-foreground mb-1">{item.title}</h3>
+                      <p className="text-muted-foreground">{item.desc}</p>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
             <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-2xl blur-2xl opacity-20"></div>
-              <div className="relative bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden">
-                <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100 bg-slate-50/50">
+              <div className="absolute inset-0 bg-gradient-to-tr from-primary/30 to-purple-500/30 rounded-2xl blur-2xl opacity-20"></div>
+              <div className="relative bg-card rounded-2xl shadow-2xl border overflow-hidden">
+                <div className="flex items-center gap-2 px-4 py-3 border-b bg-muted/50">
                   <div className="flex gap-1.5">
                     <div className="w-3 h-3 rounded-full bg-red-400"></div>
                     <div className="w-3 h-3 rounded-full bg-amber-400"></div>
@@ -175,17 +160,17 @@ export default function Home() {
                 </div>
                 <div className="p-8 space-y-6">
                   <div className="flex items-center justify-between">
-                    <div className="h-8 w-32 bg-slate-100 rounded-lg"></div>
-                    <div className="h-8 w-8 bg-indigo-100 rounded-full"></div>
+                    <div className="h-8 w-32 bg-muted rounded-lg"></div>
+                    <div className="h-8 w-8 bg-primary/20 rounded-full"></div>
                   </div>
                   <div className="space-y-3">
-                    <div className="h-4 w-full bg-slate-50 rounded"></div>
-                    <div className="h-4 w-5/6 bg-slate-50 rounded"></div>
-                    <div className="h-4 w-4/6 bg-slate-50 rounded"></div>
+                    <div className="h-4 w-full bg-muted/50 rounded"></div>
+                    <div className="h-4 w-5/6 bg-muted/50 rounded"></div>
+                    <div className="h-4 w-4/6 bg-muted/50 rounded"></div>
                   </div>
                   <div className="grid grid-cols-2 gap-4 pt-4">
-                    <div className="h-24 bg-indigo-50 rounded-xl border border-indigo-100"></div>
-                    <div className="h-24 bg-slate-50 rounded-xl border border-slate-100"></div>
+                    <div className="h-24 bg-primary/10 rounded-xl border border-primary/20"></div>
+                    <div className="h-24 bg-muted/50 rounded-xl border"></div>
                   </div>
                 </div>
               </div>
@@ -195,65 +180,134 @@ export default function Home() {
       </section>
 
       {/* Topics Section */}
-      <section id="topics" className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-              Feature topics for your prep
-            </h2>
-            <p className="text-lg text-slate-600">
-              Explore our featured topics and get an idea of our capabilities.
+      <section id="topics" className="pt-24 pb-32 relative bg-background">
+        <div className="container mx-auto px-4 lg:px-16">
+          <div className="text-center">
+            <p className="text-sm md:text-base font-mono tracking-tight text-center">
+              <span className="text-primary font-medium">import</span> techstack <span className="text-primary">from</span> "../leetcode"
+            </p>
+            <p className="text-3xl md:text-4xl font-mono font-semibold mt-8 text-center text-foreground">
+              <span className="italic font-light">leet</span><span className="text-primary font-light animate-pulse">_</span> stack
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              { title: "Data Structures", count: "150+ Problems", icon: "M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" },
-              { title: "Algorithms", count: "200+ Problems", icon: "M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" },
-              { title: "System Design", count: "50+ Articles", icon: "M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" },
-              { title: "Database SQL", count: "80+ Problems", icon: "M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" },
-              { title: "Shell Scripting", count: "30+ Problems", icon: "M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" },
-              { title: "Concurrency", count: "40+ Problems", icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" }
-            ].map((topic, idx) => (
-              <div key={idx} className="group p-6 bg-white rounded-2xl border border-slate-200 hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="p-3 bg-slate-50 rounded-xl group-hover:bg-indigo-50 transition-colors">
-                    <svg className="w-6 h-6 text-slate-600 group-hover:text-indigo-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={topic.icon} />
-                    </svg>
-                  </div>
-                  <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded-full">
-                    {topic.count}
-                  </span>
-                </div>
-                <h3 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-indigo-600 transition-colors">
-                  {topic.title}
-                </h3>
-                <div className="space-y-2">
-                  {["Introduction", "Basic Concepts", "Advanced Topics"].map((sub, i) => (
-                    <div key={i} className="text-sm text-slate-500 hover:text-slate-800 cursor-pointer flex items-center gap-2">
-                      <span className="w-1 h-1 rounded-full bg-slate-300"></span>
-                      {sub}
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-6 pt-4 border-t border-slate-100 flex items-center text-sm font-medium text-indigo-600 group-hover:translate-x-1 transition-transform cursor-pointer">
-                  View all problems <span className="ml-1">→</span>
-                </div>
+          <div className="mt-16">
+            <div className="mx-auto text-center mb-8">
+              <svg className="mx-auto h-24 text-primary opacity-50" viewBox="0 0 100 50" fill="currentColor">
+                <path d="M50 5 L50 35 M45 30 L50 35 L55 30" stroke="currentColor" strokeWidth="2" fill="none"/>
+              </svg>
+            </div>
+            
+            <div className="flex flex-wrap mt-8 gap-16 md:gap-24 justify-center w-fit mx-auto p-2 lowercase tracking-wide">
+              <div>
+                <ul className="font-mono text-sm space-y-4 mt-4 text-muted-foreground">
+                  <li><a className="flex gap-2 items-center hover:text-primary transition-colors" href="/dashboard">
+                    <Code className="w-5 h-5" />
+                    <span>Python</span>
+                  </a></li>
+                  <li><a className="flex gap-2 items-center hover:text-primary transition-colors" href="/dashboard">
+                    <FileCode className="w-5 h-5" />
+                    <span>JavaScript</span>
+                  </a></li>
+                  <li><a className="flex gap-2 items-center hover:text-primary transition-colors" href="/dashboard">
+                    <FileCode2 className="w-5 h-5" />
+                    <span>TypeScript</span>
+                  </a></li>
+                  <li><a className="flex gap-2 items-center hover:text-primary transition-colors" href="/dashboard">
+                    <Coffee className="w-5 h-5" />
+                    <span>Java</span>
+                  </a></li>
+                  <li><a className="flex gap-2 items-center hover:text-primary transition-colors" href="/dashboard">
+                    <Binary className="w-5 h-5" />
+                    <span>C++</span>
+                  </a></li>
+                </ul>
               </div>
-            ))}
+              
+              <div>
+                <ul className="font-mono space-y-4 text-sm mt-4 text-muted-foreground">
+                  <li><a className="flex gap-2 items-center hover:text-primary transition-colors" href="/dashboard">
+                    <Layers className="w-5 h-5" />
+                    <span>NextJS</span>
+                  </a></li>
+                  <li><a className="flex gap-2 items-center hover:text-primary transition-colors" href="/dashboard">
+                    <Atom className="w-5 h-5" />
+                    <span>React JS</span>
+                  </a></li>
+                  <li><a className="flex gap-2 items-center hover:text-primary transition-colors" href="/dashboard">
+                    <Server className="w-5 h-5" />
+                    <span>Django</span>
+                  </a></li>
+                </ul>
+              </div>
+
+              <div>
+                <ul className="font-mono space-y-4 mt-4 text-muted-foreground text-sm">
+                  <li><a className="flex gap-2 items-center hover:text-primary transition-colors" href="/dashboard">
+                    <Database className="w-5 h-5" />
+                    <span>MongoDB</span>
+                  </a></li>
+                  <li><a className="flex gap-2 items-center hover:text-primary transition-colors" href="/dashboard">
+                    <DatabaseZap className="w-5 h-5" />
+                    <span>PostgreSQL</span>
+                  </a></li>
+                  <li><a className="flex gap-2 items-center hover:text-primary transition-colors" href="/dashboard">
+                    <Flame className="w-5 h-5" />
+                    <span>Firebase</span>
+                  </a></li>
+                </ul>
+              </div>
+
+              <div>
+                <ul className="font-mono space-y-4 mt-4 text-muted-foreground text-sm">
+                  <li><a className="flex gap-2 items-center hover:text-primary transition-colors" href="/dashboard">
+                    <Figma className="w-5 h-5" />
+                    <span>Figma</span>
+                  </a></li>
+                  <li><a className="flex gap-2 items-center hover:text-primary transition-colors" href="/dashboard">
+                    <Palette className="w-5 h-5" />
+                    <span>Design</span>
+                  </a></li>
+                  <li><a className="flex gap-2 items-center hover:text-primary transition-colors" href="/dashboard">
+                    <Sparkles className="w-5 h-5" />
+                    <span>UI/UX</span>
+                  </a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div className="max-w-5xl w-full pt-6 bg-card border mx-auto mt-20 rounded-xl overflow-hidden relative">
+            <p className="text-center text-sm text-muted-foreground font-mono font-medium">[ CLOUD & VERSION CONTROL ]</p>
+            <div className="flex flex-wrap pb-8 md:pb-6 items-center gap-10 lg:gap-16 justify-center mt-10">
+              <div className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+                <Cloud className="w-12 h-12" />
+                <span className="font-mono text-sm">AWS</span>
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+                <CloudCog className="w-12 h-12" />
+                <span className="font-mono text-sm">Google Cloud</span>
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+                <GitBranch className="w-12 h-12" />
+                <span className="font-mono text-sm">Git</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
+      {/* Testimonials Section */}
+      <TestimonialSection />
+
       {/* FAQ Section */}
-      <section id="faq" className="py-24 bg-slate-50">
+      <section id="faq" className="py-24 bg-muted/30">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
               Frequently Asked Questions
             </h2>
-            <p className="text-lg text-slate-600">
+            <p className="text-lg text-muted-foreground">
               Everything you need to know about the platform.
             </p>
           </div>
@@ -288,28 +342,28 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-white">
+      <section className="py-24 bg-background">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="bg-slate-900 rounded-3xl p-12 md:p-20 text-white relative overflow-hidden">
+          <div className="bg-primary rounded-3xl p-12 md:p-20 text-primary-foreground relative overflow-hidden border">
             <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
             <div className="absolute bottom-0 left-0 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
             
             <h2 className="text-3xl md:text-5xl font-bold mb-6 relative z-10">
               Ready to explore Leet.IO experience?
             </h2>
-            <p className="text-xl text-slate-400 mb-10 max-w-2xl mx-auto relative z-10">
+            <p className="text-xl text-primary-foreground/70 mb-10 max-w-2xl mx-auto relative z-10">
               Discover tips, resources, and guidance to maximize experience with our platform.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
               <Link 
                 to="/login" 
-                className="w-full sm:w-auto px-8 py-4 text-base font-bold text-slate-900 bg-white rounded-xl hover:bg-slate-100 transition-all shadow-xl"
+                className="w-full sm:w-auto px-8 py-4 text-base font-bold text-primary bg-primary-foreground rounded-xl hover:opacity-90 transition-all shadow-xl"
               >
                 Get Started
               </Link>
               <Link 
                 to="/login" 
-                className="w-full sm:w-auto px-8 py-4 text-base font-bold text-white bg-slate-800 border border-slate-700 rounded-xl hover:bg-slate-700 transition-all"
+                className="w-full sm:w-auto px-8 py-4 text-base font-bold text-primary-foreground bg-primary/20 border border-primary-foreground/20 rounded-xl hover:bg-primary/30 transition-all"
               >
                 View Problems
               </Link>
@@ -319,7 +373,7 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-slate-50 border-t border-slate-200 pt-16 pb-8">
+      {/* <footer className="bg-slate-50 border-t border-slate-200 pt-16 pb-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
             <div className="col-span-2 md:col-span-1">
@@ -377,7 +431,8 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </footer>
+      </footer> */}
+      <Footer7 />
     </div>
   );
 }
