@@ -48,12 +48,24 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
   const [columnVisibility, setColumnVisibility] = React.useState({});
   const [rowSelection, setRowSelection] = React.useState({});
   const [difficultyFilter, setDifficultyFilter] = React.useState("all");
+  const [companyFilter, setCompanyFilter] = React.useState("all");
+
 
   // Filter data based on difficulty
   const filteredData = React.useMemo(() => {
-    if (difficultyFilter === "all") return data;
-    return data.filter((item) => item.difficulty === difficultyFilter);
-  }, [data, difficultyFilter]);
+  let result = data;
+  if (difficultyFilter !== "all") {
+    result = result.filter((item) => item.difficulty === difficultyFilter);
+  }
+
+  if (companyFilter !== "all") {
+    result = result.filter((item) =>
+      item.companies?.includes(companyFilter)
+    );
+  }
+
+  return result;
+}, [data, difficultyFilter, companyFilter]);
 
   // Update filtered count when filteredData changes
   React.useEffect(() => {
@@ -62,7 +74,7 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
     }
   }, [filteredData, onFilteredCountChange]);
 
-  const table = useReactTable({
+   const table = useReactTable({
     data: filteredData,
     columns,
     onSortingChange: setSorting,
@@ -108,6 +120,20 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
             <SelectItem value="Hard">Hard</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={companyFilter} onValueChange={setCompanyFilter}>
+          <SelectTrigger className="w-[220px]">
+            <SelectValue placeholder="All Companies" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Companies</SelectItem>
+            {Array.from(new Set(data.flatMap((d) => d.companies || []))).map((company) => (
+              <SelectItem key={company} value={company}>
+                {company}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">

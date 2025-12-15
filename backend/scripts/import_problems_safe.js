@@ -50,7 +50,7 @@ async function main() {
 
     for (const company of companies) {
         const folder = folderMap[company] || company;
-        const url = `https://raw.githubusercontent.com/liquidslr/leetcode-company-wise-problems/main/${folder}/5.%20All.csv`;
+        const url = process.env.CSV_BASE_URL;
 
         console.log(`Importing ${company}...`);
         try {

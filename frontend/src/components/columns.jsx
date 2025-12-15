@@ -117,6 +117,37 @@ export const columns = [
     },
   },
   {
+    accessorKey: "tags",
+    header: "Tags",
+    cell: ({ row }) => {
+      const problem = row.original;
+      const tags = problem.topics || [];
+
+      if (!tags.length) {
+        return <span className="text-gray-400 text-sm">No tags</span>;
+      }
+
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="px-2 py-1">
+              {tags.length > 0 ? `${tags.length} Tags` : "Tags"}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            <DropdownMenuLabel>Problem Tags</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {tags.map((tag, idx) => (
+              <DropdownMenuItem key={idx}>
+                <span className="text-sm">{tag}</span>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    },
+  },
+  {
     id: "actions",
     enableHiding: false,
     cell: ({ row }) => {
