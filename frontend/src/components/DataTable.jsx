@@ -49,22 +49,46 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [difficultyFilter, setDifficultyFilter] = React.useState("all");
   const [companyFilter, setCompanyFilter] = React.useState("all");
+  const [globalSearch, setGlobalSearch] = React.useState("");
 
 
-  // Filter data based on difficulty
+  // Filter data based on difficulty, company, and global search
   const filteredData = React.useMemo(() => {
     let result = data;
+    
+    // Apply difficulty filter
     if (difficultyFilter !== "all") {
       result = result.filter((item) => item.difficulty === difficultyFilter);
     }
 
+    // Apply company filter
     if (companyFilter !== "all") {
       result = result.filter((item) =>
         item.companies?.includes(companyFilter)
       );
     }
+
+    // Apply global search (title, problemId, companies)
+    if (globalSearch) {
+      const searchLower = globalSearch.toLowerCase();
+      result = result.filter((item) => {
+        // Search in title
+        const titleMatch = item.title?.toLowerCase().includes(searchLower);
+        
+        // Search in problemId
+        const idMatch = item.problemId?.toLowerCase().includes(searchLower);
+        
+        // Search in companies array
+        const companyMatch = item.companies?.some(company => 
+          company.toLowerCase().includes(searchLower)
+        );
+        
+        return titleMatch || idMatch || companyMatch;
+      });
+    }
+
     return result;
-  }, [data, difficultyFilter, companyFilter]);
+  }, [data, difficultyFilter, companyFilter, globalSearch]);
   const [logos, setLogos] = React.useState({});
   React.useEffect(() => {
     const companies = Array.from(new Set(data.flatMap((d) => d.companies || [])));
@@ -114,11 +138,9 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
     <div className="w-full">
       <div className="flex items-center gap-4 py-4">
         <Input
-          placeholder="Filter titles..."
-          value={table.getColumn("title")?.getFilterValue() ?? ""}
-          onChange={(event) =>
-            table.getColumn("title")?.setFilterValue(event.target.value)
-          }
+          placeholder="Search by title, problem ID, or company..."
+          value={globalSearch}
+          onChange={(event) => setGlobalSearch(event.target.value)}
           className="max-w-sm"
         />
         <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
