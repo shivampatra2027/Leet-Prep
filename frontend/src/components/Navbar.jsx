@@ -1,6 +1,7 @@
 import * as React from "react"
 import { Link } from "react-router-dom"
 import { CircleCheckIcon, CircleHelpIcon, CircleIcon } from "lucide-react"
+import { ModeToggle } from "./mode-toggle"
 
 import {
   NavigationMenu,
@@ -52,7 +53,7 @@ const components = [
 
 export default function Navbar() {
   return (
-    <div className="w-full flex justify-center border-b p-2">
+    <div className="w-full flex justify-center border-b p-2 px-4">
       <NavigationMenu>
         <NavigationMenuList className="flex-wrap">
           <NavigationMenuItem>
@@ -187,6 +188,7 @@ export default function Navbar() {
         </NavigationMenuItem>
       </NavigationMenuList>
     </NavigationMenu>
+    <ModeToggle />
     </div>
   )
 }
