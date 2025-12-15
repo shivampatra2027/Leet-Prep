@@ -10,6 +10,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+const logoApiBase = import.meta.env.VITE_LOGO_API_BASE;
+
 export const columns = [
   {
     id: "select",
@@ -63,13 +65,21 @@ export const columns = [
           >
             {problem.title}
           </a>
-          <div className="flex flex-wrap gap-1">
+
+          <div className="flex flex-wrap gap-2">
             {problem.companies?.slice(0, 3).map((company, idx) => (
-              <span key={idx} className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
-                {company}
-              </span>
+              <div key={idx} className="flex items-center gap-1 px-2 py-0.5 rounded bg-gray-100">
+                <img
+                  src={`${logoApiBase}${company.toLowerCase()}.com`}
+                  alt={company}
+                  className="w-4 h-4 rounded"
+                  onError={(e) => (e.target.style.display = "none")}
+                />
+                <span className="text-xs text-gray-600">{company}</span>
+              </div>
             ))}
           </div>
+
         </div>
       );
     },

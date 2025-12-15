@@ -41,7 +41,7 @@ import {
   PaginationNext,
   PaginationEllipsis,
 } from "@/components/ui/pagination";
-
+const logoApiBase = import.meta.env.VITE_LOGO_API_BASE;
 export function DataTable({ columns, data, onFilteredCountChange }) {
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState([]);
@@ -53,20 +53,32 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
 
   // Filter data based on difficulty
   const filteredData = React.useMemo(() => {
-  let result = data;
-  if (difficultyFilter !== "all") {
-    result = result.filter((item) => item.difficulty === difficultyFilter);
-  }
+    let result = data;
+    if (difficultyFilter !== "all") {
+      result = result.filter((item) => item.difficulty === difficultyFilter);
+    }
 
-  if (companyFilter !== "all") {
-    result = result.filter((item) =>
-      item.companies?.includes(companyFilter)
-    );
-  }
+    if (companyFilter !== "all") {
+      result = result.filter((item) =>
+        item.companies?.includes(companyFilter)
+      );
+    }
+    return result;
+  }, [data, difficultyFilter, companyFilter]);
+  const [logos, setLogos] = React.useState({});
+  React.useEffect(() => {
+    const companies = Array.from(new Set(data.flatMap((d) => d.companies || [])));
 
-  return result;
-}, [data, difficultyFilter, companyFilter]);
-
+    companies.forEach(async (company) => {
+      try {
+        const res = await fetch(`${logoApiBase}${company.toLowerCase()}.com`);
+        const json = await res.json();
+        setLogos((prev) => ({ ...prev, [company]: json.logo_url }));
+      } catch (err) {
+        console.error("Failed to fetch logo for", company, err);
+      }
+    });
+  }, [data]);
   // Update filtered count when filteredData changes
   React.useEffect(() => {
     if (onFilteredCountChange) {
@@ -74,7 +86,7 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
     }
   }, [filteredData, onFilteredCountChange]);
 
-   const table = useReactTable({
+  const table = useReactTable({
     data: filteredData,
     columns,
     onSortingChange: setSorting,
@@ -128,12 +140,19 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
             <SelectItem value="all">All Companies</SelectItem>
             {Array.from(new Set(data.flatMap((d) => d.companies || []))).map((company) => (
               <SelectItem key={company} value={company}>
-                {company}
+                <div className="flex items-center gap-2">
+                  <img
+                    src={logos[company]}  
+                    alt={company}
+                    className="w-4 h-4 rounded"
+                    onError={(e) => (e.target.style.display = "none")}
+                  />
+                  <span>{company}</span>
+                </div>
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
-
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
@@ -172,9 +191,9 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   );
                 })}
@@ -219,27 +238,27 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
         <Pagination>
           <PaginationContent>
             <PaginationItem>
-              <PaginationPrevious 
+              <PaginationPrevious
                 onClick={() => table.previousPage()}
                 className={!table.getCanPreviousPage() ? "pointer-events-none opacity-50" : "cursor-pointer"}
               />
             </PaginationItem>
-            
+
             {Array.from({ length: table.getPageCount() }, (_, i) => i + 1)
               .filter((page) => {
                 const currentPage = table.getState().pagination.pageIndex + 1;
                 const totalPages = table.getPageCount();
-                
+
                 // Always show first page, last page, current page, and pages around current
-                if (page === 1 || page === totalPages || 
-                    Math.abs(page - currentPage) <= 1) {
+                if (page === 1 || page === totalPages ||
+                  Math.abs(page - currentPage) <= 1) {
                   return true;
                 }
                 return false;
               })
               .map((page, idx, arr) => {
                 const currentPage = table.getState().pagination.pageIndex + 1;
-                
+
                 // Add ellipsis if there's a gap
                 if (idx > 0 && page - arr[idx - 1] > 1) {
                   return (
@@ -259,7 +278,7 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
                     </React.Fragment>
                   );
                 }
-                
+
                 return (
                   <PaginationItem key={page}>
                     <PaginationLink
@@ -272,9 +291,9 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
                   </PaginationItem>
                 );
               })}
-            
+
             <PaginationItem>
-              <PaginationNext 
+              <PaginationNext
                 onClick={() => table.nextPage()}
                 className={!table.getCanNextPage() ? "pointer-events-none opacity-50" : "cursor-pointer"}
               />
