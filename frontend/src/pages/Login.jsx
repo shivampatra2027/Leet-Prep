@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { GalleryVerticalEnd } from "lucide-react";
 import { LoginForm } from "@/components/ui/login-form";
+import CodePreview from "@/components/CodePreview"; // import here
 
 export default function Login() {
   useEffect(() => {
@@ -29,12 +30,12 @@ export default function Login() {
           </div>
         </div>
       </div>
-      <div className="bg-muted relative hidden lg:block">
-        <img
-          src="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=1200&auto=format&fit=crop&q=80"
-          alt="Coding workspace"
-          className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
-        />
+
+      {/* Right side: code editor instead of image */}
+      <div className="relative hidden lg:flex items-center justify-center p-6 bg-gradient-to-br from-gray-900 via-gray-800 to-black ">
+        <div className="w-full h-full rounded-xl bg-white/10 backdrop-blur-md border border-white/20 p-6 transition">
+          <CodePreview />
+        </div>
       </div>
     </div>
   );
