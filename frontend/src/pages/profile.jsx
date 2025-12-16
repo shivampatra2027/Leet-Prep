@@ -1,4 +1,6 @@
-import { CheckCircle, Crown } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { CheckCircle, Crown, Loader2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,13 +12,57 @@ import {
 import Navbar from "@/components/Navbar";
 
 const Profile = () => {
-  // Mock Data
-  const user = {
-    username: "mdsahil",
-    email: "sahil@example.com",
-    avatarUrl: "https://github.com/shadcn.png",
-    isPremium: true,
-  };
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        if (!token) {
+          navigate("/login");
+          return;
+        }
+
+        const response = await fetch("http://localhost:8080/api/profile", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setUser(data);
+        } else {
+          // Handle unauthorized or other errors
+          if (response.status === 401) {
+            localStorage.removeItem("authToken");
+            navigate("/login");
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch profile:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [navigate]);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen w-full flex-col bg-muted/30">
+        <Navbar />
+        <div className="flex flex-1 items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) return null;
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/30">
@@ -28,7 +74,7 @@ const Profile = () => {
           <Avatar className="absolute -top-16 h-32 w-32 border-4 border-background shadow-sm">
             <AvatarImage src={user.avatarUrl} alt={user.username} />
             <AvatarFallback className="text-4xl font-bold">
-              {user.username.slice(0, 2).toUpperCase()}
+              {user.username?.slice(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
           <div className="mt-16 text-center">

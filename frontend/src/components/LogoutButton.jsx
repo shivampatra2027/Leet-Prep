@@ -3,7 +3,7 @@ import Button from "./button";
 export function LogoutButton({ variant = "ghost", className }){
     const handleLogout=()=>{
         localStorage.removeItem("authtoken");
-        window.location.href="/login";
+        window.location.href="/";
     }
 }
 
