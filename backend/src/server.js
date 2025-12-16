@@ -16,7 +16,11 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors({ origin: process.env.CORS_ORIGIN || "*" }));
+app.use(cors({
+    origin: "http://localhost:5173",   // frontend dev server
+    credentials: true                  // allow cookies/Authorization headers
+}));
+
 app.use(express.json());
 app.use(helmet());
 

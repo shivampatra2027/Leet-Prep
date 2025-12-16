@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { GalleryVerticalEnd } from "lucide-react";
-import { LoginForm } from "@/components/ui/login-form";
+import { SignupForm } from "@/components/ui/signup-form";
 
 export default function Signup() {
     useEffect(() => {
@@ -25,7 +25,7 @@ export default function Signup() {
                 </div>
                 <div className="flex flex-1 items-center justify-center">
                     <div className="w-full max-w-xs">
-                        <LoginForm />
+                        <SignupForm />
                     </div>
                 </div>
             </div>
