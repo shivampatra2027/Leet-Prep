@@ -42,6 +42,8 @@ import {
   PaginationEllipsis,
 } from "@/components/ui/pagination";
 const logoApiBase = import.meta.env.VITE_LOGO_API_BASE;
+const GOOGLE_FAVICON_BASE = import.meta.env.VITE_GOOGLE_FAVICON_BASE;
+
 export function DataTable({ columns, data, onFilteredCountChange }) {
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState([]);
@@ -95,9 +97,10 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
 
     companies.forEach(async (company) => {
       try {
-        const res = await fetch(`${logoApiBase}${company.toLowerCase()}.com`);
-        const json = await res.json();
-        setLogos((prev) => ({ ...prev, [company]: json.logo_url }));
+        // const res = await fetch(`${logoApiBase}${company.toLowerCase()}.com`);
+        const domain = `${company.toLowerCase()}.com`;
+        const logo_url = `${GOOGLE_FAVICON_BASE}${encodeURIComponent(domain)}`;
+        setLogos((prev) => ({ ...prev, [company]: logo_url }));
       } catch (err) {
         console.error("Failed to fetch logo for", company, err);
       }
