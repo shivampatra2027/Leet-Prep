@@ -7,6 +7,7 @@ import Dashboard from "./pages/Dashboard";
 import PrivateRoute from "./components/PrivateRoute";
 import { ThemeProvider } from "@/components/theme-provider"
 import { Pricing4 } from "./pages/Premium";
+import Profile from "./pages/profile";
 
 function App() {
   return (
@@ -26,6 +27,11 @@ function App() {
               </PrivateRoute>
             }
           />
+          <Route path="/profile" element={
+            <PrivateRoute>
+              <Profile />
+            </PrivateRoute>
+            } />
         </Routes>
       </Router>
     </ThemeProvider>

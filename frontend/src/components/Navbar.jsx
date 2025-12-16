@@ -58,6 +58,16 @@ export default function Navbar() {
                 </Link>
               </NavigationMenuItem>
             )}
+            {isLoggedIn && (
+              <NavigationMenuItem>
+                <Link
+                  to="/profile"
+                  className={navigationMenuTriggerStyle()}
+                >
+                  Profile
+                </Link>
+              </NavigationMenuItem>
+            )}
           </NavigationMenuList>
         </NavigationMenu>
 
