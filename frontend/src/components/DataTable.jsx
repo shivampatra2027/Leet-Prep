@@ -49,8 +49,8 @@ const CompanyLogo = ({ company, className }) => {
 
   // 1. Sanitize the company name to create a valid domain guess
   // e.g., "Traceable AI" -> "traceableai.com"
-  const domain = company
-    ? `${company.toLowerCase().replace(/\s+/g, '')}.com`
+  const domain = company 
+    ? `${company.toLowerCase().replace(/\s+/g, '')}.com` 
     : null;
 
   // 2. Google Favicon Service URL
@@ -244,9 +244,9 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                     </TableHead>
                   );
                 })}
