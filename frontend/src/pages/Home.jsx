@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import {
   Accordion,
   AccordionContent,
@@ -8,8 +8,6 @@ import {
 } from "@/components/ui/accordion"
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { TestimonialSection } from "@/components/TestimonialSection"
-import { Feature } from "@/components/Feature"
 import { 
   Code, 
   FileCode, 
@@ -30,23 +28,34 @@ import {
   GitBranch 
 } from "lucide-react"
 import Navbar from "@/components/Navbar";
-import { Footer7 } from "@/components/Footer";
+
+// Lazy load components below the fold
+const TestimonialSection = lazy(() => import("@/components/TestimonialSection").then(module => ({ default: module.TestimonialSection })));
+const Feature = lazy(() => import("@/components/Feature").then(module => ({ default: module.Feature })));
+const Footer7 = lazy(() => import("@/components/Footer").then(module => ({ default: module.Footer7 })));
+
+// Loading fallback component
+const SectionLoader = () => (
+  <div className="w-full py-24 flex items-center justify-center">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+  </div>
+);
 
 const HeroSection = () => {
   return (
-    <section className='flex min-h-[calc(100dvh-4rem)] flex-1 flex-col justify-between gap-12 overflow-x-hidden pt-8 sm:gap-16 sm:pt-16 lg:gap-24 lg:pt-24'>
+    <section className='flex min-h-[80vh] flex-1 flex-col justify-between gap-8 overflow-x-hidden pt-6 sm:gap-12 sm:pt-12 lg:gap-16 lg:pt-16'>
       {/* Hero Content */}
-      <div className='mx-auto flex max-w-7xl flex-col items-center gap-8 px-4 text-center sm:px-6 lg:px-8'>
+      <div className='mx-auto flex max-w-7xl flex-col items-center gap-6 px-4 text-center sm:px-6 lg:px-8'>
         <div className='bg-muted flex items-center gap-2.5 rounded-full border px-3 py-2'>
-          <Badge>AI-Powered</Badge>
-          <span className='text-muted-foreground'>Solution for client-facing businesses</span>
+          <Badge>Company-Wise</Badge>
+          <span className='text-muted-foreground'>Curated DSA problems from top tech companies</span>
         </div>
 
         <h1 className='text-3xl leading-[1.29167] font-bold text-balance sm:text-4xl lg:text-5xl'>
-          Sizzling Summer Delights
+          Master Data Structures & Algorithms
           <br />
           <span className='relative'>
-            Effortless
+            Company-Wise
             <svg
               width='223'
               height='12'
@@ -76,26 +85,39 @@ const HeroSection = () => {
               </defs>
             </svg>
           </span>{' '}
-          Recipes for Parties!
+          Coding Problems!
         </h1>
 
-        <p className='text-muted-foreground'>
-          Dive into a world of flavor this summer with our collection of Sizzling Summer Delights!
+        <p className='text-muted-foreground text-lg'>
+          Practice 1800+ DSA problems organized by top companies like Google, Amazon, Microsoft & more.
           <br />
-          From refreshing appetizers to delightful desserts
+          Ace your technical interviews with targeted preparation.
         </p>
 
         <Button size='lg' asChild>
-          <a href='#'>Try It Now</a>
+          <Link to='/dashboard'>Start Practicing Now</Link>
         </Button>
       </div>
 
       {/* Image */}
-      <img
-        src='https://cdn.shadcnstudio.com/ss-assets/blocks/marketing/hero/image-19.png'
-        alt='Dishes'
-        className='min-h-67 w-full object-cover'
-      />
+      <picture>
+        <source 
+          srcSet='https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&h=400&fit=crop&auto=format&fm=webp&q=70 800w,
+                  https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&h=600&fit=crop&auto=format&fm=webp&q=70 1200w'
+          sizes='(max-width: 768px) 800px, 1200px'
+          type='image/webp'
+        />
+        <img
+          src='https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&h=600&fit=crop&auto=format&q=70'
+          alt='Coding and programming workspace with multiple monitors displaying code'
+          className='min-h-67 w-full object-cover'
+          loading='eager'
+          fetchPriority='high'
+          width='1200'
+          height='600'
+          decoding='async'
+        />
+      </picture>
     </section>
   )
 }
@@ -115,26 +137,28 @@ export default function Home() {
       <HeroSection />
 
       {/* Features Section */}
-      <Feature />
+      <Suspense fallback={<SectionLoader />}>
+        <Feature />
+      </Suspense>
 
       {/* Steps Section */}
-      <section className="py-24 bg-muted/30">
+      <section className="py-16 md:py-24 bg-muted/30" style={{ contentVisibility: 'auto' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
               <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-                Get started quickly <br/>
-                <span className="text-primary">in just 3 simple steps</span>
+                Your Interview Prep Journey <br/>
+                <span className="text-primary">starts in 3 simple steps</span>
               </h2>
               <p className="text-lg text-muted-foreground mb-10">
-                A fast and frustration-free way to set up and start your preparation journey.
+                Start solving company-specific DSA problems and land your dream job at top tech companies.
               </p>
 
               <div className="space-y-8">
                 {[
-                  { step: "1", title: "Create an account", desc: "Set up in seconds with your university email." },
-                  { step: "2", title: "Pick a track", desc: "Choose from Data Structures, Algorithms, or SQL." },
-                  { step: "3", title: "Start coding", desc: "Solve problems and get instant feedback." }
+                  { step: "1", title: "Sign up for free", desc: "Create your account with KIIT email and get instant access." },
+                  { step: "2", title: "Choose your target company", desc: "Filter problems by Google, Amazon, Microsoft, Meta & 50+ companies." },
+                  { step: "3", title: "Solve & Track Progress", desc: "Practice DSA problems, write code, and monitor your improvement." }
                 ].map((item, idx) => (
                   <div key={idx} className="flex gap-6">
                     <div className="w-10 h-10 rounded-full bg-background border-2 border-primary/20 flex items-center justify-center text-primary font-bold shadow-sm flex-shrink-0">
@@ -180,14 +204,14 @@ export default function Home() {
       </section>
 
       {/* Topics Section */}
-      <section id="topics" className="pt-24 pb-32 relative bg-background">
+      <section id="topics" className="pt-16 md:pt-24 pb-24 md:pb-32 relative bg-background" style={{ contentVisibility: 'auto' }}>
         <div className="container mx-auto px-4 lg:px-16">
           <div className="text-center">
             <p className="text-sm md:text-base font-mono tracking-tight text-center">
-              <span className="text-primary font-medium">import</span> techstack <span className="text-primary">from</span> "../leetcode"
+              <span className="text-primary font-medium">import</span> languages <span className="text-primary">from</span> "@leet.io/compiler"
             </p>
             <p className="text-3xl md:text-4xl font-mono font-semibold mt-8 text-center text-foreground">
-              <span className="italic font-light">leet</span><span className="text-primary font-light animate-pulse">_</span> stack
+              Supported <span className="text-primary font-light">Programming</span> Languages
             </p>
           </div>
 
@@ -298,10 +322,12 @@ export default function Home() {
       </section>
 
       {/* Testimonials Section */}
-      <TestimonialSection />
+      <Suspense fallback={<SectionLoader />}>
+        <TestimonialSection />
+      </Suspense>
 
       {/* FAQ Section */}
-      <section id="faq" className="py-24 bg-muted/30">
+      <section id="faq" className="py-16 md:py-24 bg-muted/30" style={{ contentVisibility: 'auto' }}>
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
@@ -312,29 +338,35 @@ export default function Home() {
             </p>
           </div>
           
-          <Accordion type="single" collapsible className="w-full">
+          <Accordion type="single" collapsible className="w-full" defaultValue="">
             <AccordionItem value="item-1">
-              <AccordionTrigger>Is Leet.IO free to use?</AccordionTrigger>
+              <AccordionTrigger>What makes Leet.IO different from other coding platforms?</AccordionTrigger>
               <AccordionContent>
-                Yes, Leet.IO offers a free tier with access to a wide range of problems. We also have a premium subscription for advanced features and exclusive content.
+                Leet.IO provides company-wise organized DSA problems, allowing you to target specific companies like Google, Amazon, or Microsoft. All problems are tagged by difficulty and topic, making focused interview prep easier.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="item-2">
-              <AccordionTrigger>Can I use Leet.IO for interview preparation?</AccordionTrigger>
+              <AccordionTrigger>Which companies' interview questions are available?</AccordionTrigger>
               <AccordionContent>
-                Absolutely! Leet.IO is designed specifically to help you prepare for technical interviews with curated problem sets and company-specific questions.
+                We cover 50+ top tech companies including FAANG (Facebook/Meta, Amazon, Apple, Netflix, Google), Microsoft, Adobe, Uber, Airbnb, and many Indian startups. New companies are added regularly.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="item-3">
               <AccordionTrigger>Do you support multiple programming languages?</AccordionTrigger>
               <AccordionContent>
-                Yes, we support all major programming languages including Python, Java, C++, JavaScript, and more.
+                Yes! We support all major programming languages including Python, Java, C++, JavaScript, TypeScript, and more. You can solve problems in your preferred language.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="item-4">
-              <AccordionTrigger>How often are new problems added?</AccordionTrigger>
+              <AccordionTrigger>Is Leet.IO free for KIIT students?</AccordionTrigger>
               <AccordionContent>
-                We add new problems weekly to keep our content fresh and aligned with the latest interview trends.
+                Yes, Leet.IO offers a comprehensive free tier with access to 500+ DSA problems. Premium features unlock advanced analytics, exclusive problems, and company-specific interview patterns.
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="item-5">
+              <AccordionTrigger>How do I track my progress?</AccordionTrigger>
+              <AccordionContent>
+                Your dashboard shows detailed statistics including problems solved by company, difficulty distribution, topic-wise progress, and streak tracking to keep you motivated.
               </AccordionContent>
             </AccordionItem>
           </Accordion>
@@ -342,30 +374,30 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-background">
+      <section className="py-16 md:py-24 bg-background" style={{ contentVisibility: 'auto' }}>
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="bg-primary rounded-3xl p-12 md:p-20 text-primary-foreground relative overflow-hidden border">
             <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
             <div className="absolute bottom-0 left-0 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
             
             <h2 className="text-3xl md:text-5xl font-bold mb-6 relative z-10">
-              Ready to explore Leet.IO experience?
+              Ready to Crack Your Dream Company?
             </h2>
             <p className="text-xl text-primary-foreground/70 mb-10 max-w-2xl mx-auto relative z-10">
-              Discover tips, resources, and guidance to maximize experience with our platform.
+              Join thousands of students who've landed offers at Google, Amazon, Microsoft, and more using Leet.IO.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
               <Link 
-                to="/login" 
+                to="/signup" 
                 className="w-full sm:w-auto px-8 py-4 text-base font-bold text-primary bg-primary-foreground rounded-xl hover:opacity-90 transition-all shadow-xl"
               >
-                Get Started
+                Start Free Today
               </Link>
               <Link 
-                to="/login" 
+                to="/dashboard" 
                 className="w-full sm:w-auto px-8 py-4 text-base font-bold text-primary-foreground bg-primary/20 border border-primary-foreground/20 rounded-xl hover:bg-primary/30 transition-all"
               >
-                View Problems
+                Browse 500+ Problems
               </Link>
             </div>
           </div>
@@ -373,66 +405,9 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      {/* <footer className="bg-slate-50 border-t border-slate-200 pt-16 pb-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-            <div className="col-span-2 md:col-span-1">
-              <div className="flex items-center gap-2 mb-6">
-                <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">
-                  L
-                </div>
-                <span className="text-xl font-bold text-slate-900">Leet.IO</span>
-              </div>
-              <p className="text-slate-500 text-sm leading-relaxed mb-6">
-                The best platform for KIIT students to prepare for coding interviews. Built with ❤️ by students, for students.
-              </p>
-              <div className="flex gap-4">
-                {["twitter", "github", "linkedin", "discord"].map((social) => (
-                  <a key={social} href="#" className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-200 transition-all">
-                    <span className="sr-only">{social}</span>
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85v2.74c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0012 2z"/></svg>
-                  </a>
-                ))}
-              </div>
-            </div>
-            <div>
-              <h4 className="font-bold text-slate-900 mb-6">Community</h4>
-              <ul className="space-y-3 text-sm text-slate-600">
-                <li><a href="#" className="hover:text-indigo-600 transition-colors">Discussions</a></li>
-                <li><a href="#" className="hover:text-indigo-600 transition-colors">Discord Server</a></li>
-                <li><a href="#" className="hover:text-indigo-600 transition-colors">Contributing</a></li>
-                <li><a href="#" className="hover:text-indigo-600 transition-colors">Events</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold text-slate-900 mb-6">Resources</h4>
-              <ul className="space-y-3 text-sm text-slate-600">
-                <li><a href="#" className="hover:text-indigo-600 transition-colors">Documentation</a></li>
-                <li><a href="#" className="hover:text-indigo-600 transition-colors">API Reference</a></li>
-                <li><a href="#" className="hover:text-indigo-600 transition-colors">Blog</a></li>
-                <li><a href="#" className="hover:text-indigo-600 transition-colors">Changelog</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold text-slate-900 mb-6">Legal</h4>
-              <ul className="space-y-3 text-sm text-slate-600">
-                <li><a href="#" className="hover:text-indigo-600 transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-indigo-600 transition-colors">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-indigo-600 transition-colors">Cookie Policy</a></li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-slate-200 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-500">
-            <p>© 2025 Leet.IO. All rights reserved.</p>
-            <div className="flex gap-6">
-              <a href="#" className="hover:text-slate-900">Privacy</a>
-              <a href="#" className="hover:text-slate-900">Terms</a>
-              <a href="#" className="hover:text-slate-900">Sitemap</a>
-            </div>
-          </div>
-        </div>
-      </footer> */}
-      <Footer7 />
+      <Suspense fallback={<SectionLoader />}>
+        <Footer7 />
+      </Suspense>
     </div>
   );
 }

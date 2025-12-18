@@ -4,7 +4,39 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
+    
+    <!-- Preconnect to external domains for faster loading -->
+    <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
+    <link rel="dns-prefetch" href="https://images.unsplash.com" />
+    
+    <!-- Preload critical hero image -->
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&h=600&fit=crop&auto=format&fm=webp&q=70" imagesrcset="https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&h=400&fit=crop&auto=format&fm=webp&q=70 800w, https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&h=600&fit=crop&auto=format&fm=webp&q=70 1200w" imagesizes="100vw" fetchpriority="high" />
+    
+    <!-- Inline critical CSS for above-the-fold content -->
+    <style>
+      body { margin: 0; min-height: 100vh; }
+      #root { min-height: 100vh; }
+      .animate-spin { animation: spin 1s linear infinite; }
+      @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    </style>
+    
+    <!-- SEO Meta Tags -->
+    <title>Leet.IO - Master Data Structures & Algorithms</title>
+    <meta name="description" content="Leet.IO is the ultimate platform for students to practice coding problems, master data structures and algorithms, and prepare for technical interviews." />
+    <meta name="keywords" content="coding, algorithms, data structures, interview preparation, programming, leetcode clone, kiit" />
+    <meta name="author" content="Leet.IO Team" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Leet.IO - Master Data Structures & Algorithms" />
+    <meta property="og:description" content="Practice coding problems, compete with peers, and land your dream job with Leet.IO." />
+    <meta property="og:image" content="/vite.svg" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:title" content="Leet.IO - Master Data Structures & Algorithms" />
+    <meta property="twitter:description" content="Practice coding problems, compete with peers, and land your dream job with Leet.IO." />
+    <meta property="twitter:image" content="/vite.svg" />
   </head>
   <body>
     <div id="root"></div>
