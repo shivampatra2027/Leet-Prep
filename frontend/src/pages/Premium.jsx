@@ -55,19 +55,21 @@ const Pricing4 = ({
 }) => {
   const [isAnnually, setIsAnnually] = useState(false);
   return (
-    <section className={`py-16 md:py-24 ${className}`}>
+    <main>
+    <section className={`py-16 md:py-24 ${className}`} aria-labelledby="pricing-title">
       <div className="container max-w-7xl mx-auto px-4">
         <div className="flex flex-col gap-8">
           <div className="text-center space-y-4">
-            <h2 className="text-4xl font-bold tracking-tight lg:text-5xl">
+            <h1 id="pricing-title" className="text-4xl font-bold tracking-tight lg:text-5xl">
               {title}
-            </h2>
+            </h1>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
               {description}
             </p>
           </div>
           <div className="flex justify-center">
-            <div className="bg-muted flex h-11 w-fit items-center rounded-lg p-1 text-sm">
+            <fieldset className="bg-muted flex h-11 w-fit items-center rounded-lg p-1 text-sm" aria-label="Billing period selection">
+              <legend className="sr-only">Choose billing period</legend>
               <RadioGroup
                 defaultValue="monthly"
                 className="h-full grid-cols-2"
@@ -102,32 +104,34 @@ const Pricing4 = ({
                   </Label>
                 </div>
               </RadioGroup>
-            </div>
+            </fieldset>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8" role="list" aria-label="Pricing plans">
             {plans.map((plan) => (
-              <div
+              <article
                 key={plan.name}
+                role="listitem"
                 className={`flex flex-col rounded-lg border p-6 text-left transition-all hover:shadow-lg ${
                   plan.isPopular ? "bg-muted border-primary shadow-md scale-105" : "bg-card"
                 }`}
+                aria-label={`${plan.name} plan - ${isAnnually ? plan.yearlyPrice : plan.monthlyPrice} ${isAnnually ? "per year" : "per month"}`}
               >
                 <div className="mb-6">
-                  <Badge className="mb-4 w-fit uppercase" variant={plan.isPopular ? "default" : "secondary"}>
+                  <Badge className="mb-4 w-fit uppercase" variant={plan.isPopular ? "default" : "secondary"} aria-label={`${plan.badge} tier`}>
                     {plan.badge}
                   </Badge>
                   <div className="space-y-1">
-                    <div className="text-4xl font-bold tracking-tight">
+                    <h2 className="text-4xl font-bold tracking-tight">
                       {isAnnually ? plan.yearlyPrice : plan.monthlyPrice}
-                    </div>
+                    </h2>
                     <p className={`text-sm text-muted-foreground ${plan.monthlyPrice === "$0" ? "invisible" : ""}`}>
                       {isAnnually ? "Per year" : "Per month"}
                     </p>
                   </div>
                 </div>
-                <Separator className="my-4" />
+                <Separator className="my-4" role="separator" />
                 <div className="flex flex-1 flex-col justify-between gap-8">
-                  <ul className="text-muted-foreground space-y-3 flex-1">
+                  <ul className="text-muted-foreground space-y-3 flex-1" aria-label={`${plan.name} plan features`}>
                     {plan.features.map((feature, featureIndex) => (
                       <li
                         key={featureIndex}
@@ -138,14 +142,15 @@ const Pricing4 = ({
                       </li>
                     ))}
                   </ul>
-                  <Button className="w-full">{plan.buttonText}</Button>
+                  <Button className="w-full" aria-label={`${plan.buttonText} ${plan.name} plan`}>{plan.buttonText}</Button>
                 </div>
-              </div>
+              </article>
             ))}
           </div>
         </div>
       </div>
     </section>
+    </main>
   );
 };
 
