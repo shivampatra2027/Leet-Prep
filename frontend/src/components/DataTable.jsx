@@ -54,13 +54,13 @@ const CompanyLogo = ({ company, className }) => {
     : null;
 
   // 2. Google Favicon Service URL
-  const logoUrl = domain
-    ? `https://logo-api-9x38.onrender.com/logo?domain=${domain}`
-    : `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+  // const logoUrl = domain
+  //   ? `https://logo-api-9x38.onrender.com/logo?domain=${domain}`
+  //   : `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
 
-  // const logoUrl = domain?
-  //   `https://www.google.com/s2/favicons?domain=${domain}&sz=64`
-  //   : `https://logo-api-9x38.onrender.com/logo?domain=${domain}`
+  const logoUrl = domain?
+    `https://www.google.com/s2/favicons?domain=${domain}&sz=64`
+    : `https://logo-api-9x38.onrender.com/logo?domain=${domain}`
     
   // 3. Fallback: Render generic icon if error occurs or domain is invalid
   if (hasError || !domain) {
