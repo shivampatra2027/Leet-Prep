@@ -10,7 +10,9 @@ const demoCode = `function login(email, password) {
   } else {
     alert("Invalid credentials");
   }
-}`;
+}
+console.log("Enter the secret code to log in into the system..")  
+`;
 
 const CodePreview = () => {
     const [code, setCode] = useState("");
@@ -27,7 +29,6 @@ const CodePreview = () => {
                 clearInterval(interval);
             }
         }, 50);
-
         return () => clearInterval(interval);
     }, [isUserTyping]);
 
