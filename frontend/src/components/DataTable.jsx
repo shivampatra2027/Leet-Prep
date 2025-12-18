@@ -7,7 +7,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Building2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -41,8 +41,48 @@ import {
   PaginationNext,
   PaginationEllipsis,
 } from "@/components/ui/pagination";
-const logoApiBase = import.meta.env.VITE_LOGO_API_BASE;
-const GOOGLE_FAVICON_BASE = import.meta.env.VITE_GOOGLE_FAVICON_BASE;
+
+// --- SEO-Friendly Logo Component ---
+// Handles lazy loading, layout shifts (CLS), and error fallbacks
+const CompanyLogo = ({ company, className }) => {
+  const [hasError, setHasError] = React.useState(false);
+
+  // 1. Sanitize the company name to create a valid domain guess
+  // e.g., "Traceable AI" -> "traceableai.com"
+  const domain = company 
+    ? `${company.toLowerCase().replace(/\s+/g, '')}.com` 
+    : null;
+
+  // 2. Google Favicon Service URL
+  const logoUrl = domain
+    ? `https://www.google.com/s2/favicons?domain=${domain}&sz=64`
+    : null;
+
+  // 3. Fallback: Render generic icon if error occurs or domain is invalid
+  if (hasError || !domain) {
+    return (
+      <Building2
+        className={`text-muted-foreground ${className}`}
+        aria-label={`${company} generic logo`}
+      />
+    );
+  }
+
+  return (
+    <img
+      src={logoUrl}
+      alt={`${company} logo`}
+      // SEO: Explicit dimensions prevent Cumulative Layout Shift
+      width={16}
+      height={16}
+      // SEO: Lazy loading improves initial page load speed
+      loading="lazy"
+      className={`rounded object-contain ${className}`}
+      // ERROR HANDLING: Switch to icon state immediately on failure
+      onError={() => setHasError(true)}
+    />
+  );
+};
 
 export function DataTable({ columns, data, onFilteredCountChange }) {
   const [sorting, setSorting] = React.useState([]);
@@ -53,11 +93,15 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
   const [companyFilter, setCompanyFilter] = React.useState("all");
   const [globalSearch, setGlobalSearch] = React.useState("");
 
+  // Memoize unique companies
+  const uniqueCompanies = React.useMemo(() => {
+    return Array.from(new Set(data.flatMap((d) => d.companies || []))).sort();
+  }, [data]);
 
   // Filter data based on difficulty, company, and global search
   const filteredData = React.useMemo(() => {
     let result = data;
-    
+
     // Apply difficulty filter
     if (difficultyFilter !== "all") {
       result = result.filter((item) => item.difficulty === difficultyFilter);
@@ -74,38 +118,19 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
     if (globalSearch) {
       const searchLower = globalSearch.toLowerCase();
       result = result.filter((item) => {
-        // Search in title
         const titleMatch = item.title?.toLowerCase().includes(searchLower);
-        
-        // Search in problemId
         const idMatch = item.problemId?.toLowerCase().includes(searchLower);
-        
-        // Search in companies array
-        const companyMatch = item.companies?.some(company => 
+        const companyMatch = item.companies?.some((company) =>
           company.toLowerCase().includes(searchLower)
         );
-        
+
         return titleMatch || idMatch || companyMatch;
       });
     }
 
     return result;
   }, [data, difficultyFilter, companyFilter, globalSearch]);
-  const [logos, setLogos] = React.useState({});
-  React.useEffect(() => {
-    const companies = Array.from(new Set(data.flatMap((d) => d.companies || [])));
 
-    companies.forEach(async (company) => {
-      try {
-        // const res = await fetch(`${logoApiBase}${company.toLowerCase()}.com`);
-        const domain = `${company.toLowerCase()}.com`;
-        const logo_url = `${GOOGLE_FAVICON_BASE}${encodeURIComponent(domain)}`;
-        setLogos((prev) => ({ ...prev, [company]: logo_url }));
-      } catch (err) {
-        console.error("Failed to fetch logo for", company, err);
-      }
-    });
-  }, [data]);
   // Update filtered count when filteredData changes
   React.useEffect(() => {
     if (onFilteredCountChange) {
@@ -140,12 +165,15 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
   return (
     <div className="w-full">
       <div className="flex items-center gap-4 py-4">
+        {/* Search Input */}
         <Input
           placeholder="Search by title, problem ID, or company..."
           value={globalSearch}
           onChange={(event) => setGlobalSearch(event.target.value)}
           className="max-w-sm"
         />
+
+        {/* Difficulty Select */}
         <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="All Difficulty" />
@@ -157,27 +185,26 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
             <SelectItem value="Hard">Hard</SelectItem>
           </SelectContent>
         </Select>
+
+        {/* Company Select */}
         <Select value={companyFilter} onValueChange={setCompanyFilter}>
           <SelectTrigger className="w-[220px]">
             <SelectValue placeholder="All Companies" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Companies</SelectItem>
-            {Array.from(new Set(data.flatMap((d) => d.companies || []))).map((company) => (
+            {uniqueCompanies.map((company) => (
               <SelectItem key={company} value={company}>
                 <div className="flex items-center gap-2">
-                  <img
-                    src={logos[company]}  
-                    alt={company}
-                    className="w-4 h-4 rounded"
-                    onError={(e) => (e.target.style.display = "none")}
-                  />
+                  <CompanyLogo company={company} className="w-4 h-4" />
                   <span>{company}</span>
                 </div>
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
+
+        {/* Columns Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
@@ -205,6 +232,7 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -216,9 +244,9 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                     </TableHead>
                   );
                 })}
@@ -255,42 +283,53 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
           </TableBody>
         </Table>
       </div>
+
       <div className="flex items-center justify-between py-4">
         <div className="flex-1 text-sm text-muted-foreground">
           {table.getFilteredSelectedRowModel().rows.length} of{" "}
           {table.getFilteredRowModel().rows.length} row(s) selected.
         </div>
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                onClick={() => table.previousPage()}
-                className={!table.getCanPreviousPage() ? "pointer-events-none opacity-50" : "cursor-pointer"}
-              />
-            </PaginationItem>
 
-            {Array.from({ length: table.getPageCount() }, (_, i) => i + 1)
-              .filter((page) => {
-                const currentPage = table.getState().pagination.pageIndex + 1;
-                const totalPages = table.getPageCount();
+        {table.getPageCount() > 1 && (
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => table.previousPage()}
+                  className={
+                    !table.getCanPreviousPage()
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
+                />
+              </PaginationItem>
 
-                // Always show first page, last page, current page, and pages around current
-                if (page === 1 || page === totalPages ||
-                  Math.abs(page - currentPage) <= 1) {
-                  return true;
-                }
-                return false;
-              })
-              .map((page, idx, arr) => {
-                const currentPage = table.getState().pagination.pageIndex + 1;
+              {Array.from({ length: table.getPageCount() }, (_, i) => i + 1)
+                .filter((page) => {
+                  const currentPage = table.getState().pagination.pageIndex + 1;
+                  const totalPages = table.getPageCount();
 
-                // Add ellipsis if there's a gap
-                if (idx > 0 && page - arr[idx - 1] > 1) {
+                  // Show first, last, current, and neighbors
                   return (
-                    <React.Fragment key={`group-${page}`}>
-                      <PaginationItem>
-                        <PaginationEllipsis />
-                      </PaginationItem>
+                    page === 1 ||
+                    page === totalPages ||
+                    Math.abs(page - currentPage) <= 1
+                  );
+                })
+                .map((page, idx, arr) => {
+                  const currentPage = table.getState().pagination.pageIndex + 1;
+                  const previousPage = arr[idx - 1];
+
+                  // Add ellipsis if there's a gap > 1
+                  const showEllipsis = idx > 0 && page - previousPage > 1;
+
+                  return (
+                    <React.Fragment key={page}>
+                      {showEllipsis && (
+                        <PaginationItem>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      )}
                       <PaginationItem>
                         <PaginationLink
                           onClick={() => table.setPageIndex(page - 1)}
@@ -302,29 +341,21 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
                       </PaginationItem>
                     </React.Fragment>
                   );
-                }
+                })}
 
-                return (
-                  <PaginationItem key={page}>
-                    <PaginationLink
-                      onClick={() => table.setPageIndex(page - 1)}
-                      isActive={currentPage === page}
-                      className="cursor-pointer"
-                    >
-                      {page}
-                    </PaginationLink>
-                  </PaginationItem>
-                );
-              })}
-
-            <PaginationItem>
-              <PaginationNext
-                onClick={() => table.nextPage()}
-                className={!table.getCanNextPage() ? "pointer-events-none opacity-50" : "cursor-pointer"}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() => table.nextPage()}
+                  className={
+                    !table.getCanNextPage()
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        )}
       </div>
     </div>
   );

@@ -5,6 +5,8 @@ A comprehensive LeetCode problem tracker and management platform. Browse, filter
 https://docs.google.com/document/d/1YSged3VvphpvZ7O0gXoBQHKgLebvTlB7aKUhkXPG9nc/edit?usp=sharing
 ## Architecture:
  <img width="446" height="428" alt="image" align="" src="https://github.com/user-attachments/assets/e90b4a36-d930-4b50-9da3-eec15f6c8082" />
+## A Glimpse
+<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/ae7ce29f-97bb-4950-98b6-eddb34b203b9" />
 
 ## Table of Contents
 
