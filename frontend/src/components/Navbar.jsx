@@ -14,16 +14,16 @@ import {
 
 export default function Navbar() {
   const navigate = useNavigate();
-  const token = localStorage.getItem("authToken");
+  const token = React.useMemo(() => localStorage.getItem("authToken"), []);
   const isLoggedIn = !!token;
 
-  const handleLogout = () => {
+  const handleLogout = React.useCallback(() => {
     localStorage.removeItem("authToken");
     navigate("/login");
-  };
+  }, [navigate]);
 
   return (
-    <div className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <nav className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60" role="navigation" aria-label="Main navigation">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Left: Logo / Home */}
         <NavigationMenu>
@@ -91,6 +91,6 @@ export default function Navbar() {
           <ModeToggle />
         </div>
       </div>
-    </div>
+    </nav>
   );
 }

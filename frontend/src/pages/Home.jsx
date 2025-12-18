@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import {
   Accordion,
   AccordionContent,
@@ -8,8 +8,6 @@ import {
 } from "@/components/ui/accordion"
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { TestimonialSection } from "@/components/TestimonialSection"
-import { Feature } from "@/components/Feature"
 import { 
   Code, 
   FileCode, 
@@ -30,13 +28,24 @@ import {
   GitBranch 
 } from "lucide-react"
 import Navbar from "@/components/Navbar";
-import { Footer7 } from "@/components/Footer";
+
+// Lazy load components below the fold
+const TestimonialSection = lazy(() => import("@/components/TestimonialSection").then(module => ({ default: module.TestimonialSection })));
+const Feature = lazy(() => import("@/components/Feature").then(module => ({ default: module.Feature })));
+const Footer7 = lazy(() => import("@/components/Footer").then(module => ({ default: module.Footer7 })));
+
+// Loading fallback component
+const SectionLoader = () => (
+  <div className="w-full py-24 flex items-center justify-center">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+  </div>
+);
 
 const HeroSection = () => {
   return (
-    <section className='flex min-h-[calc(100dvh-4rem)] flex-1 flex-col justify-between gap-12 overflow-x-hidden pt-8 sm:gap-16 sm:pt-16 lg:gap-24 lg:pt-24'>
+    <section className='flex min-h-[80vh] flex-1 flex-col justify-between gap-8 overflow-x-hidden pt-6 sm:gap-12 sm:pt-12 lg:gap-16 lg:pt-16'>
       {/* Hero Content */}
-      <div className='mx-auto flex max-w-7xl flex-col items-center gap-8 px-4 text-center sm:px-6 lg:px-8'>
+      <div className='mx-auto flex max-w-7xl flex-col items-center gap-6 px-4 text-center sm:px-6 lg:px-8'>
         <div className='bg-muted flex items-center gap-2.5 rounded-full border px-3 py-2'>
           <Badge>Company-Wise</Badge>
           <span className='text-muted-foreground'>Curated DSA problems from top tech companies</span>
@@ -91,11 +100,24 @@ const HeroSection = () => {
       </div>
 
       {/* Image */}
-      <img
-        src='https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&h=600&fit=crop'
-        alt='Coding and programming workspace with multiple monitors displaying code'
-        className='min-h-67 w-full object-cover'
-      />
+      <picture>
+        <source 
+          srcSet='https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&h=400&fit=crop&auto=format&fm=webp&q=70 800w,
+                  https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&h=600&fit=crop&auto=format&fm=webp&q=70 1200w'
+          sizes='(max-width: 768px) 800px, 1200px'
+          type='image/webp'
+        />
+        <img
+          src='https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&h=600&fit=crop&auto=format&q=70'
+          alt='Coding and programming workspace with multiple monitors displaying code'
+          className='min-h-67 w-full object-cover'
+          loading='eager'
+          fetchPriority='high'
+          width='1200'
+          height='600'
+          decoding='async'
+        />
+      </picture>
     </section>
   )
 }
@@ -115,10 +137,12 @@ export default function Home() {
       <HeroSection />
 
       {/* Features Section */}
-      <Feature />
+      <Suspense fallback={<SectionLoader />}>
+        <Feature />
+      </Suspense>
 
       {/* Steps Section */}
-      <section className="py-24 bg-muted/30">
+      <section className="py-16 md:py-24 bg-muted/30" style={{ contentVisibility: 'auto' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
@@ -180,7 +204,7 @@ export default function Home() {
       </section>
 
       {/* Topics Section */}
-      <section id="topics" className="pt-24 pb-32 relative bg-background">
+      <section id="topics" className="pt-16 md:pt-24 pb-24 md:pb-32 relative bg-background" style={{ contentVisibility: 'auto' }}>
         <div className="container mx-auto px-4 lg:px-16">
           <div className="text-center">
             <p className="text-sm md:text-base font-mono tracking-tight text-center">
@@ -298,10 +322,12 @@ export default function Home() {
       </section>
 
       {/* Testimonials Section */}
-      <TestimonialSection />
+      <Suspense fallback={<SectionLoader />}>
+        <TestimonialSection />
+      </Suspense>
 
       {/* FAQ Section */}
-      <section id="faq" className="py-24 bg-muted/30">
+      <section id="faq" className="py-16 md:py-24 bg-muted/30" style={{ contentVisibility: 'auto' }}>
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
@@ -312,7 +338,7 @@ export default function Home() {
             </p>
           </div>
           
-          <Accordion type="single" collapsible className="w-full">
+          <Accordion type="single" collapsible className="w-full" defaultValue="">
             <AccordionItem value="item-1">
               <AccordionTrigger>What makes Leet.IO different from other coding platforms?</AccordionTrigger>
               <AccordionContent>
@@ -348,7 +374,7 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-background">
+      <section className="py-16 md:py-24 bg-background" style={{ contentVisibility: 'auto' }}>
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="bg-primary rounded-3xl p-12 md:p-20 text-primary-foreground relative overflow-hidden border">
             <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
@@ -378,7 +404,10 @@ export default function Home() {
         </div>
       </section>
 
-      <Footer7 />
+      {/* Footer */}
+      <Suspense fallback={<SectionLoader />}>
+        <Footer7 />
+      </Suspense>
     </div>
   );
 }
