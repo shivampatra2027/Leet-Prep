@@ -3,6 +3,7 @@ import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import Logout from "./pages/Logout"
 import Dashboard from "./pages/Dashboard";
 import PrivateRoute from "./components/PrivateRoute";
 import { ThemeProvider } from "@/components/theme-provider"
@@ -19,6 +20,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/premium" element={<Pricing4 />} />
+          <Route path="/logout" element={<Logout />} />
           <Route
             path="/dashboard"
             element={
