@@ -1,9 +1,13 @@
-
 import Problem from "../models/Problem.js";
+import {getCache,setCache} from "../utils/cache.js"
+
 
 export const getAllProblems = async (req, res) => {
     try {
         const { difficulty, company, q, page = 1, limit = 50 } = req.query;
+        const cacheKey = `problems:${difficulty || "all"}:${company || "all"}:${page}:${limit}` 
+        const cached = await getCache(cacheKey);
+        if(cached) return res.json(cached);
 
         const query = {};
         if (difficulty) query.difficulty = difficulty;
@@ -19,7 +23,7 @@ export const getAllProblems = async (req, res) => {
             Problem.countDocuments(query)
         ]);
 
-        res.json({
+        const response={
             ok: true,
             data: problems,
             pagination: {
@@ -28,7 +32,10 @@ export const getAllProblems = async (req, res) => {
                 totalProblems: total,
                 limit: limitNum
             }
-        });
+            
+        };
+        await setCache(cacheKey, response, 300);
+        res.json(response);
     } catch (err) {
         res.status(500).json({ ok: false, message: "Failed to fetch problems", error: err.message });
     }
@@ -36,8 +43,16 @@ export const getAllProblems = async (req, res) => {
 
 export const getCompanies = async (req, res) => {
     try {
+        const cacheKey = "companies:List";
+        const cached = await getCache(cacheKey);
+        if(cached) return res.json({ok:true,data:cached});
+
         const companies = await Problem.distinct("companies");
-        res.json({ ok: true, data: companies.sort() });
+
+        const sorted = companies.sort();
+
+        await setCache(cacheKey,sorted,600);
+        res.json({ ok: true, data: sorted });
     } catch (err) {
         res.status(500).json({ ok: false, message: "Failed to fetch companies", error: err.message });
     }
@@ -45,9 +60,25 @@ export const getCompanies = async (req, res) => {
 
 export const getProblemById = async (req, res) => {
     try {
-        const problem = await Problem.findById(req.params.id).lean();
-        if (!problem) return res.status(404).json({ ok: false, message: "Problem not found" });
-        res.json({ ok: true, data: problem });
+
+        const {id}=req.params;
+        const cacheKey=`problem:${id}`;
+
+        const cached = await getCache(cacheKey);
+        if(cached) return res.json({ok:true,data:cached});
+
+        const problem = await Problem.findById(id).lean();
+        if(!problem) return res.status(404)
+.json({
+    ok:false,
+    message:"Problem not found"
+});
+
+await setCache(cacheKey,problem,600);
+res.status(500).json({
+    ok:true,
+    data:problem
+})
     } catch (err) {
         res.status(500).json({ ok: false, message: "Failed to fetch problem", error: err.message });
     }
