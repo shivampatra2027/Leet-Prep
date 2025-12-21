@@ -3,7 +3,7 @@ import { problemsAPI } from "../lib/api";
 import { DataTable } from "@/components/DataTable";
 import { columns } from "@/components/columns";
 import Navbar from "@/components/Navbar";
-import Layout from "@/components/layout";
+import Layout from "@/components/layout.jsx";
 
 export default function Dashboard() {
   const [problems, setProblems] = useState([]);
