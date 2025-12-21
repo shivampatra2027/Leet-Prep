@@ -3,7 +3,6 @@ import { problemsAPI } from "../lib/api";
 import { DataTable } from "@/components/DataTable.jsx";
 import { columns } from "@/components/columns.jsx";
 import Navbar from "@/components/Navbar.jsx";
-import Layout from "@/components/layout.jsx";
 
 export default function Dashboard() {
   const [problems, setProblems] = useState([]);
@@ -35,7 +34,6 @@ export default function Dashboard() {
   return (
     <>
       <Navbar />
-      {/* <Layout> */}
         <div className="min-h-screen bg-background p-6">
           <div className="max-w-7xl mx-auto">
             {/* Header */}
@@ -62,7 +60,6 @@ export default function Dashboard() {
             )}
           </div>
         </div>
-      {/* </Layout> */}
     </>
   );
 }
