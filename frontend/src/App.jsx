@@ -5,7 +5,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Logout from "./pages/Logout"
 import Dashboard from "./pages/Dashboard";
-import PrivateRoute from "./components/PrivateRoute";
+import PrivateRoute from "./components/privateRoute";
 import { ThemeProvider } from "@/components/theme-provider"
 import { Pricing4 } from "./pages/Premium";
 import Profile from "./pages/profile";
