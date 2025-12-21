@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { problemsAPI } from "../lib/api";
-import { DataTable } from "@/components/DataTable";
-import { columns } from "@/components/columns";
-import Navbar from "@/components/Navbar";
+import { DataTable } from "@/components/DataTable.jsx";
+import { columns } from "@/components/columns.jsx";
+import Navbar from "@/components/Navbar.jsx";
 import Layout from "@/components/layout.jsx";
 
 export default function Dashboard() {

@@ -1,5 +1,5 @@
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
-import { AppSidebar } from "@/components/ui/app-sidebar"
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar.jsx"
+import { AppSidebar } from "@/components/ui/app-sidebar.jsx"
 
 export default function Layout({ children }) {
   return (

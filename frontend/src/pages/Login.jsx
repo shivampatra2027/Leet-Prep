@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { GalleryVerticalEnd } from "lucide-react";
-import { LoginForm } from "@/components/ui/login-form";
-import CodePreview from "@/components/CodePreview"; // import here
+import { LoginForm } from "@/components/ui/login-form.jsx";
+import CodePreview from "@/components/CodePreview.jsx"; // import here
 
 export default function Login() {
   useEffect(() => {

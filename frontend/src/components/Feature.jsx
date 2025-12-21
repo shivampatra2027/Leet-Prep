@@ -12,7 +12,7 @@ import {
   CardContent,
   CardFooter,
   CardHeader,
-} from "@/components/ui/card";
+} from "@/components/ui/card.jsx";
 
 const Feature = () => {
   const features = [

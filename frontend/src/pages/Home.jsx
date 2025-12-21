@@ -5,9 +5,9 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion"
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+} from "@/components/ui/accordion.jsx"
+import { Badge } from '@/components/ui/badge.jsx'
+import { Button } from '@/components/ui/button.jsx'
 import { 
   Code, 
   FileCode, 
@@ -27,12 +27,12 @@ import {
   CloudCog, 
   GitBranch 
 } from "lucide-react"
-import Navbar from "@/components/Navbar";
+import Navbar from "@/components/Navbar.jsx";
 
 // Lazy load components below the fold
-const TestimonialSection = lazy(() => import("@/components/TestimonialSection").then(module => ({ default: module.TestimonialSection })));
-const Feature = lazy(() => import("@/components/Feature").then(module => ({ default: module.Feature })));
-const Footer7 = lazy(() => import("@/components/Footer").then(module => ({ default: module.Footer7 })));
+const TestimonialSection = lazy(() => import("@/components/TestimonialSection.jsx").then(module => ({ default: module.TestimonialSection })));
+const Feature = lazy(() => import("@/components/Feature.jsx").then(module => ({ default: module.Feature })));
+const Footer7 = lazy(() => import("@/components/Footer.jsx").then(module => ({ default: module.Footer7 })));
 
 // Loading fallback component
 const SectionLoader = () => (

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { GalleryVerticalEnd } from "lucide-react";
-import { SignupForm } from "@/components/ui/signup-form";
+import { SignupForm } from "@/components/ui/signup-form.jsx";
 
 export default function Signup() {
     useEffect(() => {
