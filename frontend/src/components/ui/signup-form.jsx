@@ -47,7 +47,7 @@ export function SignupForm({ className, ...props }) {
   
       }
     } catch (err) {
-      setError("Network error");
+      setError(err.message || "Network error");
     }
   };
 

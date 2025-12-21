@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useState, lazy, Suspense } from "react";
+import { lazy, Suspense } from "react";
 import {
   Accordion,
   AccordionContent,
@@ -123,12 +123,6 @@ const HeroSection = () => {
 }
 
 export default function Home() {
-  const [openFaq, setOpenFaq] = useState(null);
-
-  const toggleFaq = (index) => {
-    setOpenFaq(openFaq === index ? null : index);
-  };
-
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
         <Navbar />

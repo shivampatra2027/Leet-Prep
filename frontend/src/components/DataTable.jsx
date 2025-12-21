@@ -142,6 +142,7 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
     }
   }, [filteredData, onFilteredCountChange]);
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: filteredData,
     columns,

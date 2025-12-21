@@ -5,9 +5,8 @@ export function LogoutButton({ variant = "ghost", className }){
         localStorage.removeItem("authtoken");
         window.location.href="/";
     }
+
+    return (
+        <Button variant={variant} className={className} onClick={handleLogout}>Logout</Button>
+    )
 }
-
-
-return (
-    <Button variant={variant} className={className} onClick={handleLogout}>Logout</Button>
-)
