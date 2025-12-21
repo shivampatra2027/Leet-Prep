@@ -22,6 +22,7 @@ https://docs.google.com/document/d/1YSged3VvphpvZ7O0gXoBQHKgLebvTlB7aKUhkXPG9nc/
 - [API Endpoints](#api-endpoints)
 - [Troubleshooting](#troubleshooting)
 
+## A video Glimps: https://youtu.be/pjmTMAH-M3I
 ## Features
 
 - Browse 1800+ LeetCode problems in a responsive data table
