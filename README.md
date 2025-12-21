@@ -23,6 +23,7 @@ https://docs.google.com/document/d/1YSged3VvphpvZ7O0gXoBQHKgLebvTlB7aKUhkXPG9nc/
 - [Troubleshooting](#troubleshooting)
 
 ## A video Glimps: https://youtu.be/pjmTMAH-M3I
+[![Leet.io Platform Introduction](https://img.youtube.com/vi/EG__AujR-tQ/maxresdefault.jpg)](https://www.youtube.com/watch?v=EG__AujR-tQ)
 ## Features
 
 - Browse 1800+ LeetCode problems in a responsive data table
