@@ -50,5 +50,8 @@
     "tailwindcss": "^4.1.18",
     "terser": "^5.44.1",
     "vite": "^7.2.4"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "^4.54.0"
   }
 }
