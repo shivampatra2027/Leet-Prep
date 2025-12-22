@@ -16,7 +16,17 @@ const demoMessages = [
     `wwhile(true) {
     console.log("System breach detected...");
   }`,
-    `aalert("Access denied. Try again.")`
+    `aalert("Access denied. Try again.")`,
+    `aasync function fetchData(url) {
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    console.log(data);
+  } catch (error) {
+    console.error('Error fetching data:', error);
+        }
+    }`,
+    `ddevlopers: sahil And Shivam from kiit..`,
 ];
 
 const CodePreview = () => {
