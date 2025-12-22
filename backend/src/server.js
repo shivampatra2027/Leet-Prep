@@ -18,7 +18,7 @@ dotenv.config();
 const app = express();
 
 app.use(cors({
-    origin: "http://localhost:5173",   // frontend dev server
+    origin: process.env.CLIENT_URL,   // frontend dev server
     credentials: true                  // allow cookies/Authorization headers
 }));
 
@@ -32,6 +32,7 @@ app.use("/auth", authRouter);
 
 // Error handler (must be last)
 app.use(errorHandler);
+app.get("/", (req, res) => { res.send("Backend is running 🚀"); });
 
 const PORT = process.env.PORT || 8080;
 
