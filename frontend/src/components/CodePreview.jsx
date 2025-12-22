@@ -4,17 +4,33 @@ import Prism from "prismjs";
 import "prismjs/themes/prism-tomorrow.css";
 import "prismjs/components/prism-javascript";
 
-const demoCode = `function login(email, password) {
-  if (validate(email, password)) {
-    redirect("/dashboard");
-  } else {
-    alert("Invalid credentials");
-  }
-}
-console.log("Enter the secret code to log in into the system..")  
-`;
+const demoMessages = [
+    `ffunction login(email, password) {
+    if (validate(email, password)) {
+      redirect("/dashboard");
+    } else {
+      alert("IInvalid credentials");
+    }
+  }`,
+    `cconsole.log("Enter the secret code to log in...")`,
+    `wwhile(true) {
+    console.log("System breach detected...");
+  }`,
+    `aalert("Access denied. Try again.")`,
+    `aasync function fetchData(url) {
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    console.log(data);
+  } catch (error) {
+    console.error('Error fetching data:', error);
+        }
+    }`,
+    `ddevlopers: sahil And Shivam from kiit..`,
+];
 
 const CodePreview = () => {
+    const messageIndexRef = useRef(0);
     const [code, setCode] = useState("");
     const [isUserTyping, setIsUserTyping] = useState(false);
     const indexRef = useRef(0);
@@ -22,13 +38,17 @@ const CodePreview = () => {
     useEffect(() => {
         if (isUserTyping) return; 
         const interval = setInterval(() => {
-            if (indexRef.current < demoCode.length) {
-                setCode((prev) => prev + demoCode[indexRef.current]);
+            const currentMessage = demoMessages[messageIndexRef.current];
+
+            if (indexRef.current < currentMessage.length) {
+                setCode((prev) => prev + currentMessage[indexRef.current]);
                 indexRef.current += 1;
             } else {
-                clearInterval(interval);
+                messageIndexRef.current = (messageIndexRef.current+1)%demoMessages.length;
+                indexRef.current =0;
+                setCode("");
             }
-        }, 50);
+        }, 20);
         return () => clearInterval(interval);
     }, [isUserTyping]);
 
