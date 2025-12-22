@@ -3,23 +3,32 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import helmet from "helmet";
+import session from "express-session";   
 import { connectDb } from "./config/db.js";
 import problemRoutes from "./routes/problemRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
-import authRouter, { authMiddleware } from "./routes/auth.js";
+import authRouter from "./routes/auth.js";
 import passport, { configureGoogleStrategy } from "./auth/google.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 
-configureGoogleStrategy();
-dotenv.config();
-
-
+dotenv.config();              
+configureGoogleStrategy();    
 
 const app = express();
 
+app.use(session({
+    secret: process.env.JWT_SECRET || "supersecret",
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: process.env.NODE_ENV === "production" }
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use(cors({
-    origin: process.env.CLIENT_URL,   // frontend dev server
-    credentials: true                  // allow cookies/Authorization headers
+    origin: process.env.CLIENT_URL,
+    credentials: true
 }));
 
 app.use(express.json());
@@ -30,9 +39,22 @@ app.use("/api/problems", problemRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/auth", authRouter);
 
-// Error handler (must be last)
-app.use(errorHandler);
+// Google OAuth routes
+app.get("/auth/google",
+    passport.authenticate("google", { scope: ["profile", "email"] })
+);
+
+app.get("/auth/google/callback",
+    passport.authenticate("google", { failureRedirect: "/login" }),
+    (req, res) => {
+        res.redirect(`${process.env.CLIENT_URL}/dashboard`);
+    }
+);
+
 app.get("/", (req, res) => { res.send("Backend is running 🚀"); });
+
+
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 8080;
 
