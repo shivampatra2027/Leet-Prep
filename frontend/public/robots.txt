@@ -1,5 +1,9 @@
 User-agent: *
 Allow: /
 
+# Block sensitive routes
+Disallow: /api/
+Disallow: /auth/
+
 # Sitemap
-# Sitemap: https://leet.io/sitemap.xml
+Sitemap: https://leet-io-frontend.onrender.com/sitemap.xml

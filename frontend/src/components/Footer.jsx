@@ -5,27 +5,27 @@ const defaultSections = [
   {
     title: "Community",
     links: [
-      { name: "Discussions", href: "#" },
-      { name: "Discord Server", href: "#" },
-      { name: "Contributing", href: "#" },
-      { name: "Events", href: "#" },
+      { name: "Discussions", href: "/dashboard" },
+      { name: "Discord Server", href: "/dashboard" },
+      { name: "Contributing", href: "/dashboard" },
+      { name: "Events", href: "/dashboard" },
     ],
   },
   {
     title: "Resources",
     links: [
-      { name: "Documentation", href: "#" },
-      { name: "API Reference", href: "#" },
-      { name: "Blog", href: "#" },
-      { name: "Changelog", href: "#" },
+      { name: "Documentation", href: "/dashboard" },
+      { name: "API Reference", href: "/dashboard" },
+      { name: "Blog", href: "/dashboard" },
+      { name: "Changelog", href: "/dashboard" },
     ],
   },
   {
     title: "Legal",
     links: [
-      { name: "Privacy Policy", href: "#" },
-      { name: "Terms of Service", href: "#" },
-      { name: "Cookie Policy", href: "#" },
+      { name: "Privacy Policy", href: "/dashboard" },
+      { name: "Terms of Service", href: "/dashboard" },
+      { name: "Cookie Policy", href: "/dashboard" },
     ],
   },
 ];

@@ -43,11 +43,15 @@ function PaginationLink({
   size = "icon",
   ...props
 }) {
+  // Use button element when href is not provided (for client-side navigation)
+  const Comp = props.href ? "a" : "button"
+  
   return (
-    <a
+    <Comp
       aria-current={isActive ? "page" : undefined}
       data-slot="pagination-link"
       data-active={isActive}
+      type={Comp === "button" ? "button" : undefined}
       className={cn(
         buttonVariants({
           variant: isActive ? "outline" : "ghost",
