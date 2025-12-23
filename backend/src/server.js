@@ -16,11 +16,21 @@ configureGoogleStrategy();
 
 const app = express();
 
+app.use(cors({
+    origin: process.env.CLIENT_URL,
+    credentials: true
+}));
+
 app.use(session({
     secret: process.env.JWT_SECRET || "supersecret",
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: process.env.NODE_ENV === "production" }
+    cookie: {
+        secure: true,                          // Force true on Render
+        sameSite: "none",                      // Required for cross-site
+        httpOnly: true,                        // Prevent JS access
+        maxAge: 24 * 60 * 60 * 1000             // Optional: 24 hours
+    }
 }));
 
 app.use(passport.initialize());
