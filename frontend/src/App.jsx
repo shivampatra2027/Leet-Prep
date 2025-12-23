@@ -9,6 +9,7 @@ import PrivateRoute from "./components/privateRoute";
 import { ThemeProvider } from "@/components/theme-provider.jsx"
 import { Pricing4 } from "./pages/Premium";
 import Profile from "./pages/profile";
+import ErrorPage from "./ErrorPage";
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
               <Profile />
             </PrivateRoute>
             } />
+          <Route path="*" element={<ErrorPage />} />
         </Routes>
       </Router>
     </ThemeProvider>
