@@ -44,8 +44,6 @@ import {
 
 // --- SEO-Friendly Logo Component ---
 // Handles lazy loading, layout shifts (CLS), and error fallbacks
-const logoApiUrl = import.meta.env.VITE_LOGO_API_URL; // 
-const faviconApiUrl = import.meta.env.VITE_FAVICON_API_URL;
 const CompanyLogo = ({ company, className }) => {
   const [hasError, setHasError] = React.useState(false);
 
@@ -57,10 +55,12 @@ const CompanyLogo = ({ company, className }) => {
 
   // 2. Google Favicon Service URL
   const logoUrl = domain
-    ? `${logoApiUrl}?domain=${domain}`
+    ? `https://logo-api-9x38.onrender.com/logo?domain=${domain}`
     : `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
 
   // const logoUrl = domain?
+  //   `https://www.google.com/s2/favicons?domain=${domain}&sz=64`
+  //   : `https://logo-api-9x38.onrender.com/logo?domain=${domain}`
     
   // 3. Fallback: Render generic icon if error occurs or domain is invalid
   if (hasError || !domain) {
