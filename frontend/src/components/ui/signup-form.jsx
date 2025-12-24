@@ -28,26 +28,16 @@ export function SignupForm({ className, ...props }) {
     }
 
     try {
-      const response = await fetch("http://localhost:8080/auth/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.error || "Signup failed");
-      } else {
-        alert("Signup successful!");
-        if(data.token){
-          localStorage.setItem("authToken", data.token);
-        }
-        window.location.href="/dashboard";
-  
+      const response = await authAPI.register({ name, email, password });
+      const data = response.data;
+      
+      alert("Signup successful!");
+      if(data.token){
+        localStorage.setItem("authToken", data.token);
       }
+      window.location.href="/dashboard";
     } catch (err) {
-      setError(err.message || "Network error");
+      setError(err.response?.data?.error || err.message || "Signup failed");
     }
   };
 
