@@ -50,4 +50,8 @@ export const problemsAPI = {
   getCompanies: () => api.get("/api/problems/companies"),
 };
 
+export const profileAPI = {
+  getProfile: () => api.get("/api/profile"),
+};
+
 export default api;

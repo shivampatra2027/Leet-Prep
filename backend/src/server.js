@@ -16,26 +16,6 @@ configureGoogleStrategy();
 
 const app = express();
 
-app.use(cors({
-    origin: process.env.CLIENT_URL,
-    credentials: true
-}));
-
-app.use(session({
-    secret: process.env.JWT_SECRET || "supersecret",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        secure: true,                          // Force true on Render
-        sameSite: "none",                      // Required for cross-site
-        httpOnly: true,                        // Prevent JS access
-        maxAge: 24 * 60 * 60 * 1000             // Optional: 24 hours
-    }
-}));
-
-app.use(passport.initialize());
-app.use(passport.session());
-
 // CORS configuration
 const allowedOrigins = [
     process.env.CLIENT_URL,
@@ -59,6 +39,21 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+app.use(session({
+    secret: process.env.JWT_SECRET || "supersecret",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: true,                          // Force true on Render
+        sameSite: "none",                      // Required for cross-site
+        httpOnly: true,                        // Prevent JS access
+        maxAge: 24 * 60 * 60 * 1000             // Optional: 24 hours
+    }
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.use(express.json());
 app.use(helmet());

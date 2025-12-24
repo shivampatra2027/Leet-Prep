@@ -10,6 +10,7 @@ import {
   CardHeader,
 } from "@/components/ui/card.jsx";
 import Navbar from "@/components/Navbar.jsx";
+import api from "@/lib/api.js";
 
 const Profile = () => {
   const [user, setUser] = useState(null);
@@ -25,24 +26,14 @@ const Profile = () => {
           return;
         }
 
-        const response = await fetch("http://localhost:8080/api/profile", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setUser(data);
-        } else {
-          // Handle unauthorized or other errors
-          if (response.status === 401) {
-            localStorage.removeItem("authToken");
-            navigate("/login");
-          }
-        }
+        const response = await api.get("/api/profile");
+        setUser(response.data);
       } catch (error) {
         console.error("Failed to fetch profile:", error);
+        // The interceptor will handle 401 errors automatically
+        if (error.response?.status === 401) {
+          navigate("/login");
+        }
       } finally {
         setLoading(false);
       }
