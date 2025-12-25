@@ -6,6 +6,6 @@ const router = express.Router();
 
 router.get("/", getAllProblems);
 router.get("/:id", getProblemById);
+router.get("/companies/:companyId", getProblemById);
 router.get("/companies", getCompanies);
-
 export default router;

@@ -79,3 +79,27 @@ export const getProblemById = async (req, res) => {
         res.status(500).json({ ok: false, message: "Failed to fetch problem", error: err.message });
     }
 };
+
+export const getProblemsByCompany = async(req,res)=>{
+    try {
+        const {companyId}=req.params;
+        const user = req.user;
+        const cacheKey = `company:${companyId}:tier:${user.tier}`; const cached = await getCache(cacheKey); if (cached) return res.json({ ok: true, data: cached });
+
+        let problems;
+        if(user.tier === "premium"){
+            problems=await Problem.find({companyId}).sort({index:1});
+        }else{
+            problems=await Problem.find({companyId}).sort({index:1});
+        }
+
+        await setCache(cacheKey,problems,300);
+
+        res.json({ok:true,data:problems});
+    } catch (error) {
+        res.json({
+            ok:false,
+            message:"Failed tp fetch problems"
+        })
+    }
+}

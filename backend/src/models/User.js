@@ -1,48 +1,58 @@
 import mongoose from 'mongoose';
 const { Schema } = mongoose;
 const AttemptSchema = new Schema({
-    problem: { 
-        type: Schema.Types.ObjectId, 
-        ref: 'Problem', required: false 
+    problem: {
+        type: Schema.Types.ObjectId,
+        ref: 'Problem', required: false
     },
-    problemId: { 
-        type: String, 
-        required: false 
-    }, 
+    problemId: {
+        type: String,
+        required: false
+    },
 
-    status: { 
-        type: String, 
-        enum: ['unsolved', 'attempted', 'solved'], 
-        default: 'unsolved' 
+    status: {
+        type: String,
+        enum: ['unsolved', 'attempted', 'solved'],
+        default: 'unsolved'
     },
-    language: { 
-        type: String 
-    },       
-    notes: { 
-        type: String 
-    },         
-    lastAttemptAt: { 
-        type: Date 
+    language: {
+        type: String
+    },
+    notes: {
+        type: String
+    },
+    lastAttemptAt: {
+        type: Date
+    },
+    companyId:{
+        type:Schema.Types.ObjectId,
+        ref:'Company',
+        required:true
     }
 }, { _id: false });
 
 const UserSchema = new Schema({
-    email: { 
-        type: String, 
-        unique: true, 
-        sparse: true, 
-        index: true 
-    }, 
-    name: { 
-        type: String 
+    email: {
+        type: String,
+        unique: true,
+        sparse: true,
+        index: true
     },
-    passwordHash: { 
-        type: String 
-    }, 
+    name: {
+        type: String
+    },
+    passwordHash: {
+        type: String
+    },
 
-    isAdmin: { 
-        type: Boolean, 
-        default: false 
+    isAdmin: {
+        type: Boolean,
+        default: false
+    },
+    tier:{
+        type: String,
+        enum: ['free','premium'],
+        default:'free'
     },
     attempts: [AttemptSchema]
 }, {
@@ -51,10 +61,17 @@ const UserSchema = new Schema({
 
 UserSchema.methods.upsertAttempt = function (attemptObj) {
     const { problemId, status, language, notes } = attemptObj;
+
     const idx = this.attempts.findIndex(a => (a.problemId && a.problemId === problemId) || (a.problem && a.problem.toString() === (attemptObj.problem ? attemptObj.problem.toString() : null)));
+
+    if (this.tier === 'false' && attemptsForCompany.length >= 10) {
+        throw new Error("Premium required to attemp for this company");
+    
+    }
     if (idx === -1) {
         this.attempts.push({
             problemId,
+            companyId:attemptObj.companyId,
             status,
             language,
             notes,
