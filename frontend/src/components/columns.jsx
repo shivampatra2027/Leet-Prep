@@ -69,17 +69,14 @@ export const columns = [
           <div className="flex flex-wrap gap-2">
             {problem.companies?.slice(0, 3).map((company, idx) => (
               <div key={idx} className="flex items-center gap-1 px-2 py-0.5 rounded bg-muted">
-                {/* <img
-                  src={`${logoApiBase}${company.toLowerCase()}.com`}
-                  alt={company}
-                  className="w-4 h-4 rounded"
-                  onError={(e) => (e.target.style.display = "none")}
-                /> */}
                 <img
-                  src={`https://www.google.com/s2/favicons?domain=${company.toLowerCase()}.com`}
-                  alt={company}
+                  src={`${logoApiBase}/${company.toLowerCase().replace(/\s+/g, "")}.com?token=${import.meta.env.VITE_LOGO_API_TOKEN}`}
+                  alt={`${company} logo`}
                   className="w-4 h-4 rounded"
-                  onError={(e) => (e.target.style.display = "none")}
+                  onError={(e) => {
+                    e.target.style.display = "none";
+                    // Optionally: e.target.parentElement.querySelector('span').style.marginLeft = '0';
+                  }}
                 />
                 <span className="text-xs text-muted-foreground">{company}</span>
               </div>

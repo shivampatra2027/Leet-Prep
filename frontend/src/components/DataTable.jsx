@@ -44,24 +44,23 @@ import {
 
 // --- SEO-Friendly Logo Component ---
 // Handles lazy loading, layout shifts (CLS), and error fallbacks
+const logoApiBase = import.meta.env.VITE_LOGO_API_BASE;   // e.g. "https://img.logo.dev"
+const logoApiToken = import.meta.env.VITE_LOGO_API_TOKEN; // your token
 const CompanyLogo = ({ company, className }) => {
   const [hasError, setHasError] = React.useState(false);
 
   // 1. Sanitize the company name to create a valid domain guess
   // e.g., "Traceable AI" -> "traceableai.com"
-  const domain = company 
-    ? `${company.toLowerCase().replace(/\s+/g, '')}.com` 
+  const domain = company
+    ? `${company.toLowerCase().replace(/\s+/g, "")}.com`
     : null;
 
-  // 2. Google Favicon Service URL
-  const logoUrl = domain
-     ? `https://www.google.com/s2/favicons?domain=${domain}&sz=64`
-     :`https://logo-api-9x38.onrender.com/logo?domain=${domain}`
+  // 2. Build logo URL using img.logo.dev + token
+  const logoUrl =
+    domain && !hasError
+      ? `${logoApiBase}/${domain}?token=${logoApiToken}`
+      : null;
 
-  // const logoUrl = domain?
-  //   `https://www.google.com/s2/favicons?domain=${domain}&sz=64`
-  //   : `https://logo-api-9x38.onrender.com/logo?domain=${domain}`
-    
   // 3. Fallback: Render generic icon if error occurs or domain is invalid
   if (hasError || !domain) {
     return (
@@ -76,17 +75,13 @@ const CompanyLogo = ({ company, className }) => {
     <img
       src={logoUrl}
       alt={`${company} logo`}
-      // SEO: Explicit dimensions prevent Cumulative Layout Shift
-      width={16}
-      height={16}
-      // SEO: Lazy loading improves initial page load speed
-      loading="lazy"
-      className={`rounded object-contain ${className}`}
-      // ERROR HANDLING: Switch to icon state immediately on failure
+      className={`w-4 h-4 rounded ${className}`}
       onError={() => setHasError(true)}
     />
   );
 };
+
+
 
 export function DataTable({ columns, data, onFilteredCountChange }) {
   const [sorting, setSorting] = React.useState([]);
