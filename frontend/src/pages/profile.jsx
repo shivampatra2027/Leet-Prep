@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { CheckCircle, Crown, Loader2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
@@ -90,7 +90,7 @@ const Profile = () => {
                 </Badge>
                 <Button className="gap-2">
                   <Crown className="h-4 w-4" />
-                  Get Premium
+                  <Link to='/premium'>Get Premium</Link>
                 </Button>
               </div>
             )}
