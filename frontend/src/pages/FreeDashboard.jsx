@@ -18,7 +18,36 @@ export default function FreeDashboard() {
       const params = { limit: 10000 }; // Fetch all problems
 
       const res = await problemsAPI.getAll(params);
-      setProblems(res.data.data || []);
+      const allProblems = res.data.data || [];
+      
+      // Limit to 2 problems per company
+      const companyProblemCount = new Map();
+      const limitedProblems = allProblems.filter((problem) => {
+        // Get companies for this problem
+        const companies = problem.companies || [];
+        
+        // Check if we can include this problem for any of its companies
+        let canInclude = false;
+        for (const company of companies) {
+          const count = companyProblemCount.get(company) || 0;
+          if (count < 2) {
+            canInclude = true;
+            break;
+          }
+        }
+        
+        // If we can include it, increment counts for all its companies
+        if (canInclude) {
+          for (const company of companies) {
+            companyProblemCount.set(company, (companyProblemCount.get(company) || 0) + 1);
+          }
+          return true;
+        }
+        
+        return false;
+      });
+      
+      setProblems(limitedProblems);
       setPagination(res.data.pagination);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to fetch problems");

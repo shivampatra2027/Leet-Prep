@@ -13,7 +13,8 @@ export const getUserProfile = async (req, res) => {
         username: user.name,
         email: user.email,
         avatarUrl: user.avatarUrl || "https://github.com/shadcn.png", // Default or from DB
-        isPremium: user.isPremium || false, // Default or from DB
+        tier: user.tier || 'free', // 'free' or 'premium'
+        isPremium: user.tier === 'premium', // For backward compatibility
         isAdmin: user.isAdmin,
       });
     } else {

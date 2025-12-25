@@ -7,6 +7,7 @@ import session from "express-session";
 import { connectDb } from "./config/db.js";
 import problemRoutes from "./routes/problemRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
+import premiumRoutes from "./routes/premiumRoutes.js";
 import authRouter from "./routes/auth.js";
 import passport, { configureGoogleStrategy } from "./auth/google.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
@@ -61,6 +62,7 @@ app.use(helmet());
 // Routes
 app.use("/api/problems", problemRoutes);
 app.use("/api/profile", profileRoutes);
+app.use("/api/premium", premiumRoutes);
 app.use("/auth", authRouter);
 
 // Google OAuth routes
@@ -70,8 +72,15 @@ app.get("/auth/google",
 
 app.get("/auth/google/callback",
     passport.authenticate("google", { failureRedirect: "/login" }),
-    (req, res) => {
-        res.redirect(`${process.env.CLIENT_URL}/dashboard`);
+    async (req, res) => {
+        try {
+            const user = req.user;
+            const redirectPath = user.tier === 'premium' ? '/dashboard' : '/freedashboard';
+            res.redirect(`${process.env.CLIENT_URL}${redirectPath}`);
+        } catch (error) {
+            console.error('Error in Google callback:', error);
+            res.redirect(`${process.env.CLIENT_URL}/freedashboard`);
+        }
     }
 );
 

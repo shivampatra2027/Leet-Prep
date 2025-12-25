@@ -75,19 +75,27 @@ const Profile = () => {
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-6 pb-8">
           <div className="flex flex-col items-center gap-3">
-            {user.isPremium ? (
-              <Badge
-                variant="secondary"
-                className="flex items-center gap-1.5 bg-green-500/15 px-4 py-1 text-base font-medium text-green-600 hover:bg-green-500/25 dark:text-green-400"
-              >
-                <CheckCircle className="h-4 w-4" />
-                Premium Member
-              </Badge>
+            {user.tier === 'premium' ? (
+              <div className="flex flex-col items-center gap-4">
+                <Badge
+                  variant="secondary"
+                  className="flex items-center gap-1.5 bg-green-500/15 px-4 py-1 text-base font-medium text-green-600 hover:bg-green-500/25 dark:text-green-400"
+                >
+                  <CheckCircle className="h-4 w-4" />
+                  Premium Member
+                </Badge>
+                <Button onClick={() => navigate('/dashboard')} className="gap-2">
+                  View Full Dashboard
+                </Button>
+              </div>
             ) : (
               <div className="flex flex-col items-center gap-4">
                 <Badge variant="secondary" className="text-muted-foreground">
                   Free Plan
                 </Badge>
+                <p className="text-sm text-muted-foreground text-center max-w-xs">
+                  Limited to 2 problems per company
+                </p>
                 <Button className="gap-2">
                   <Crown className="h-4 w-4" />
                   <Link to='/premium'>Get Premium</Link>

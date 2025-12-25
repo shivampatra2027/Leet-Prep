@@ -8,7 +8,7 @@ import {
   FieldSeparator,
 } from "./field"
 import { Input } from "./input"
-import { authAPI } from "../../lib/api"
+import { authAPI, premiumAPI } from "../../lib/api"
 
 export function LoginForm({
   className,
@@ -23,7 +23,15 @@ export function LoginForm({
     try {
       const res = await authAPI.login({ email, password });
       localStorage.setItem("authToken", res.data.token);
-      window.location.href = "/dashboard";
+      
+      // Check user tier and redirect accordingly
+      try {
+        const dashboardRes = await premiumAPI.checkDashboard();
+        window.location.href = dashboardRes.data.redirectPath;
+      } catch {
+        // Fallback to freedashboard on error
+        window.location.href = "/freedashboard";
+      }
     } catch (err) {
       alert(err.response?.data?.error || "Login failed");
     }

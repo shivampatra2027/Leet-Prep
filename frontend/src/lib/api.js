@@ -54,4 +54,8 @@ export const profileAPI = {
   getProfile: () => api.get("/api/profile"),
 };
 
+export const premiumAPI = {
+  checkDashboard: () => api.get("/api/premium/check-dashboard"),
+};
+
 export default api;
