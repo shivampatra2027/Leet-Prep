@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { GalleryVerticalEnd } from "lucide-react";
 import { LoginForm } from "@/components/ui/login-form.jsx";
 import CodePreview from "@/components/CodePreview.jsx"; // import here
+import { premiumAPI } from "@/lib/api.js";
 
 export default function Login() {
   useEffect(() => {
@@ -9,7 +10,15 @@ export default function Login() {
     const token = params.get("token");
     if (token) {
       localStorage.setItem("authToken", token);
-      window.location.href = "/dashboard";
+      // Check user tier and redirect accordingly
+      premiumAPI.checkDashboard()
+        .then(response => {
+          window.location.href = response.data.redirectPath;
+        })
+        .catch(() => {
+          // Fallback to freedashboard on error
+          window.location.href = "/freedashboard";
+        });
     }
   }, []);
 

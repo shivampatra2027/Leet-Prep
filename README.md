@@ -336,7 +336,7 @@ The header displays the current number of visible problems based on active filte
 
 5. **Clear Browser Cache**: If UI issues persist, clear browser cache and local storage
 
-## Additional Resources
+## Additional Resources.
 
 - [React Documentation](https://react.dev/)
 - [Express.js Guide](https://expressjs.com/)

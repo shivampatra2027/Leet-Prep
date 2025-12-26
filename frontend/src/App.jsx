@@ -10,6 +10,7 @@ import { ThemeProvider } from "@/components/theme-provider.jsx"
 import { Pricing4 } from "./pages/Premium";
 import Profile from "./pages/profile";
 import ErrorPage from "./ErrorPage";
+import FreeDashboard from "./pages/FreeDashboard";
 
 function App() {
   return (
@@ -22,6 +23,14 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/premium" element={<Pricing4 />} />
           <Route path="/logout" element={<Logout />} />
+          <Route
+            path="/freedashboard"
+            element={
+              <PrivateRoute>
+                <FreeDashboard />
+              </PrivateRoute>
+            }
+          />
           <Route
             path="/dashboard"
             element={
