@@ -3,6 +3,7 @@ import * as React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ModeToggle } from "./mode-toggle";
 import { Button } from "@/components/ui/button.jsx";
+import {LogOut} from "lucide-react"
 
 import {
   NavigationMenu,
@@ -74,9 +75,7 @@ export default function Navbar() {
         {/* Right: Auth Actions + Theme Toggle */}
         <div className="flex items-center gap-4">
           {isLoggedIn ? (
-            <Button variant="destructive" onClick={handleLogout}>
-              Logout
-            </Button>
+            <LogOut variant="destructive" onClick={handleLogout} />
           ) : (
             <>
               <Link to="/login">
