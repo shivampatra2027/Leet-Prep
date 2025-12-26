@@ -11,6 +11,7 @@ import { Pricing4 } from "./pages/Premium";
 import Profile from "./pages/profile";
 import ErrorPage from "./ErrorPage";
 import FreeDashboard from "./pages/FreeDashboard";
+import PaymentButton from "./components/PaymentButton";
 
 function App() {
   return (

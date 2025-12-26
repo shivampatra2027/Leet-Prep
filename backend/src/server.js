@@ -11,7 +11,7 @@ import premiumRoutes from "./routes/premiumRoutes.js";
 import authRouter from "./routes/auth.js";
 import passport, { configureGoogleStrategy } from "./auth/google.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
-
+import paymentRoutes from './routes/paymentRoutes.js'
 dotenv.config();              
 configureGoogleStrategy();    
 
@@ -63,6 +63,7 @@ app.use(helmet());
 app.use("/api/problems", problemRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/premium", premiumRoutes);
+app.use("/api/payment",paymentRoutes);
 app.use("/auth", authRouter);
 
 // Google OAuth routes

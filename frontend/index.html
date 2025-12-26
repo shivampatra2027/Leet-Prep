@@ -1,74 +1,101 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/logo.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#6366f1" />
-    
-    <!-- Preconnect to external domains for faster loading -->
-    <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
-    <link rel="dns-prefetch" href="https://images.unsplash.com" />
-    
-    <!-- Preload critical hero image -->
-    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&h=600&fit=crop&auto=format&fm=webp&q=70" imagesrcset="https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&h=400&fit=crop&auto=format&fm=webp&q=70 800w, https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&h=600&fit=crop&auto=format&fm=webp&q=70 1200w" imagesizes="100vw" fetchpriority="high" />
-    
-    <!-- Canonical URL -->
-    <link rel="canonical" href="https://leet.io/" />
-    
-    <!-- Sitemap -->
-    <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
-    
-    <!-- Inline critical CSS for above-the-fold content -->
-    <style>
-      body { margin: 0; min-height: 100vh; }
-      #root { min-height: 100vh; }
-      .animate-spin { animation: spin 1s linear infinite; }
-      @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-    </style>
-    
-    <!-- Primary SEO Meta Tags -->
-    <title>Leet.IO - Company-Wise Coding Problems</title>
-    <meta name="title" content="Leet.IO - Master DSA with 1800+ Company-Wise Coding Problems | KIIT Students" />
-    <meta name="description" content="Practice 1800+ Data Structures and Algorithms problems organized by Google, Amazon, Microsoft, Meta & 50+ companies. Free platform for KIIT students to ace technical interviews. Start coding today!" />
-    <meta name="keywords" content="leetcode alternative, coding problems, data structures algorithms, DSA practice, company wise questions, Google interview questions, Amazon coding problems, Microsoft interview prep, FAANG preparation, technical interview, competitive programming, KIIT coding platform, free leetcode, coding interview preparation, programming practice, algorithm challenges" />
-    <meta name="author" content="Leet.IO Team" />
-    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
-    <meta name="language" content="English" />
-    <meta name="revisit-after" content="7 days" />
-    <meta name="rating" content="General" />
 
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://leet.io/" />
-    <meta property="og:site_name" content="Leet.IO" />
-    <meta property="og:title" content="Leet.IO - Master DSA with 1800+ Company-Wise Coding Problems" />
-    <meta property="og:description" content="Practice coding problems from Google, Amazon, Microsoft & 50+ top companies. Free platform for KIIT students to prepare for technical interviews." />
-    <meta property="og:image" content="https://leet.io/og-image.png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Leet.IO - Company-wise DSA coding platform" />
-    <meta property="og:locale" content="en_US" />
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/logo.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#6366f1" />
 
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:url" content="https://leet.io/" />
-    <meta name="twitter:title" content="Leet.IO - Master DSA with 1800+ Company-Wise Coding Problems" />
-    <meta name="twitter:description" content="Practice coding problems from Google, Amazon, Microsoft & 50+ companies. Free for KIIT students." />
-    <meta name="twitter:image" content="https://leet.io/twitter-image.png" />
-    <meta name="twitter:image:alt" content="Leet.IO coding platform screenshot" />
-    <meta name="twitter:creator" content="@leetio" />
-    <meta name="twitter:site" content="@leetio" />
+  <!-- Preconnect to external domains for faster loading -->
+  <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
+  <link rel="dns-prefetch" href="https://images.unsplash.com" />
 
-    <!-- Additional SEO -->
-    <meta name="application-name" content="Leet.IO" />
-    <meta name="apple-mobile-web-app-title" content="Leet.IO" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="format-detection" content="telephone=no" />
-  
-    <!-- JSON-LD Structured Data -->
-    <script type="application/ld+json">
+  <!-- Preload critical hero image -->
+  <link rel="preload" as="image"
+    href="https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&h=600&fit=crop&auto=format&fm=webp&q=70"
+    imagesrcset="https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&h=400&fit=crop&auto=format&fm=webp&q=70 800w, 
+                   https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&h=600&fit=crop&auto=format&fm=webp&q=70 1200w"
+    imagesizes="100vw" fetchpriority="high" />
+
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://leet.io/" />
+
+  <!-- Sitemap -->
+  <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
+
+  <!-- Inline critical CSS for above-the-fold content -->
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    #root {
+      min-height: 100vh;
+    }
+
+    .animate-spin {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
+
+  <!-- Primary SEO Meta Tags -->
+  <title>Leet.IO - Company-Wise Coding Problems</title>
+  <meta name="title" content="Leet.IO - Master DSA with 1800+ Company-Wise Coding Problems | KIIT Students" />
+  <meta name="description"
+    content="Practice 1800+ Data Structures and Algorithms problems organized by Google, Amazon, Microsoft, Meta & 50+ companies. Free platform for KIIT students to ace technical interviews. Start coding today!" />
+  <meta name="keywords"
+    content="leetcode alternative, coding problems, data structures algorithms, DSA practice, company wise questions, Google interview questions, Amazon coding problems, Microsoft interview prep, FAANG preparation, technical interview, competitive programming, KIIT coding platform, free leetcode, coding interview preparation, programming practice, algorithm challenges" />
+  <meta name="author" content="Leet.IO Team" />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+  <meta name="language" content="English" />
+  <meta name="revisit-after" content="7 days" />
+  <meta name="rating" content="General" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://leet.io/" />
+  <meta property="og:site_name" content="Leet.IO" />
+  <meta property="og:title" content="Leet.IO - Master DSA with 1800+ Company-Wise Coding Problems" />
+  <meta property="og:description"
+    content="Practice coding problems from Google, Amazon, Microsoft & 50+ top companies. Free platform for KIIT students to prepare for technical interviews." />
+  <meta property="og:image" content="https://leet.io/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Leet.IO - Company-wise DSA coding platform" />
+  <meta property="og:locale" content="en_US" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://leet.io/" />
+  <meta name="twitter:title" content="Leet.IO - Master DSA with 1800+ Company-Wise Coding Problems" />
+  <meta name="twitter:description"
+    content="Practice coding problems from Google, Amazon, Microsoft & 50+ companies. Free for KIIT students." />
+  <meta name="twitter:image" content="https://leet.io/twitter-image.png" />
+  <meta name="twitter:image:alt" content="Leet.IO coding platform screenshot" />
+  <meta name="twitter:creator" content="@leetio" />
+  <meta name="twitter:site" content="@leetio" />
+
+  <!-- Additional SEO -->
+  <meta name="application-name" content="Leet.IO" />
+  <meta name="apple-mobile-web-app-title" content="Leet.IO" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no" />
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "WebApplication",
@@ -95,7 +122,7 @@
     }
     </script>
 
-    <script type="application/ld+json">
+  <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "EducationalOrganization",
@@ -114,9 +141,14 @@
       ]
     }
     </script>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+
+  <!-- Razorpay Checkout Script -->
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+
 </html>

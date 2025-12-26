@@ -1,5 +1,4 @@
 import User from '../models/User.js';
-
 // @desc    Get user profile
 // @route   GET /api/profile
 // @access  Private
