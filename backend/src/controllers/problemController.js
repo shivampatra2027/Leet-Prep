@@ -85,7 +85,7 @@ export const getProblemsByCompany = async(req,res)=>{
         const {companyId}=req.params;
         const user = req.user;
         const cacheKey = `company:${companyId}:tier:${user.tier}`; const cached = await getCache(cacheKey); if (cached) return res.json({ ok: true, data: cached });
-//l
+//l..
         let problems;
         if(user.tier === "premium"){
             problems=await Problem.find({companyId}).sort({index:1});
