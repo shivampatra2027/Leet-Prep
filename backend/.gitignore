@@ -2,3 +2,4 @@ node_modules
 dotenv
 .env
 import_problems_safe.js
+backend\scripts\import_problems_safe.js
