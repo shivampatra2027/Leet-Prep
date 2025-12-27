@@ -49,19 +49,15 @@ const logoApiToken = import.meta.env.VITE_LOGO_API_TOKEN; // your token
 const CompanyLogo = ({ company, className }) => {
   const [hasError, setHasError] = React.useState(false);
 
-  // 1. Sanitize the company name to create a valid domain guess
-  // e.g., "Traceable AI" -> "traceableai.com"
   const domain = company
     ? `${company.toLowerCase().replace(/\s+/g, "")}.com`
     : null;
 
-  // 2. Build logo URL using img.logo.dev + token
   const logoUrl =
     domain && !hasError
       ? `${logoApiBase}/${domain}?token=${logoApiToken}`
       : null;
 
-  // 3. Fallback: Render generic icon if error occurs or domain is invalid
   if (hasError || !domain) {
     return (
       <Building2
