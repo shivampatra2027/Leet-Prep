@@ -7,7 +7,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ChevronDown, Building2 } from "lucide-react";
+import { ChevronDown, Building2,Tag } from "lucide-react";
 
 import { Button } from "@/components/ui/button.jsx";
 import {
@@ -43,9 +43,9 @@ import {
 } from "@/components/ui/pagination.jsx";
 
 // --- SEO-Friendly Logo Component ---
-// Handles lazy loading, layout shifts (CLS), and error fallbacks
-const logoApiBase = import.meta.env.VITE_LOGO_API_BASE;   // e.g. "https://img.logo.dev"
-const logoApiToken = import.meta.env.VITE_LOGO_API_TOKEN; // your token
+const logoApiBase = import.meta.env.VITE_LOGO_API_BASE;
+const logoApiToken = import.meta.env.VITE_LOGO_API_TOKEN;
+
 const CompanyLogo = ({ company, className }) => {
   const [hasError, setHasError] = React.useState(false);
 
@@ -62,7 +62,7 @@ const CompanyLogo = ({ company, className }) => {
     return (
       <Building2
         className={`text-muted-foreground ${className}`}
-        aria-label={`${company} generic logo`}
+        aria-label={`${company || "Company"} logo`}
       />
     );
   }
@@ -71,13 +71,12 @@ const CompanyLogo = ({ company, className }) => {
     <img
       src={logoUrl}
       alt={`${company} logo`}
-      className={`w-4 h-4 rounded ${className}`}
+      className={`w-4 h-4 rounded object-contain ${className}`}
       onError={() => setHasError(true)}
+      loading="lazy"
     />
   );
 };
-
-
 
 export function DataTable({ columns, data, onFilteredCountChange }) {
   const [sorting, setSorting] = React.useState([]);
@@ -87,53 +86,61 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
   const [difficultyFilter, setDifficultyFilter] = React.useState("all");
   const [companyFilter, setCompanyFilter] = React.useState("all");
   const [globalSearch, setGlobalSearch] = React.useState("");
+  const [topicFilters, setTopicFilters] = React.useState([]);
 
-  // Memoize unique companies
+  // Memoized unique values
   const uniqueCompanies = React.useMemo(() => {
     return Array.from(new Set(data.flatMap((d) => d.companies || []))).sort();
   }, [data]);
 
-  // Filter data based on difficulty, company, and global search
+  const uniqueTopics = React.useMemo(() => {
+    return Array.from(new Set(data.flatMap((d) => d.topics || []))).sort();
+  }, [data]);
+
+  // Filtered data based on all active filters
   const filteredData = React.useMemo(() => {
     let result = data;
 
-    // Apply difficulty filter
     if (difficultyFilter !== "all") {
       result = result.filter((item) => item.difficulty === difficultyFilter);
     }
 
-    // Apply company filter
     if (companyFilter !== "all") {
       result = result.filter((item) =>
         item.companies?.includes(companyFilter)
       );
     }
 
-    // Apply global search (title, problemId, companies)
+    if (topicFilters.length > 0) {
+      result = result.filter((item) =>
+        item.topics?.some((topic) => topicFilters.includes(topic))
+      );
+    }
+
     if (globalSearch) {
       const searchLower = globalSearch.toLowerCase();
       result = result.filter((item) => {
         const titleMatch = item.title?.toLowerCase().includes(searchLower);
-        const idMatch = item.problemId?.toLowerCase().includes(searchLower);
-        const companyMatch = item.companies?.some((company) =>
-          company.toLowerCase().includes(searchLower)
+        const idMatch = item.problemId?.toString().toLowerCase().includes(searchLower);
+        const companyMatch = item.companies?.some((c) =>
+          c.toLowerCase().includes(searchLower)
+        );
+        const topicMatch = item.topics?.some((t) =>
+          t.toLowerCase().includes(searchLower)
         );
 
-        return titleMatch || idMatch || companyMatch;
+        return titleMatch || idMatch || companyMatch || topicMatch;
       });
     }
 
     return result;
-  }, [data, difficultyFilter, companyFilter, globalSearch]);
+  }, [data, difficultyFilter, companyFilter, topicFilters, globalSearch]);
 
-  // Update filtered count when filteredData changes
+  // Notify parent of filtered count changes
   React.useEffect(() => {
-    if (onFilteredCountChange) {
-      onFilteredCountChange(filteredData.length);
-    }
-  }, [filteredData, onFilteredCountChange]);
+    onFilteredCountChange?.(filteredData.length);
+  }, [filteredData.length, onFilteredCountChange]);
 
-  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: filteredData,
     columns,
@@ -160,16 +167,15 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
 
   return (
     <div className="w-full">
-      <div className="flex items-center gap-4 py-4">
-        {/* Search Input */}
+      {/* Filters Bar */}
+      <div className="flex flex-wrap items-center gap-4 py-4">
         <Input
-          placeholder="Search by title, problem ID, or company..."
+          placeholder="Search by title, ID, company, or topic..."
           value={globalSearch}
-          onChange={(event) => setGlobalSearch(event.target.value)}
+          onChange={(e) => setGlobalSearch(e.target.value)}
           className="max-w-sm"
         />
 
-        {/* Difficulty Select */}
         <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="All Difficulty" />
@@ -182,7 +188,6 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
           </SelectContent>
         </Select>
 
-        {/* Company Select */}
         <Select value={companyFilter} onValueChange={setCompanyFilter}>
           <SelectTrigger className="w-[220px]">
             <SelectValue placeholder="All Companies" />
@@ -200,7 +205,60 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
           </SelectContent>
         </Select>
 
-        {/* Columns Dropdown */}
+        {/* Topics Multi-Select Dropdown */}
+        {/* Topics Multi-Select Dropdown */}
+        {/* Topics Multi-Select Dropdown */}
+        {/* Topics Multi-Select Dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="w-[260px] justify-start"> {/* Slightly wider for count */}
+              {topicFilters.length > 0
+                ? `Topics (${topicFilters.length})`
+                : "All Topics"}
+              <ChevronDown className="ml-auto h-4 w-4 opacity-50" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-[260px] max-h-[300px] overflow-y-auto">
+            {uniqueTopics.map((topic) => {
+              // Count how many problems have this topic
+              const count = data.filter((item) =>
+                item.topics?.includes(topic)
+              ).length;
+
+              return (
+                <DropdownMenuCheckboxItem
+                  key={topic}
+                  checked={topicFilters.includes(topic)}
+                  onCheckedChange={(checked) => {
+                    setTopicFilters(
+                      checked
+                        ? [...topicFilters, topic]
+                        : topicFilters.filter((t) => t !== topic)
+                    );
+                  }}
+                >
+                  <Tag className="mr-2 h-4 w-4 text-muted-foreground" />
+                  <span className="flex-1">{topic}</span>
+                  <span className="text-sm text-muted-foreground">
+                    ({count})
+                  </span>
+                </DropdownMenuCheckboxItem>
+              );
+            })}
+            {uniqueTopics.length > 0 && (
+              <DropdownMenuCheckboxItem
+                checked={topicFilters.length === 0}
+                onCheckedChange={() => setTopicFilters([])}
+                className="mt-2 border-t pt-2 font-medium"
+              >
+                <Tag className="mr-2 h-4 w-4 text-muted-foreground opacity-50" />
+                Clear selection
+              </DropdownMenuCheckboxItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+       
+        {/* Column Visibility Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
@@ -211,41 +269,36 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
             {table
               .getAllColumns()
               .filter((column) => column.getCanHide())
-              .map((column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
-                  >
-                    {column.id}
-                  </DropdownMenuCheckboxItem>
-                );
-              })}
+              .map((column) => (
+                <DropdownMenuCheckboxItem
+                  key={column.id}
+                  className="capitalize"
+                  checked={column.getIsVisible()}
+                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                >
+                  {column.columnDef.header ?? column.id}
+                </DropdownMenuCheckboxItem>
+              ))}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
 
+      {/* Table */}
       <div className="rounded-md border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  );
-                })}
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
           </TableHeader>
@@ -268,11 +321,8 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No results.
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  No results found.
                 </TableCell>
               </TableRow>
             )}
@@ -280,6 +330,7 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
         </Table>
       </div>
 
+      {/* Pagination & Selection Info */}
       <div className="flex items-center justify-between py-4">
         <div className="flex-1 text-sm text-muted-foreground">
           {table.getFilteredSelectedRowModel().rows.length} of{" "}
@@ -302,22 +353,18 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
 
               {Array.from({ length: table.getPageCount() }, (_, i) => i + 1)
                 .filter((page) => {
-                  const currentPage = table.getState().pagination.pageIndex + 1;
-                  const totalPages = table.getPageCount();
-
-                  // Show first, last, current, and neighbors
+                  const current = table.getState().pagination.pageIndex + 1;
+                  const total = table.getPageCount();
                   return (
                     page === 1 ||
-                    page === totalPages ||
-                    Math.abs(page - currentPage) <= 1
+                    page === total ||
+                    Math.abs(page - current) <= 1
                   );
                 })
                 .map((page, idx, arr) => {
-                  const currentPage = table.getState().pagination.pageIndex + 1;
-                  const previousPage = arr[idx - 1];
-
-                  // Add ellipsis if there's a gap > 1
-                  const showEllipsis = idx > 0 && page - previousPage > 1;
+                  const current = table.getState().pagination.pageIndex + 1;
+                  const prev = arr[idx - 1];
+                  const showEllipsis = idx > 0 && page - prev > 1;
 
                   return (
                     <React.Fragment key={page}>
@@ -329,7 +376,7 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
                       <PaginationItem>
                         <PaginationLink
                           onClick={() => table.setPageIndex(page - 1)}
-                          isActive={currentPage === page}
+                          isActive={current === page}
                           className="cursor-pointer"
                         >
                           {page}
