@@ -156,11 +156,11 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
           placeholder="Search by title, ID, company, or topic..."
           value={globalSearch}
           onChange={(e) => setGlobalSearch(e.target.value)}
-          className="w-full max-w-sm"
+          className="w-full max-w-sm bg-muted/30 hover:bg-muted/50 transition:colors"
         />
 
         <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
-          <SelectTrigger className="w-[180px] cursor-pointer hover:bg-muted/50 transition-colors">
+          <SelectTrigger className="w-[180px] cursor-pointer bg-muted/30 hover:bg-muted/50 transition-colors">
             <SelectValue placeholder="All Difficulty" />
           </SelectTrigger>
           <SelectContent>
@@ -172,7 +172,7 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
         </Select>
 
         <Select value={companyFilter} onValueChange={setCompanyFilter}>
-          <SelectTrigger className="w-[220px] cursor-pointer hover:bg-muted/50 transition-colors">
+          <SelectTrigger className="w-[220px] cursor-pointer bg-muted/30 transition-colors hover:bg-muted/50 transition-colors">
             <SelectValue placeholder="All Companies" />
           </SelectTrigger>
           <SelectContent>
@@ -191,7 +191,7 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
         {/* Topics Dropdown with Count */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="w-[260px] justify-start text-left font-normal cursor-pointer hover:bg-muted/50 transition-colors">
+            <Button variant="outline" className="w-[220px] cursor-pointer bg-muted/30 transition-colors hover:bg-muted/50 transition-colors">
               {topicFilters.length > 0 ? `Topics (${topicFilters.length})` : "All Topics"}
               <ChevronDown className="ml-auto h-4 w-4 opacity-50" />
             </Button>
