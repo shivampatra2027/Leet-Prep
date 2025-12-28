@@ -51,7 +51,7 @@ export default function Navbar() {
                   Dashboard
                 </Link>
                 <span
-                  className="absolute -top-1 -right-2 h-3 w-3 rounded-full bg-green-500 ring-4 ring-background animate-pulse"
+                  className="absolute -top-1 -right-2 h-2 w-2 rounded-full bg-green-500 ring-4 ring-background animate-pulse"
                   aria-label="New activity on dashboard"
                 />
               </NavigationMenuItem>
