@@ -211,6 +211,7 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
                         : topicFilters.filter((t) => t !== topic)
                     )
                   }
+                  onSelect={(e) => e.preventDefault()}
                 >
                   <Tag className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0 " />
                   <span className="flex-1 truncate">{topic}</span>
@@ -222,6 +223,7 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
               <DropdownMenuCheckboxItem
                 checked={topicFilters.length === 0}
                 onCheckedChange={() => setTopicFilters([])}
+                onSelect={(e) => e.preventDefault()}
                 className="mt-2 border-t pt-2 font-medium"
               >
                 <Tag className="mr-2 h-4 w-4 text-muted-foreground opacity-50" />
