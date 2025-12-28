@@ -151,7 +151,7 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
   return (
     <div className="w-full space-y-4">
       {/* Filters Bar */}
-      <div className="flex flex-wrap items-center gap-4 ">
+      <div className="flex flex-wrap items-center gap-4">
         <Input
           placeholder="Search by title, ID, company, or topic..."
           value={globalSearch}
@@ -235,7 +235,7 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
       </div>
 
       {/* Table */}
-      <div className="rounded-md border">
+      <div className="rounded-md border bg-gradient-to-br from-background via-muted/30 to-background">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
