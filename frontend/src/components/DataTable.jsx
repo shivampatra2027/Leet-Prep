@@ -7,7 +7,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ChevronDown, Building2,Tag } from "lucide-react";
+import { ChevronDown, Building2, Tag } from "lucide-react";
 
 import { Button } from "@/components/ui/button.jsx";
 import {
@@ -80,8 +80,6 @@ const CompanyLogo = ({ company, className }) => {
 
 export function DataTable({ columns, data, onFilteredCountChange }) {
   const [sorting, setSorting] = React.useState([]);
-  const [columnFilters, setColumnFilters] = React.useState([]);
-  const [columnVisibility, setColumnVisibility] = React.useState({});
   const [rowSelection, setRowSelection] = React.useState({});
   const [difficultyFilter, setDifficultyFilter] = React.useState("all");
   const [companyFilter, setCompanyFilter] = React.useState("all");
@@ -97,7 +95,7 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
     return Array.from(new Set(data.flatMap((d) => d.topics || []))).sort();
   }, [data]);
 
-  // Filtered data based on all active filters
+  // Filtered data
   const filteredData = React.useMemo(() => {
     let result = data;
 
@@ -106,9 +104,7 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
     }
 
     if (companyFilter !== "all") {
-      result = result.filter((item) =>
-        item.companies?.includes(companyFilter)
-      );
+      result = result.filter((item) => item.companies?.includes(companyFilter));
     }
 
     if (topicFilters.length > 0) {
@@ -122,12 +118,8 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
       result = result.filter((item) => {
         const titleMatch = item.title?.toLowerCase().includes(searchLower);
         const idMatch = item.problemId?.toString().toLowerCase().includes(searchLower);
-        const companyMatch = item.companies?.some((c) =>
-          c.toLowerCase().includes(searchLower)
-        );
-        const topicMatch = item.topics?.some((t) =>
-          t.toLowerCase().includes(searchLower)
-        );
+        const companyMatch = item.companies?.some((c) => c.toLowerCase().includes(searchLower));
+        const topicMatch = item.topics?.some((t) => t.toLowerCase().includes(searchLower));
 
         return titleMatch || idMatch || companyMatch || topicMatch;
       });
@@ -136,7 +128,6 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
     return result;
   }, [data, difficultyFilter, companyFilter, topicFilters, globalSearch]);
 
-  // Notify parent of filtered count changes
   React.useEffect(() => {
     onFilteredCountChange?.(filteredData.length);
   }, [filteredData.length, onFilteredCountChange]);
@@ -145,39 +136,31 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
     data: filteredData,
     columns,
     onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
+    onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
-    initialState: {
-      pagination: {
-        pageSize: 30,
-      },
-    },
+    initialState: { pagination: { pageSize: 30 } },
     state: {
       sorting,
-      columnFilters,
-      columnVisibility,
       rowSelection,
     },
   });
 
   return (
-    <div className="w-full">
+    <div className="w-full space-y-4">
       {/* Filters Bar */}
-      <div className="flex flex-wrap items-center gap-4 py-4">
+      <div className="flex flex-wrap items-center gap-4 ">
         <Input
           placeholder="Search by title, ID, company, or topic..."
           value={globalSearch}
           onChange={(e) => setGlobalSearch(e.target.value)}
-          className="max-w-sm"
+          className="w-full max-w-sm"
         />
 
         <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-[180px] cursor-pointer hover:bg-muted/50 transition-colors">
             <SelectValue placeholder="All Difficulty" />
           </SelectTrigger>
           <SelectContent>
@@ -189,7 +172,7 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
         </Select>
 
         <Select value={companyFilter} onValueChange={setCompanyFilter}>
-          <SelectTrigger className="w-[220px]">
+          <SelectTrigger className="w-[220px] cursor-pointer hover:bg-muted/50 transition-colors">
             <SelectValue placeholder="All Companies" />
           </SelectTrigger>
           <SelectContent>
@@ -205,43 +188,33 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
           </SelectContent>
         </Select>
 
-        {/* Topics Multi-Select Dropdown */}
-        {/* Topics Multi-Select Dropdown */}
-        {/* Topics Multi-Select Dropdown */}
-        {/* Topics Multi-Select Dropdown */}
+        {/* Topics Dropdown with Count */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="w-[260px] justify-start"> {/* Slightly wider for count */}
-              {topicFilters.length > 0
-                ? `Topics (${topicFilters.length})`
-                : "All Topics"}
+            <Button variant="outline" className="w-[260px] justify-start text-left font-normal cursor-pointer hover:bg-muted/50 transition-colors">
+              {topicFilters.length > 0 ? `Topics (${topicFilters.length})` : "All Topics"}
               <ChevronDown className="ml-auto h-4 w-4 opacity-50" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-[260px] max-h-[300px] overflow-y-auto">
             {uniqueTopics.map((topic) => {
-              // Count how many problems have this topic
-              const count = data.filter((item) =>
-                item.topics?.includes(topic)
-              ).length;
+              const count = data.filter((item) => item.topics?.includes(topic)).length;
 
               return (
                 <DropdownMenuCheckboxItem
                   key={topic}
                   checked={topicFilters.includes(topic)}
-                  onCheckedChange={(checked) => {
+                  onCheckedChange={(checked) =>
                     setTopicFilters(
                       checked
                         ? [...topicFilters, topic]
                         : topicFilters.filter((t) => t !== topic)
-                    );
-                  }}
+                    )
+                  }
                 >
-                  <Tag className="mr-2 h-4 w-4 text-muted-foreground" />
-                  <span className="flex-1">{topic}</span>
-                  <span className="text-sm text-muted-foreground">
-                    ({count})
-                  </span>
+                  <Tag className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0 " />
+                  <span className="flex-1 truncate">{topic}</span>
+                  <span className="ml-2 text-sm text-muted-foreground">({count})</span>
                 </DropdownMenuCheckboxItem>
               );
             })}
@@ -257,30 +230,6 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
             )}
           </DropdownMenuContent>
         </DropdownMenu>
-       
-        {/* Column Visibility Dropdown */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
-              Columns <ChevronDown className="ml-2 h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => (
-                <DropdownMenuCheckboxItem
-                  key={column.id}
-                  className="capitalize"
-                  checked={column.getIsVisible()}
-                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                >
-                  {column.columnDef.header ?? column.id}
-                </DropdownMenuCheckboxItem>
-              ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
 
       {/* Table */}
@@ -293,10 +242,7 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
                   <TableHead key={header.id}>
                     {header.isPlaceholder
                       ? null
-                      : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
+                      : flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>
                 ))}
               </TableRow>
@@ -305,16 +251,10 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
+                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
                 </TableRow>
@@ -331,8 +271,8 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
       </div>
 
       {/* Pagination & Selection Info */}
-      <div className="flex items-center justify-between py-4">
-        <div className="flex-1 text-sm text-muted-foreground">
+      <div className="flex items-center justify-between">
+        <div className="text-sm text-muted-foreground">
           {table.getFilteredSelectedRowModel().rows.length} of{" "}
           {table.getFilteredRowModel().rows.length} row(s) selected.
         </div>
@@ -343,11 +283,7 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
               <PaginationItem>
                 <PaginationPrevious
                   onClick={() => table.previousPage()}
-                  className={
-                    !table.getCanPreviousPage()
-                      ? "pointer-events-none opacity-50"
-                      : "cursor-pointer"
-                  }
+                  className={!table.getCanPreviousPage() ? "pointer-events-none opacity-50" : "cursor-pointer"}
                 />
               </PaginationItem>
 
@@ -355,11 +291,7 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
                 .filter((page) => {
                   const current = table.getState().pagination.pageIndex + 1;
                   const total = table.getPageCount();
-                  return (
-                    page === 1 ||
-                    page === total ||
-                    Math.abs(page - current) <= 1
-                  );
+                  return page === 1 || page === total || Math.abs(page - current) <= 1;
                 })
                 .map((page, idx, arr) => {
                   const current = table.getState().pagination.pageIndex + 1;
@@ -389,11 +321,7 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
               <PaginationItem>
                 <PaginationNext
                   onClick={() => table.nextPage()}
-                  className={
-                    !table.getCanNextPage()
-                      ? "pointer-events-none opacity-50"
-                      : "cursor-pointer"
-                  }
+                  className={!table.getCanNextPage() ? "pointer-events-none opacity-50" : "cursor-pointer"}
                 />
               </PaginationItem>
             </PaginationContent>
