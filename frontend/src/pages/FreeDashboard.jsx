@@ -26,7 +26,7 @@ export default function FreeDashboard() {
         // Get companies for this problem
         const companies = problem.companies || [];
         
-        // Check if we can include this problem for any of its companies
+        // hui hui vercel check
         let canInclude = false;
         for (const company of companies) {
           const count = companyProblemCount.get(company) || 0;
