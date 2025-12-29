@@ -38,7 +38,7 @@ router.post("/verify", async (req, res) => {
 
         if (generated_signature === razorpay_signature) {
             // mark user as premium
-            await User.findByIdAndUpdate(userId, { tier: 'premium' });
+            await User.findByIdAndUpdate(userId, { premium: true });
             return res.json({ success: true });
         } else {
             return res.status(400).json({ success: false, message: "Signature mismatch" });
