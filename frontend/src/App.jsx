@@ -12,6 +12,7 @@ import Profile from "./pages/profile";
 import ErrorPage from "./ErrorPage";
 import FreeDashboard from "./pages/FreeDashboard";
 import PaymentButton from "./components/PaymentButton";
+import { Analytics } from "@vercel/analytics/react";
 
 function App() {
   return (
@@ -47,6 +48,7 @@ function App() {
             } />
           <Route path="*" element={<ErrorPage />} />
         </Routes>
+        <Analytics/>
       </Router>
     </ThemeProvider>
   );
