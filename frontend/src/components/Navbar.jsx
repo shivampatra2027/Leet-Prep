@@ -30,7 +30,7 @@ export default function Navbar() {
           <NavigationMenuList>
             <NavigationMenuItem>
               <Link to="/" className="flex items-center text-lg font-bold">
-                Leet.io
+                Leet-prep
               </Link>
             </NavigationMenuItem>
           </NavigationMenuList>
