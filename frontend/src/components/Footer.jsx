@@ -48,7 +48,7 @@ const Footer7 = ({
     url: "/",
     src: "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/logos/shadcnblockscom-icon.svg",
     alt: "Leet.IO logo",
-    title: "Leet.IO",
+    title: "Leet-prep",
   },
   sections = defaultSections,
   description = "The best platform for  students/professionals to prepare for coding interviews. Built with ❤️ by students, for students.",
