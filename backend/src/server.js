@@ -92,8 +92,19 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 8080;
 
+// Connect to DB
 connectDb().then(() => {
+    console.log('Database connected successfully');
+}).catch(err => {
+    console.error('Database connection error:', err);
+});
+
+// For Vercel serverless deployment
+if (process.env.NODE_ENV !== 'production') {
     app.listen(PORT, () => {
         console.log(`Server running on port: ${PORT}`);
     });
-});
+}
+
+// Export the Express app for Vercel
+export default app;
