@@ -1,77 +1,47 @@
 import mongoose from 'mongoose';
 const { Schema } = mongoose;
-const AttemptSchema = new Schema({
-    problem: {
-        type: Schema.Types.ObjectId,
-        ref: 'Problem', required: false
-    },
-    problemId: {
-        type: String,
-        required: false
-    },
 
-    status: {
-        type: String,
-        enum: ['unsolved', 'attempted', 'solved'],
-        default: 'unsolved'
-    },
-    language: {
-        type: String
-    },
-    notes: {
-        type: String
-    },
-    lastAttemptAt: {
-        type: Date
-    },
-    companyId:{
-        type:Schema.Types.ObjectId,
-        ref:'Company',
-        required:true
-    }
+const AttemptSchema = new Schema({
+    problem: { type: Schema.Types.ObjectId, ref: 'Problem', required: false },
+    problemId: { type: String, required: false },
+    status: { type: String, enum: ['unsolved', 'attempted', 'solved'], default: 'unsolved' },
+    language: String,
+    notes: String,
+    lastAttemptAt: Date,
+    companyId: { type: Schema.Types.ObjectId, ref: 'Company', required: true }
 }, { _id: false });
 
 const UserSchema = new Schema({
-    email: {
-        type: String,
-        unique: true,
-        sparse: true,
-        index: true
-    },
-    name: {
-        type: String
-    },
-    passwordHash: {
-        type: String
-    },
+    email: { type: String, unique: true, sparse: true, index: true },
+    name: String,
+    passwordHash: String,
+    isAdmin: { type: Boolean, default: false },
+    tier: { type: String, enum: ['free', 'premium'], default: 'free' },
+    attempts: [AttemptSchema],
+    expireAt: { type: Date, default: () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) }
+}, { timestamps: true });
 
-    isAdmin: {
-        type: Boolean,
-        default: false
-    },
-    tier:{
-        type: String,
-        enum: ['free','premium'],
-        default:'free'
-    },
-    attempts: [AttemptSchema]
-}, {
-    timestamps: true
-});
+// TTL index
+UserSchema.index({ expireAt: 1 }, { expireAfterSeconds: 0 });
 
 UserSchema.methods.upsertAttempt = function (attemptObj) {
     const { problemId, status, language, notes } = attemptObj;
 
-    const idx = this.attempts.findIndex(a => (a.problemId && a.problemId === problemId) || (a.problem && a.problem.toString() === (attemptObj.problem ? attemptObj.problem.toString() : null)));
+    const idx = this.attempts.findIndex(a =>
+        (a.problemId && a.problemId === problemId) ||
+        (a.problem && a.problem.toString() === (attemptObj.problem ? attemptObj.problem.toString() : null))
+    );
 
-    if (this.tier === 'false' && attemptsForCompany.length >= 10) {
-        throw new Error("Premium required to attemp for this company");
-    
+    // Example: enforce free tier limit per company
+    const attemptsForCompany = this.attempts.filter(a => a.companyId.toString() === attemptObj.companyId.toString());
+    if (this.tier === 'free' && attemptsForCompany.length >= 10) {
+        throw new Error("Premium required to attempt for this company");
     }
+
     if (idx === -1) {
         this.attempts.push({
             problemId,
-            companyId:attemptObj.companyId,
+            companyId: attemptObj.companyId,
             status,
             language,
             notes,
