@@ -16,18 +16,17 @@ import PaymentButton from "./components/PaymentButton";
 import { Analytics } from "@vercel/analytics/react";
 
 function App() {
-  useEffect(() => { const handleContextMenu = (e) => e.preventDefault(); document.addEventListener("contextmenu", handleContextMenu); return () => { document.removeEventListener("contextmenu", handleContextMenu);
+  useEffect(() => {
+    const checkDevTools = setInterval(() => {
+      const threshold = 160;
+      if (window.outerWidth - window.innerWidth > threshold ||
+        window.outerHeight - window.innerHeight > threshold) {
+        location.reload();
+      }
+    }, 100);
+    return () => clearInterval(checkDevTools);
+  }, []);
 
-    const interval =setInterval(()=>{
-      console.clear();
-      console.log("DevTools usage is discouraged!");
-    },500)
-
-    return ()=>{
-      document.removeEventListener("contextmenu",handleContextMenu);
-      clearInterval(interval);
-    }
-   }; }, []);
 
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
