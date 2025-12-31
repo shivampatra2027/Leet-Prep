@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import PrivateRoute from "./components/privateRoute";
 import { ThemeProvider } from "@/components/theme-provider.jsx"
 import { Pricing4 } from "./pages/Premium";
+import {useEffect} from "react"
 import Profile from "./pages/profile";
 import ErrorPage from "./ErrorPage";
 import FreeDashboard from "./pages/FreeDashboard";
@@ -15,6 +16,7 @@ import PaymentButton from "./components/PaymentButton";
 import { Analytics } from "@vercel/analytics/react";
 
 function App() {
+  useEffect(() => { const handleContextMenu = (e) => e.preventDefault(); document.addEventListener("contextmenu", handleContextMenu); return () => { document.removeEventListener("contextmenu", handleContextMenu); }; }, []);
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <Router>
