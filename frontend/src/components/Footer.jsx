@@ -51,7 +51,7 @@ const Footer7 = ({
     title: "Leet.IO",
   },
   sections = defaultSections,
-  description = "The best platform for KIIT students to prepare for coding interviews. Built with ❤️ by students, for students.",
+  description = "The best platform for  students/professionals to prepare for coding interviews. Built with ❤️ by students, for students.",
   socialLinks = defaultSocialLinks,
   copyright = "© 2025 Leet.IO. All rights reserved.",
   legalLinks = defaultLegalLinks,
