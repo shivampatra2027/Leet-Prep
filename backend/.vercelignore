@@ -1,9 +1,0 @@
-node_modules
-.env
-.env.local
-.env._.local
-_.log
-.DS_Store
-Readme.md
-scripts/
-testCache.js
