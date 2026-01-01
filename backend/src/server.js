@@ -19,28 +19,32 @@ const app = express();
 
 // CORS configuration
 const allowedOrigins = [
-    process.env.CLIENT_URL,
-    'https://leet-io-frontend.onrender.com',
-    'https://leetcodepremium.xyz',
-    'http://localhost:5173', // for local development
-    'http://localhost:3000'
-].filter(Boolean); // Remove undefined values
+    process.env.CLIENT_URL,                // e.g. https://leetcodepremium.xyz
+    "https://leet-io-frontend.onrender.com",
+    "https://leetcodepremium.xyz",
+    "http://localhost:5173",
+    "http://localhost:3000"
+].filter(Boolean);
 
 app.use(cors({
     origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps or curl requests)
-        if (!origin) return callback(null, true);
-        
-        if (allowedOrigins.indexOf(origin) !== -1) {
+        if (!origin) return callback(null, true); // allow curl/postman/mobile apps
+
+        if (allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
-            callback(new Error('Not allowed by CORS'));
+            console.error("Blocked by CORS:", origin);
+            callback(new Error("Not allowed by CORS"));
         }
     },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
 }));
+
+// Explicitly handle preflight requests
+app.options("*", cors());
+
 
 app.use(session({
     secret: process.env.JWT_SECRET || "supersecret",
