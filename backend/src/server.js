@@ -21,6 +21,7 @@ const app = express();
 const allowedOrigins = [
     process.env.CLIENT_URL,
     'https://leet-io-frontend.onrender.com',
+    'https://leetcodepremium.xyz',
     'http://localhost:5173', // for local development
     'http://localhost:3000'
 ].filter(Boolean); // Remove undefined values
@@ -65,6 +66,7 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/premium", premiumRoutes);
 app.use("/api/payment",paymentRoutes);
 app.use("/auth", authRouter);
+
 
 // Google OAuth routes
 app.get("/auth/google",
