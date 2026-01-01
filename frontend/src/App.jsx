@@ -16,15 +16,19 @@ import PaymentButton from "./components/PaymentButton";
 import { Analytics } from "@vercel/analytics/react";
 
 function App() {
+  // useEffect(() => {
+  //   const checkDevTools = setInterval(() => {
+  //     const threshold = 160;
+  //     if (window.outerWidth - window.innerWidth > threshold ||
+  //       window.outerHeight - window.innerHeight > threshold) {
+  //       location.reload();
+  //     }
+  //   }, 100);
+  //   return () => clearInterval(checkDevTools);
+  // }, []);
   useEffect(() => {
-    const checkDevTools = setInterval(() => {
-      const threshold = 160;
-      if (window.outerWidth - window.innerWidth > threshold ||
-        window.outerHeight - window.innerHeight > threshold) {
-        location.reload();
-      }
-    }, 100);
-    return () => clearInterval(checkDevTools);
+    const disableRightClick = (e) => e.preventDefault(); document.addEventListener("contextmenu", disableRightClick);
+    return () => { document.removeEventListener("contextmenu", disableRightClick); };
   }, []);
 
 
