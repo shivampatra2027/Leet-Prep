@@ -47,7 +47,7 @@ export default function Navbar() {
 
             {isLoggedIn && (
               <NavigationMenuItem className="relative">
-                <Link to="/freedashboard" className={navigationMenuTriggerStyle()}>
+                <Link to="/dashboard" className={navigationMenuTriggerStyle()}>
                   Dashboard
                 </Link>
                 <span
