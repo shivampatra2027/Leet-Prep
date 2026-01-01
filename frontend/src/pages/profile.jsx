@@ -96,6 +96,7 @@ const Profile = () => {
                 <p className="text-sm text-muted-foreground text-center max-w-xs">
                   Limited to 2 problems per company
                 </p>
+                    <p className="text-sm text-muted-foreground text-center max-w-xs">Get premium to access 1800+ premium problems..</p>
                 <Button className="gap-2">
                   <Crown className="h-4 w-4" />
                   <Link to='/premium'>Get Premium</Link>
