@@ -21,30 +21,46 @@ export default function Navbar() {
   const [likes, setLikes] = React.useState(0);
   const [hasLiked, setHasLiked] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState(false); // NEW: error state
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
-  React.useEffect(() => {
+  const fetchLikes = React.useCallback(() => {
     axios
       .get(`${API_URL}/api/likes`)
-      .then((res) => setLikes(res.data.totalLikes))
-      .catch(() => { });
+      .then((res) => {
+        setLikes(res.data.totalLikes);
+        setError(false);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch likes:", err);
+        setError(true);
+      });
+  }, [API_URL]);
+
+  React.useEffect(() => {
+    fetchLikes();
 
     const liked = localStorage.getItem("hasLikedSite");
     if (liked) setHasLiked(true);
-  }, [API_URL]);
+
+    const interval = setInterval(fetchLikes, 15000);
+    return () => clearInterval(interval);
+  }, [fetchLikes]);
 
   const handleLike = async () => {
     if (hasLiked || loading) return;
 
     setLoading(true);
+    setError(false);
     try {
       const res = await axios.post(`${API_URL}/api/likes`);
       setLikes(res.data.totalLikes);
       setHasLiked(true);
       localStorage.setItem("hasLikedSite", "true");
     } catch (err) {
-      console.error(err);
+      console.error("Like failed:", err);
+      setError(true);
     } finally {
       setLoading(false);
     }
@@ -126,12 +142,21 @@ export default function Navbar() {
             size="sm"
             onClick={handleLike}
             disabled={hasLiked || loading}
-            className={`flex items-center gap-2 ${hasLiked ? "text-green-600" : "text-muted-foreground hover:text-foreground"}`}
+            className={`flex items-center gap-2 transition-all ${hasLiked
+                ? "text-green-600"
+                : error
+                  ? "text-red-500"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
             aria-label={hasLiked ? "Thank you for liking!" : "Like this site"}
           >
-            <Heart className={`h-5 w-5 ${hasLiked ? "fill-current" : ""}`} />
-            <span className="font-medium">{likes}</span>
+            <Heart
+              className={`h-5 w-5 transition-all ${hasLiked ? "fill-current scale-110" : ""} ${loading ? "animate-pulse" : ""
+                }`}
+            />
+            <span className="font-medium">{error ? "!" : likes}</span>
             {hasLiked && <span className="text-xs">Thanks!</span>}
+            {error && <span className="text-xs">Retry</span>}
           </Button>
 
           <ModeToggle />
