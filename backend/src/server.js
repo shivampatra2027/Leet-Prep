@@ -8,6 +8,7 @@ import { connectDb } from "./config/db.js";
 import problemRoutes from "./routes/problemRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
 import premiumRoutes from "./routes/premiumRoutes.js";
+import likeRoutes from "./routes/likeRoutes.js"
 import authRouter from "./routes/auth.js";
 import passport, { configureGoogleStrategy } from "./auth/google.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
@@ -19,11 +20,7 @@ const app = express();
 
 // CORS configuration
 const allowedOrigins = [
-    process.env.CLIENT_URL,                // e.g. https://leetcodepremium.xyz
-    "https://leet-io-frontend.onrender.com",
-    "https://leetcodepremium.xyz",
-    "http://localhost:5173",
-    "http://localhost:3000"
+    process.env.CLIENT_URL,
 ].filter(Boolean);
 
 app.use(cors({
@@ -70,7 +67,7 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/premium", premiumRoutes);
 app.use("/api/payment",paymentRoutes);
 app.use("/auth", authRouter);
-
+app.use("/api/likes",likeRoutes)
 
 // Google OAuth routes
 app.get("/auth/google",

@@ -3,7 +3,8 @@ import * as React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ModeToggle } from "./mode-toggle";
 import { Button } from "@/components/ui/button.jsx";
-import { LogOut } from "lucide-react";
+import { LogOut, Heart } from "lucide-react";
+import axios from "axios";
 
 import {
   NavigationMenu,
@@ -17,6 +18,38 @@ export default function Navbar() {
   const token = React.useMemo(() => localStorage.getItem("authToken"), []);
   const isLoggedIn = !!token;
 
+  const [likes, setLikes] = React.useState(0);
+  const [hasLiked, setHasLiked] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
+
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+
+  React.useEffect(() => {
+    axios
+      .get(`${API_URL}/api/likes`)
+      .then((res) => setLikes(res.data.totalLikes))
+      .catch(() => { });
+
+    const liked = localStorage.getItem("hasLikedSite");
+    if (liked) setHasLiked(true);
+  }, [API_URL]);
+
+  const handleLike = async () => {
+    if (hasLiked || loading) return;
+
+    setLoading(true);
+    try {
+      const res = await axios.post(`${API_URL}/api/likes`);
+      setLikes(res.data.totalLikes);
+      setHasLiked(true);
+      localStorage.setItem("hasLikedSite", "true");
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleLogout = React.useCallback(() => {
     localStorage.removeItem("authToken");
     navigate("/login");
@@ -25,7 +58,6 @@ export default function Navbar() {
   return (
     <nav className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60" role="navigation" aria-label="Main navigation">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        {/* Left: Logo / Home */}
         <NavigationMenu>
           <NavigationMenuList>
             <NavigationMenuItem>
@@ -36,7 +68,6 @@ export default function Navbar() {
           </NavigationMenuList>
         </NavigationMenu>
 
-        {/* Center: Navigation Links */}
         <NavigationMenu>
           <NavigationMenuList className="gap-6">
             <NavigationMenuItem>
@@ -67,7 +98,6 @@ export default function Navbar() {
           </NavigationMenuList>
         </NavigationMenu>
 
-        {/* Right: Auth Actions + Theme Toggle */}
         <div className="flex items-center gap-4">
           {isLoggedIn ? (
             <Button variant="ghost" size="icon" onClick={handleLogout} aria-label="Logout">
@@ -75,7 +105,6 @@ export default function Navbar() {
             </Button>
           ) : (
             <>
-              {/* Login Button with Green Dot when NOT logged in */}
               <div className="relative">
                 <Link to="/login">
                   <Button variant="ghost">Login</Button>
@@ -91,6 +120,19 @@ export default function Navbar() {
               </Link>
             </>
           )}
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleLike}
+            disabled={hasLiked || loading}
+            className={`flex items-center gap-2 ${hasLiked ? "text-green-600" : "text-muted-foreground hover:text-foreground"}`}
+            aria-label={hasLiked ? "Thank you for liking!" : "Like this site"}
+          >
+            <Heart className={`h-5 w-5 ${hasLiked ? "fill-current" : ""}`} />
+            <span className="font-medium">{likes}</span>
+            {hasLiked && <span className="text-xs">Thanks!</span>}
+          </Button>
 
           <ModeToggle />
         </div>
