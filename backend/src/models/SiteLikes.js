@@ -1,3 +1,4 @@
+// models/SiteLike.js
 import mongoose from "mongoose";
 
 const LikeSchema = new mongoose.Schema({
@@ -7,9 +8,9 @@ const LikeSchema = new mongoose.Schema({
         unique: true,
         default: "global"
     },
-    likedBy: {
-        type: [String],
-        default: []
+    totalLikes: {
+        type: Number,
+        default: 0
     }
 }, { timestamps: true });
 
