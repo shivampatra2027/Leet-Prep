@@ -7,31 +7,15 @@
   <!-- Home Page -->
   <url>
     <loc>https://leet-io-frontend.onrender.com/</loc>
-    <lastmod>2025-12-23</lastmod>
+    <lastmod>2026-01-02</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
-  </url>
-  
-  <!-- Dashboard Page -->
-  <url>
-    <loc>https://leet-io-frontend.onrender.com/dashboard</loc>
-    <lastmod>2025-12-23</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
   </url>
   
   <!-- Login Page -->
   <url>
     <loc>https://leet-io-frontend.onrender.com/login</loc>
-    <lastmod>2025-12-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  
-  <!-- Signup Page -->
-  <url>
-    <loc>https://leet-io-frontend.onrender.com/signup</loc>
-    <lastmod>2025-12-23</lastmod>
+    <lastmod>2026-01-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -39,25 +23,33 @@
   <!-- Premium Page -->
   <url>
     <loc>https://leet-io-frontend.onrender.com/premium</loc>
-    <lastmod>2025-12-23</lastmod>
+    <lastmod>2026-01-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+  </url>
+  
+  <!-- Free Dashboard Page -->
+  <url>
+    <loc>https://leet-io-frontend.onrender.com/freedashboard</loc>
+    <lastmod>2026-01-02</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.85</priority>
+  </url>
+  
+  <!-- Dashboard Page (Premium) -->
+  <url>
+    <loc>https://leet-io-frontend.onrender.com/dashboard</loc>
+    <lastmod>2026-01-02</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
   </url>
   
   <!-- Profile Page -->
   <url>
     <loc>https://leet-io-frontend.onrender.com/profile</loc>
-    <lastmod>2025-12-23</lastmod>
+    <lastmod>2026-01-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
-  </url>
-  
-  <!-- Company Pages (Examples - Add more as needed) -->
-  <url>
-    <loc>https://leet-io-frontend.onrender.com/company</loc>
-    <lastmod>2025-12-23</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
   </url>
 
 </urlset>
