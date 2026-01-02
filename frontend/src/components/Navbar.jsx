@@ -21,11 +21,12 @@ export default function Navbar() {
   const [likes, setLikes] = React.useState(0);
   const [hasLiked, setHasLiked] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState(false); // NEW: error state
+  const [error, setError] = React.useState(false);
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
-  const fetchLikes = React.useCallback(() => {
+  // Fetch likes only once on mount
+  React.useEffect(() => {
     axios
       .get(`${API_URL}/api/likes`)
       .then((res) => {
@@ -36,17 +37,11 @@ export default function Navbar() {
         console.error("Failed to fetch likes:", err);
         setError(true);
       });
-  }, [API_URL]);
 
-  React.useEffect(() => {
-    fetchLikes();
-
+    // Check if user already liked (localStorage)
     const liked = localStorage.getItem("hasLikedSite");
     if (liked) setHasLiked(true);
-
-    const interval = setInterval(fetchLikes, 15000);
-    return () => clearInterval(interval);
-  }, [fetchLikes]);
+  }, [API_URL]); // Only runs on mount + API_URL change
 
   const handleLike = async () => {
     if (hasLiked || loading) return;
@@ -55,7 +50,7 @@ export default function Navbar() {
     setError(false);
     try {
       const res = await axios.post(`${API_URL}/api/likes`);
-      setLikes(res.data.totalLikes);
+      setLikes(res.data.totalLikes); // Immediate update
       setHasLiked(true);
       localStorage.setItem("hasLikedSite", "true");
     } catch (err) {
