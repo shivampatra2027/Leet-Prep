@@ -126,9 +126,9 @@ export default function Navbar() {
                 />
               </div>
 
-              <Link to="/signup">
+              {/* <Link to="/signup">
                 <Button>Sign Up</Button>
-              </Link>
+              </Link> */}
             </>
           )}
 
