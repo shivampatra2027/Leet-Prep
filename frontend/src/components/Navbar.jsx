@@ -118,7 +118,7 @@ export default function Navbar() {
             <>
               <div className="relative">
                 <Link to="/login">
-                  <Button variant="ghost">Login</Button>
+                  <Button>Login</Button>
                 </Link>
                 <span
                   className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-green-500 ring-4 ring-background animate-pulse"
