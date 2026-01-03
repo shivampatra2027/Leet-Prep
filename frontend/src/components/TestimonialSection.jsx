@@ -4,7 +4,7 @@ const testimonials = [
   {
     quote: "Leet.IO helped me crack my Google interview! The company-specific problems were incredibly helpful and the platform is very intuitive.",
     author: {
-      name: "Rahul Sharma",
+      name: "RS",
       role: "Software Engineer at Google",
       avatar: {
         src: "https://api.dicebear.com/7.x/avataaars/svg?seed=Rahul",
@@ -15,44 +15,44 @@ const testimonials = [
   {
     quote: "The best platform for interview preparation. The problems are well-curated and the filtering by company makes practice so much easier.",
     author: {
-      name: "Priya Patel",
+      name: "Prem Pujari",
       role: "SDE at Amazon",
       avatar: {
         src: "https://api.dicebear.com/7.x/avataaars/svg?seed=Priya",
-        alt: "Priya Patel",
+        alt: "Prem Pujari",
       },
     },
   },
   {
     quote: "I love the clean interface and dark mode. Spent countless hours preparing here and landed my dream job at Microsoft!",
     author: {
-      name: "Amit Kumar",
+      name: "Ajay ",
       role: "Full Stack Developer at Microsoft",
       avatar: {
         src: "https://api.dicebear.com/7.x/avataaars/svg?seed=Amit",
-        alt: "Amit Kumar",
+        alt: "Ajay",
       },
     },
   },
   {
     quote: "The system design resources and data structures problems helped me tremendously. Highly recommend for KIIT students!",
     author: {
-      name: "Sneha Reddy",
+      name: "Sj",
       role: "Backend Engineer at Flipkart",
       avatar: {
         src: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sneha",
-        alt: "Sneha Reddy",
+        alt: "Sj",
       },
     },
   },
   {
     quote: "As a data engineering aspirant, the SQL and database problems were exactly what I needed. Got placed at LinkedIn thanks to this platform!",
     author: {
-      name: "Vikram Singh",
+      name: "Vikrant Singh",
       role: "Data Engineer at LinkedIn",
       avatar: {
         src: "https://api.dicebear.com/7.x/avataaars/svg?seed=Vikram",
-        alt: "Vikram Singh",
+        alt: "Vikrant",
       },
     },
   },
@@ -103,14 +103,14 @@ const TestimonialSection = () => {
             Hear from students who have cracked their dream interviews using Leet.IO
           </p>
         </div>
-        
+
         {/* Top Row - 3 Testimonials */}
         <div className="grid md:grid-cols-3 gap-8 mb-8">
           {testimonials.slice(0, 3).map((testimonial, idx) => (
             <TestimonialCard key={idx} {...testimonial} />
           ))}
         </div>
-        
+
         {/* Bottom Row - 3 Testimonials */}
         <div className="grid md:grid-cols-3 gap-8">
           {testimonials.slice(3, 6).map((testimonial, idx) => (
