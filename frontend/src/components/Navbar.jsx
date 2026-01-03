@@ -10,6 +10,7 @@ import {
   NavigationMenu,
   NavigationMenuItem,
   NavigationMenuList,
+  NavigationMenuLink,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu.jsx";
 
@@ -25,12 +26,12 @@ export default function Navbar() {
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
-  // Fetch likes only once on mount
   React.useEffect(() => {
+    // Fetch current likes
     axios
       .get(`${API_URL}/api/likes`)
       .then((res) => {
-        setLikes(res.data.totalLikes);
+        setLikes(res.data.totalLikes || 0);
         setError(false);
       })
       .catch((err) => {
@@ -38,19 +39,21 @@ export default function Navbar() {
         setError(true);
       });
 
-    // Check if user already liked (localStorage)
-    const liked = localStorage.getItem("hasLikedSite");
-    if (liked) setHasLiked(true);
-  }, [API_URL]); // Only runs on mount + API_URL change
+    // Check if this device already liked
+    if (localStorage.getItem("hasLikedSite") === "true") {
+      setHasLiked(true);
+    }
+  }, [API_URL]);
 
   const handleLike = async () => {
     if (hasLiked || loading) return;
 
     setLoading(true);
     setError(false);
+
     try {
       const res = await axios.post(`${API_URL}/api/likes`);
-      setLikes(res.data.totalLikes); // Immediate update
+      setLikes(res.data.totalLikes);
       setHasLiked(true);
       localStorage.setItem("hasLikedSite", "true");
     } catch (err) {
@@ -67,93 +70,117 @@ export default function Navbar() {
   }, [navigate]);
 
   return (
-    <nav className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60" role="navigation" aria-label="Main navigation">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
+    <nav className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+      <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
+        {/* Logo / Brand */}
         <NavigationMenu>
           <NavigationMenuList>
             <NavigationMenuItem>
-              <Link to="/" className="flex items-center text-lg font-bold">
-                Leet-prep
+              <Link to="/" className="flex items-center">
+                <span className="text-xl font-bold tracking-tight text-foreground">
+                  Leet-prep
+                </span>
               </Link>
             </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
 
-        <NavigationMenu>
-          <NavigationMenuList className="gap-6">
+        {/* Center Navigation Links */}
+        <NavigationMenu className="hidden md:flex">
+          <NavigationMenuList className="gap-1">
             <NavigationMenuItem>
-              <Link to="/" className={navigationMenuTriggerStyle()}>
-                Home
-              </Link>
+              <NavigationMenuLink asChild>
+                <Link to="/" className={navigationMenuTriggerStyle()}>
+                  Home
+                </Link>
+              </NavigationMenuLink>
             </NavigationMenuItem>
 
             {isLoggedIn && (
-              <NavigationMenuItem className="relative">
-                <Link to="/freedashboard" className={navigationMenuTriggerStyle()}>
-                  Dashboard
-                </Link>
-                <span
-                  className="absolute -top-1 -right-2 h-2 w-2 rounded-full bg-green-500 ring-4 ring-background animate-pulse"
-                  aria-label="New activity on dashboard"
-                />
-              </NavigationMenuItem>
-            )}
+              <>
+                <NavigationMenuItem className="relative">
+                  <NavigationMenuLink asChild>
+                    <Link to="/dashboard" className={navigationMenuTriggerStyle()}>
+                      Dashboard
+                    </Link>
+                  </NavigationMenuLink>
+                  <span
+                    className="absolute -top-1 -right-2 h-2 w-2 rounded-full bg-emerald-500 ring-4 ring-background animate-pulse"
+                    aria-hidden="true"
+                  />
+                </NavigationMenuItem>
 
-            {isLoggedIn && (
-              <NavigationMenuItem>
-                <Link to="/profile" className={navigationMenuTriggerStyle()}>
-                  Profile
-                </Link>
-              </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <NavigationMenuLink asChild>
+                    <Link to="/profile" className={navigationMenuTriggerStyle()}>
+                      Profile
+                    </Link>
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+              </>
             )}
           </NavigationMenuList>
         </NavigationMenu>
 
-        <div className="flex items-center gap-4">
+        {/* Right Side Actions */}
+        <div className="flex items-center gap-3">
+          {/* Auth Buttons */}
           {isLoggedIn ? (
-            <Button variant="ghost" size="icon" onClick={handleLogout} aria-label="Logout">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleLogout}
+              className="text-muted-foreground hover:text-foreground"
+              aria-label="Logout"
+            >
               <LogOut className="h-5 w-5" />
             </Button>
           ) : (
-            <>
-              <div className="relative">
-                <Link to="/login">
-                  <Button>Login</Button>
-                </Link>
-                <span
-                  className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-green-500 ring-4 ring-background animate-pulse"
-                  aria-label="Log in to see your dashboard"
-                />
-              </div>
-
-              {/* <Link to="/signup">
-                <Button>Sign Up</Button>
-              </Link> */}
-            </>
+            <Link to="/login">
+              <Button variant="default" size="sm" className="sm:inline-flex">
+                Login
+              </Button>
+            </Link>
           )}
 
+          {/* Like Button – Professional & Delightful */}
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={handleLike}
             disabled={hasLiked || loading}
-            className={`flex items-center gap-2 transition-all ${hasLiked
-                ? "text-green-600"
-                : error
-                  ? "text-red-500"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            aria-label={hasLiked ? "Thank you for liking!" : "Like this site"}
+            className={`
+              relative flex items-center gap-2 border 
+              transition-all duration-300
+              ${hasLiked
+                ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                : "hover:border-foreground/30"
+              }
+              ${error ? "border-red-500/50 text-red-600 dark:text-red-400" : ""}
+            `}
+            aria-label={hasLiked ? "Thank you for your support!" : "Support this project"}
           >
             <Heart
-              className={`h-5 w-5 transition-all ${hasLiked ? "fill-current scale-110" : ""} ${loading ? "animate-pulse" : ""
-                }`}
+              className={`
+                h-4 w-4 transition-all duration-300
+                ${hasLiked ? "fill-current scale-110" : ""}
+                ${loading ? "animate-pulse" : ""}
+              `}
             />
-            <span className="font-medium">{error ? "!" : likes}</span>
-            {hasLiked && <span className="text-xs">Thanks!</span>}
-            {error && <span className="text-xs">Retry</span>}
+            <span className="font-semibold tabular-nums">
+              {error ? "!" : likes}
+            </span>
+            {hasLiked && (
+              <span className="text-xs opacity-80">Thanks!</span>
+            )}
+            {loading && (
+              <span className="absolute inset-0 flex items-center justify-center">
+                <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              </span>
+            )}
           </Button>
 
+          {/* Theme Toggle */}
           <ModeToggle />
         </div>
       </div>
