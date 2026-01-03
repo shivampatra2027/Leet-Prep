@@ -42,7 +42,6 @@ app.use(cors({
 // Explicitly handle preflight requests
 // app.options("/*", cors());
 
-
 app.use(session({
     secret: process.env.JWT_SECRET || "supersecret",
     resave: false,
@@ -100,3 +99,5 @@ connectDb().then(() => {
         console.log(`Server running on port: ${PORT}`);
     });
 });
+
+//
