@@ -10,3 +10,4 @@ export function LogoutButton({ variant = "ghost", className }){
         <Button variant={variant} className={className} onClick={handleLogout}>Logout</Button>
     )
 }
+//sync
