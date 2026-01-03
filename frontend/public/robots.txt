@@ -4,6 +4,9 @@ Allow: /
 # Block sensitive routes
 Disallow: /api/
 Disallow: /auth/
+Disallow: /dashboard
+Disallow: /profile
+Disallow: /logout
 
 # Sitemap
 Sitemap: https://leet-io-frontend.onrender.com/sitemap.xml
