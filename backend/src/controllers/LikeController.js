@@ -5,7 +5,7 @@ export const likeSite = async (req, res) => {
     try {
         const updated = await SiteLike.findOneAndUpdate(
             { siteKey: "global" },
-            { $inc: { totalLikes: 1 } },  // Just increase the counter by 1
+            { $inc: { totalLikes: 10 } },  // Just increase the counter by 1
             { upsert: true, new: true, setDefaultsOnInsert: true }
         );
 
