@@ -46,7 +46,7 @@ function App() {
             path="/freedashboard"
             element={
               <PrivateRoute>
-                <FreeDashboard />
+                <Dashboard /> 
               </PrivateRoute>
             }
           />
