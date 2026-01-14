@@ -78,7 +78,7 @@ export default function Navbar() {
             <NavigationMenuItem>
               <Link to="/" className="flex items-center">
                 <span className="text-xl font-bold tracking-tight text-foreground">
-                  Leet-prep
+                  Leet-Prep
                 </span>
               </Link>
             </NavigationMenuItem>
