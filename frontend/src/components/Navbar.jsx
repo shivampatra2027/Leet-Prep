@@ -3,7 +3,7 @@ import * as React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ModeToggle } from "./mode-toggle";
 import { Button } from "@/components/ui/button.jsx";
-import { LogOut, Heart } from "lucide-react";
+import { LogOut, Heart, Bell } from "lucide-react";
 import axios from "axios";
 
 import {
@@ -24,10 +24,12 @@ export default function Navbar() {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState(false);
 
+  // 🔔 Bell state
+  const [showBellBox, setShowBellBox] = React.useState(false);
+
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
   React.useEffect(() => {
-    // Fetch current likes
     axios
       .get(`${API_URL}/api/likes`)
       .then((res) => {
@@ -39,7 +41,6 @@ export default function Navbar() {
         setError(true);
       });
 
-    // Check if this device already liked
     if (localStorage.getItem("hasLikedSite") === "true") {
       setHasLiked(true);
     }
@@ -123,7 +124,7 @@ export default function Navbar() {
         </NavigationMenu>
 
         {/* Right Side Actions */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 relative">
           {/* Auth Buttons */}
           {isLoggedIn ? (
             <Button
@@ -143,7 +144,7 @@ export default function Navbar() {
             </Link>
           )}
 
-          {/* Like Button – Professional & Delightful */}
+          {/* Like Button */}
           <Button
             variant="outline"
             size="sm"
@@ -179,7 +180,25 @@ export default function Navbar() {
               </span>
             )}
           </Button>
+          
+          <div className="relative group">
+            <button
+              className="flex items-center gap-1 text-muted-foreground hover:text-foreground focus:outline-none"
+            >
+              <Bell className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
+            </button>
 
+            {/* Dropdown box appears on hover */}
+            <div
+              className="absolute right-0 mt-2 w-64 rounded-md border bg-background shadow-lg p-4 text-sm opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transform -translate-y-2 transition-all duration-300 ease-out pointer-events-none group-hover:pointer-events-auto"
+            >
+              <p className="font-semibold text-foreground">Notifications</p>
+              <ul className="mt-2 space-y-1 text-muted-foreground list-disc list-inside">
+                <li>LeetCode Buddy – Profile compare chrome extension rolling out soon 🚀</li>
+                <li>AI-based Code Editor with debug features coming soon 🤖</li>
+              </ul>
+            </div>
+          </div>
           {/* Theme Toggle */}
           <ModeToggle />
         </div>
