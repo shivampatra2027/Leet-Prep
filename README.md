@@ -1,4 +1,4 @@
-# Leet.IO
+# Leet-Prep
 
 A comprehensive LeetCode problem tracker and management platform. Browse, filter, and organize coding problems by difficulty and company with an intuitive interface.
 
