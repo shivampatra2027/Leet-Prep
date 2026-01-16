@@ -2,37 +2,83 @@
 <html lang="en">
 
 <head>
-  <!-- Google tag (gtag.js) -->
+  <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-6L34XR37KX"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
+    function gtag() { dataLayer.push(arguments); }
     gtag('js', new Date());
-
     gtag('config', 'G-6L34XR37KX');
   </script>
-  
+
+  <!-- Basic Meta -->
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/logo.png" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#6366f1" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
 
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/logo.png" />
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://www.leetcodepremium.xyz/" />
+
+  <!-- Sitemap -->
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+
+  <!-- Performance -->
   <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
   <link rel="dns-prefetch" href="https://images.unsplash.com" />
 
   <link rel="preload" as="image"
     href="https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&h=600&fit=crop&auto=format&fm=webp&q=70"
-    imagesrcset="https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&h=400&fit=crop&auto=format&fm=webp&q=70 800w, 
-                   https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&h=600&fit=crop&auto=format&fm=webp&q=70 1200w"
+    imagesrcset="
+      https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&h=400&fit=crop&auto=format&fm=webp&q=70 800w,
+      https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&h=600&fit=crop&auto=format&fm=webp&q=70 1200w"
     imagesizes="100vw" fetchpriority="high" />
 
-  <!-- Canonical URL -->
-  <link rel="canonical" href="https://leet.io/" />
+  <link rel="preload" as="image" href="https://leet-prep/og-image.png" />
 
-  <!-- Sitemap -->
-  <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
+  <!-- Primary SEO -->
+  <title>leet-prep | Company-Wise DSA & Coding Interview Problems (1800+)</title>
 
-  <!-- Inline critical CSS for above-the-fold content -->
+  <meta name="title" content="leet-prep | Company-Wise DSA & Coding Interview Problems (1800+)" />
+
+  <meta name="description"
+    content="Master DSA with 1800+ company-wise coding interview problems from Google, Amazon, Microsoft, Meta & 50+ companies. Free coding platform for KIIT students. Start preparing today!" />
+
+  <meta name="keywords"
+    content="leetcode alternative, DSA practice, company wise coding problems, coding interview preparation, Google interview questions, Amazon coding problems, Microsoft DSA, FAANG preparation, free coding platform, KIIT coding" />
+
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+
+  <meta name="author" content="leet-prep Team" />
+  <meta name="language" content="English" />
+  <meta name="rating" content="General" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://leet-prep/" />
+  <meta property="og:site_name" content="leet-prep" />
+  <meta property="og:title" content="leet-prep – Company-Wise DSA & Coding Interview Problems" />
+  <meta property="og:description"
+    content="Practice 1800+ DSA problems from Google, Amazon, Microsoft & 50+ companies. Free interview preparation platform." />
+  <meta property="og:image" content="https://leet-prep/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="leet-prep company-wise DSA coding platform" />
+  <meta property="og:locale" content="en_US" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="leet-prep | Company-Wise DSA & Coding Problems" />
+  <meta name="twitter:description"
+    content="Prepare coding interviews with 1800+ company-wise DSA problems. Free platform." />
+  <meta name="twitter:image" content="https://leet-prep/twitter-image.png" />
+  <meta name="twitter:site" content="@leetio" />
+
+  <!-- Critical CSS -->
   <style>
     body {
       margin: 0;
@@ -58,104 +104,110 @@
     }
   </style>
 
-  <!-- Primary SEO Meta Tags -->
-  <title>Leet.IO - Company-Wise Coding Problems</title>
-  <meta name="title" content="Leet.IO - Master DSA with 1800+ Company-Wise Coding Problems | KIIT Students" />
-  <meta name="description"
-    content="Practice 1800+ Data Structures and Algorithms problems organized by Google, Amazon, Microsoft, Meta & 50+ companies. Free platform for KIIT students to ace technical interviews. Start coding today!" />
-  <meta name="keywords"
-    content="leetcode alternative, coding problems, data structures algorithms, DSA practice, company wise questions, Google interview questions, Amazon coding problems, Microsoft interview prep, FAANG preparation, technical interview, competitive programming, KIIT coding platform, free leetcode, coding interview preparation, programming practice, algorithm challenges" />
-  <meta name="author" content="Leet.IO Team" />
-  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
-  <meta name="language" content="English" />
-  <meta name="revisit-after" content="7 days" />
-  <meta name="rating" content="General" />
-
-  <!-- Open Graph / Facebook -->
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://leet.io/" />
-  <meta property="og:site_name" content="Leet.IO" />
-  <meta property="og:title" content="Leet.IO - Master DSA with 1800+ Company-Wise Coding Problems" />
-  <meta property="og:description"
-    content="Practice coding problems from Google, Amazon, Microsoft & 50+ top companies. Free platform for KIIT students to prepare for technical interviews." />
-  <meta property="og:image" content="https://leet.io/og-image.png" />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="630" />
-  <meta property="og:image:alt" content="Leet.IO - Company-wise DSA coding platform" />
-  <meta property="og:locale" content="en_US" />
-
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:url" content="https://leet.io/" />
-  <meta name="twitter:title" content="Leet.IO - Master DSA with 1800+ Company-Wise Coding Problems" />
-  <meta name="twitter:description"
-    content="Practice coding problems from Google, Amazon, Microsoft & 50+ companies. Free for KIIT students." />
-  <meta name="twitter:image" content="https://leet.io/twitter-image.png" />
-  <meta name="twitter:image:alt" content="Leet.IO coding platform screenshot" />
-  <meta name="twitter:creator" content="@leetio" />
-  <meta name="twitter:site" content="@leetio" />
-
-  <!-- Additional SEO -->
-  <meta name="application-name" content="Leet.IO" />
-  <meta name="apple-mobile-web-app-title" content="Leet.IO" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="format-detection" content="telephone=no" />
-
-  <!-- JSON-LD Structured Data -->
+  <!-- WebApplication Schema -->
   <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebApplication",
-      "name": "Leet.IO",
-      "url": "https://leet.io",
-      "description": "Practice 1800+ DSA coding problems organized by top tech companies. Free interview preparation platform for students.",
-      "applicationCategory": "EducationalApplication",
-      "operatingSystem": "Web Browser",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "INR"
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "leet-prep",
+    "url": "https://leet-prep",
+    "description": "Free coding interview preparation platform with 1800+ company-wise DSA problems.",
+    "applicationCategory": "EducationalApplication",
+    "operatingSystem": "Web",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "INR"
+    }
+  }
+  </script>
+
+  <!-- Educational Organization Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "EducationalOrganization",
+    "name": "leet-prep",
+    "url": "https://leet-prep",
+    "logo": "https://leet-prep/logo.png",
+    "address": {
+      "@type": "PostalAddress",
+      "addressCountry": "IN"
+    },
+    "sameAs": [
+      "https://twitter.com/leetio",
+      "https://github.com/leetio",
+      "https://linkedin.com/company/leetio"
+    ]
+  }
+  </script>
+
+  <!-- FAQ Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is leet-prep?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "leet-prep is a free coding interview preparation platform with 1800+ company-wise DSA problems."
+        }
       },
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": "4.8",
-        "ratingCount": "1250"
+      {
+        "@type": "Question",
+        "name": "Is leet-prep free?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes, leet-prep is completely free for students."
+        }
       },
-      "author": {
-        "@type": "Organization",
-        "name": "Leet.IO",
-        "url": "https://leet.io"
+      {
+        "@type": "Question",
+        "name": "Which companies are covered?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Google, Amazon, Microsoft, Meta and 50+ top tech companies."
+        }
       }
-    }
-    </script>
+    ]
+  }
+  </script>
 
+  <!-- Breadcrumb Schema -->
   <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "EducationalOrganization",
-      "name": "Leet.IO",
-      "url": "https://leet.io",
-      "logo": "https://leet.io/logo.png",
-      "description": "Free coding interview preparation platform with company-wise DSA problems",
-      "address": {
-        "@type": "PostalAddress",
-        "addressCountry": "IN"
-      },
-      "sameAs": [
-        "https://twitter.com/leetio",
-        "https://github.com/leetio",
-        "https://linkedin.com/company/leetio"
-      ]
-    }
-    </script>
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [{
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://leet-prep/"
+    }]
+  }
+  </script>
 
-  <!-- Razorpay Checkout Script -->
+  <!-- Razorpay -->
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
 
 <body>
+
+  <!-- SEO fallback -->
+  <noscript>
+    <h1>leet-prep – Company-Wise DSA Coding Problems</h1>
+    <p>
+      Practice 1800+ Data Structures and Algorithms problems from Google,
+      Amazon, Microsoft, Meta and 50+ companies. Free interview preparation
+      platform for students.
+    </p>
+  </noscript>
+
   <div id="root"></div>
+
   <script type="module" src="/src/main.jsx"></script>
 </body>
 

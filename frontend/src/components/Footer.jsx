@@ -53,7 +53,7 @@ const Footer7 = ({
   sections = defaultSections,
   description = "The best platform for  students/professionals to prepare for coding interviews. Built with ❤️ by students, for students.",
   socialLinks = defaultSocialLinks,
-  copyright = "© 2025 Leet.IO. All rights reserved.",
+  copyright = "© 2025 -2026 Leet-Prep. All rights reserved.",
   legalLinks = defaultLegalLinks,
 }) => {
   return (

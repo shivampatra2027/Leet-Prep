@@ -35,7 +35,7 @@ const testimonials = [
     },
   },
   {
-    quote: "The system design resources and data structures problems helped me tremendously. Highly recommend for KIIT students!",
+    quote: "The system design resources and data structures problems helped me tremendously. Highly recommend for  students!",
     author: {
       name: "Sj",
       role: "Backend Engineer at Flipkart",
