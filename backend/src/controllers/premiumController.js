@@ -63,3 +63,6 @@ export const redirectByTier = async (req, res, next) => {
         return res.redirect(`${process.env.CLIENT_URL}/login`);
     }
 };
+
+
+//sync()
