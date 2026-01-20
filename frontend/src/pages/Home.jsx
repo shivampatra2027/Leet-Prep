@@ -26,6 +26,7 @@ import {
   Cloud,
   CloudCog,
   GitBranch,
+  Share2,
 } from "lucide-react";
 import Navbar from "@/components/Navbar.jsx";
 
@@ -109,9 +110,31 @@ const HeroSection = () => {
           Ace your technical interviews with targeted preparation.
         </p>
 
-        <Button size="lg" asChild>
-          <Link to="/dashboard">Start Practicing Now</Link>
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button size="lg" asChild>
+            <Link to="/dashboard">Start Practicing Now</Link>
+          </Button>
+          <Button
+            size="lg"
+            variant="outline"
+            onClick={() => {
+              if (navigator.share) {
+                navigator.share({
+                  title: 'Leet.IO - Master DSA with Company-Wise Problems',
+                  text: 'Practice 1800+ DSA problems organized by top companies. Ace your technical interviews!',
+                  url: 'https://www.leetcodepremium.xyz',
+                })
+                .catch((error) => console.log('Error sharing:', error));
+              } else {
+                navigator.clipboard.writeText('https://www.leetcodepremium.xyz');
+                alert('Link copied to clipboard!');
+              }
+            }}
+          >
+            <Share2 className="mr-2 h-4 w-4" />
+            Share with friends
+          </Button>
+        </div>
       </div>
 
       {/* Image */}
