@@ -1,6 +1,6 @@
 # Leet-Prep
 
-A comprehensive LeetCode problem tracker and management platform. Browse, filter, and organize coding problems by difficulty and company with an intuitive interface.
+A comprehensive LeetCode problem tracker and management platform. Browse, filter, and organize coding problems by difficulty and company with an intuitive interface..
 
 https://docs.google.com/document/d/1YSged3VvphpvZ7O0gXoBQHKgLebvTlB7aKUhkXPG9nc/edit?usp=sharing
 
