@@ -1,6 +1,5 @@
 // backend/src/config/db.js
 import mongoose from "mongoose";
-
 export const connectDb = async () => {
     try {
         const uri = process.env.MONGODB_URI;

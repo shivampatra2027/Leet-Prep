@@ -10,6 +10,7 @@ import profileRoutes from "./routes/profileRoutes.js";
 import premiumRoutes from "./routes/premiumRoutes.js";
 import likeRoutes from "./routes/likeRoutes.js"
 import authRouter from "./routes/auth.js";
+import leetcodeRoutes from "./routes/leetcodeRoutes.js";
 import passport, { configureGoogleStrategy } from "./auth/google.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 import paymentRoutes from './routes/paymentRoutes.js'
@@ -67,7 +68,7 @@ app.use("/api/premium", premiumRoutes);
 app.use("/api/payment",paymentRoutes);
 app.use("/auth", authRouter);
 app.use("/api/likes",likeRoutes)
-
+app.use("/api/leetcode",leetcodeRoutes);
 // Google OAuth routes
 app.get("/auth/google",
     passport.authenticate("google", { scope: ["profile", "email"] })
