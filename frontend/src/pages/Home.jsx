@@ -58,15 +58,16 @@ const HeroSection = () => {
   return (
     <section className="flex min-h-[80vh] flex-1 flex-col justify-between gap-8 overflow-x-hidden pt-6 sm:gap-12 sm:pt-12 lg:gap-16 lg:pt-16">
       {/* Hero Content */}
-      <div className="mx-auto flex max-w-7xl flex-col items-center gap-6 px-4 text-center sm:px-6 lg:px-8">
-        <div className="bg-muted flex items-center gap-2.5 rounded-full border px-3 py-2">
-          <Badge>Company-Wise</Badge>
-          <span className="text-muted-foreground">
-            Curated DSA problems from top tech companies
+      <div className="mx-auto flex max-w-7xl flex-col items-center gap-4 sm:gap-6 px-4 text-center sm:px-6 lg:px-8">
+        <div className="bg-muted flex items-center gap-2 sm:gap-2.5 rounded-full border px-3 py-2">
+          <Badge className="text-xs sm:text-sm">Company-Wise</Badge>
+          <span className="text-muted-foreground text-xs sm:text-sm">
+            <span className="hidden sm:inline">Curated DSA problems from top tech companies</span>
+            <span className="sm:hidden">Curated problems</span>
           </span>
         </div>
 
-        <h1 className="text-3xl leading-[1.29167] font-bold text-balance sm:text-4xl lg:text-5xl">
+        <h1 className="text-2xl leading-tight font-bold text-balance sm:text-3xl sm:leading-[1.29167] md:text-4xl lg:text-5xl">
           Master Data Structures & Algorithms
           <br />
           <span className="relative">
@@ -103,20 +104,19 @@ const HeroSection = () => {
           Coding Problems!
         </h1>
 
-        <p className="text-muted-foreground text-lg">
+        <p className="text-muted-foreground text-sm sm:text-base md:text-lg max-w-2xl sm:max-w-3xl">
           Practice 1800+ DSA problems organized by top companies like Google,
-          Amazon, Microsoft & more.
-          <br />
-          Ace your technical interviews with targeted preparation.
+          Amazon, Microsoft & more. Ace your technical interviews with targeted preparation.
         </p>
 
-        <div className="flex items-center gap-3">
-          <Button size="lg" asChild>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto max-w-sm sm:max-w-none">
+          <Button size="lg" asChild className="w-full sm:w-auto">
             <Link to="/dashboard">Start Practicing Now</Link>
           </Button>
           <Button
             size="lg"
             variant="outline"
+            className="w-full sm:w-auto"
             onClick={() => {
               if (navigator.share) {
                 navigator.share({
@@ -148,7 +148,7 @@ const HeroSection = () => {
         <img
           src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&h=600&fit=crop&auto=format&q=70"
           alt="Coding and programming workspace with multiple monitors displaying code"
-          className="min-h-67 w-full object-cover"
+          className="w-full h-48 sm:h-64 md:h-80 lg:min-h-[400px] object-cover"
           loading="eager"
           fetchPriority="high"
           width="1200"
