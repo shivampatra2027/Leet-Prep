@@ -157,6 +157,11 @@ export function DataTable({ columns, data, onFilteredCountChange, solvedProblems
     },
   });
 
+  // Scroll to top when page changes
+  React.useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [table.getState().pagination.pageIndex]);
+
   return (
     <div className="w-full space-y-4">
       {/* Filters Bar */}
