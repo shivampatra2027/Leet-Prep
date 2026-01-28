@@ -18,6 +18,9 @@ const UserSchema = new Schema({
     isAdmin: { type: Boolean, default: false },
     tier: { type: String, enum: ['free', 'premium'], default: 'free' },
     attempts: [AttemptSchema],
+    leetcodeUsername: { type: String, sparse: true },
+    solvedProblems: [{ type: String }], // Array of LeetCode problem slugs or IDs
+    lastLeetcodeSync: { type: Date },
     expireAt: { type: Date, default: () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) }
 }, { timestamps: true });
 

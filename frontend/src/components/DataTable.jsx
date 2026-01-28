@@ -78,7 +78,7 @@ const CompanyLogo = ({ company, className }) => {
   );
 };
 
-export function DataTable({ columns, data, onFilteredCountChange }) {
+export function DataTable({ columns, data, onFilteredCountChange, solvedProblems = [] }) {
   const [sorting, setSorting] = React.useState([]);
   const [rowSelection, setRowSelection] = React.useState({});
   const [difficultyFilter, setDifficultyFilter] = React.useState("all");
@@ -132,8 +132,17 @@ export function DataTable({ columns, data, onFilteredCountChange }) {
     onFilteredCountChange?.(filteredData.length);
   }, [filteredData.length, onFilteredCountChange]);
 
+  // Enhance data with solved status
+  const enhancedData = React.useMemo(() => {
+    return filteredData.map(problem => ({
+      ...problem,
+      isSolved: solvedProblems.includes(problem.problemId) || 
+                solvedProblems.some(slug => problem.url?.includes(slug))
+    }));
+  }, [filteredData, solvedProblems]);
+
   const table = useReactTable({
-    data: filteredData,
+    data: enhancedData,
     columns,
     onSortingChange: setSorting,
     onRowSelectionChange: setRowSelection,

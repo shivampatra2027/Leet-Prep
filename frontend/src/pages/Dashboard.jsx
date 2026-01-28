@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { problemsAPI } from "../lib/api";
+import { problemsAPI, profileAPI } from "../lib/api";
 import { DataTable } from "@/components/DataTable.jsx";
 import { columns } from "@/components/columns.jsx";
 import Navbar from "@/components/Navbar.jsx";
@@ -10,6 +10,7 @@ export default function Dashboard() {
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState(null);
   const [filteredCount, setFilteredCount] = useState(0);
+  const [solvedProblems, setSolvedProblems] = useState([]);
 
   const fetchProblems = useCallback(async () => {
     setLoading(true);
@@ -17,9 +18,14 @@ export default function Dashboard() {
     try {
       const params = { limit: 10000 }; // Fetch all problems
 
-      const res = await problemsAPI.getAll(params);
-      setProblems(res.data.data || []);
-      setPagination(res.data.pagination);
+      const [problemsRes, solvedRes] = await Promise.all([
+        problemsAPI.getAll(params),
+        profileAPI.getSolvedProblems().catch(() => ({ data: { solvedProblems: [] } }))
+      ]);
+      
+      setProblems(problemsRes.data.data || []);
+      setPagination(problemsRes.data.pagination);
+      setSolvedProblems(solvedRes.data.solvedProblems || []);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to fetch problems");
     } finally {
@@ -56,7 +62,12 @@ export default function Dashboard() {
                 {error}
               </div>
             ) : (
-              <DataTable columns={columns} data={problems} onFilteredCountChange={setFilteredCount} />
+              <DataTable 
+                columns={columns} 
+                data={problems} 
+                onFilteredCountChange={setFilteredCount}
+                solvedProblems={solvedProblems}
+              />
             )}
           </div>
         </div>

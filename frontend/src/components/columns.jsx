@@ -1,4 +1,4 @@
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
+import { ArrowUpDown, MoreHorizontal, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button.jsx";
 import { Checkbox } from "@/components/ui/checkbox.jsx";
 import {
@@ -56,33 +56,38 @@ export const columns = [
     cell: ({ row }) => {
       const problem = row.original;
       return (
-        <div className="flex flex-col gap-1">
-          <a
-            href={problem.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-foreground hover:text-primary font-medium"
-          >
-            {problem.title}
-          </a>
+        <div className="flex items-start gap-2">
+          {problem.isSolved && (
+            <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+          )}
+          <div className="flex flex-col gap-1">
+            <a
+              href={problem.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`font-medium ${problem.isSolved ? 'text-green-600 hover:text-green-700' : 'text-foreground hover:text-primary'}`}
+            >
+              {problem.title}
+            </a>
 
-          <div className="flex flex-wrap gap-2">
-            {problem.companies?.slice(0, 3).map((company, idx) => (
-              <div key={idx} className="flex items-center gap-1 px-2 py-0.5 rounded bg-muted">
-                <img
-                  src={`${logoApiBase}/${company.toLowerCase().replace(/\s+/g, "")}.com?token=${import.meta.env.VITE_LOGO_API_TOKEN}`}
-                  alt={`${company} logo`}
-                  className="w-4 h-4 rounded"
-                  onError={(e) => {
-                    e.target.style.display = "none";
-                    // Optionally: e.target.parentElement.querySelector('span').style.marginLeft = '0';
-                  }}
-                />
-                <span className="text-xs text-muted-foreground">{company}</span>
-              </div>
-            ))}
+            <div className="flex flex-wrap gap-2">
+              {problem.companies?.slice(0, 3).map((company, idx) => (
+                <div key={idx} className="flex items-center gap-1 px-2 py-0.5 rounded bg-muted">
+                  <img
+                    src={`${logoApiBase}/${company.toLowerCase().replace(/\s+/g, "")}.com?token=${import.meta.env.VITE_LOGO_API_TOKEN}`}
+                    alt={`${company} logo`}
+                    className="w-4 h-4 rounded"
+                    onError={(e) => {
+                      e.target.style.display = "none";
+                      // Optionally: e.target.parentElement.querySelector('span').style.marginLeft = '0';
+                    }}
+                  />
+                  <span className="text-xs text-muted-foreground">{company}</span>
+                </div>
+              ))}
+            </div>
+
           </div>
-
         </div>
       );
     },

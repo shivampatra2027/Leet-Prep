@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { problemsAPI } from "../lib/api";
+import { problemsAPI, profileAPI } from "../lib/api";
 import { DataTable } from "@/components/DataTable.jsx";
 import { columns } from "@/components/columns.jsx";
 import Navbar from "@/components/Navbar.jsx";
@@ -10,6 +10,7 @@ export default function FreeDashboard() {
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState(null);
   const [filteredCount, setFilteredCount] = useState(0);
+  const [solvedProblems, setSolvedProblems] = useState([]);
 
   const fetchProblems = useCallback(async () => {
     setLoading(true);
@@ -17,8 +18,13 @@ export default function FreeDashboard() {
     try {
       const params = { limit: 10000 }; // Fetch all problems
 
-      const res = await problemsAPI.getAll(params);
-      const allProblems = res.data.data || [];
+      const [problemsRes, solvedRes] = await Promise.all([
+        problemsAPI.getAll(params),
+        profileAPI.getSolvedProblems().catch(() => ({ data: { solvedProblems: [] } }))
+      ]);
+      
+      const allProblems = problemsRes.data.data || [];
+      setSolvedProblems(solvedRes.data.solvedProblems || []);
       
       // Limit to 2 problems per company
       const companyProblemCount = new Map();
@@ -48,7 +54,7 @@ export default function FreeDashboard() {
       });
       
       setProblems(limitedProblems);
-      setPagination(res.data.pagination);
+      setPagination(problemsRes.data.pagination);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to fetch problems");
     } finally {
@@ -85,7 +91,12 @@ export default function FreeDashboard() {
                 {error}
               </div>
             ) : (
-              <DataTable columns={columns} data={problems} onFilteredCountChange={setFilteredCount} />
+              <DataTable 
+                columns={columns} 
+                data={problems} 
+                onFilteredCountChange={setFilteredCount}
+                solvedProblems={solvedProblems}
+              />
             )}
           </div>
         </div>
