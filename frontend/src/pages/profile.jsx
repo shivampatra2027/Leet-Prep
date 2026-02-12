@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle, Crown, Loader2, RefreshCw, Code2 } from "lucide-react";
+import { CheckCircle, Crown, Loader2, RefreshCw, Code2, Pencil } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
@@ -49,6 +49,12 @@ const Profile = () => {
 
   // ---------------- UPDATE USERNAME ----------------
   const handleUpdateLeetcodeUsername = async () => {
+    if (!leetcodeUsername.trim()) {
+      setSyncMessage("Please enter a valid username");
+      setTimeout(() => setSyncMessage(""), 3000);
+      return;
+    }
+
     try {
       setLoading(true);
       setSyncMessage("");
@@ -64,7 +70,9 @@ const Profile = () => {
       setSyncMessage("LeetCode username updated successfully!");
       setTimeout(() => setSyncMessage(""), 3000);
     } catch (err) {
-      setSyncMessage("Failed to update username");
+      const errorMsg = err.response?.data?.error || "Failed to update username";
+      setSyncMessage(errorMsg);
+      setTimeout(() => setSyncMessage(""), 5000);
     } finally {
       setLoading(false);
     }
@@ -158,30 +166,51 @@ const Profile = () => {
               ) : (
                 <>
                   {isEditingLeetcode ? (
-                    <>
-                      <Input
-                        value={leetcodeUsername}
-                        onChange={e => setLeetcodeUsername(e.target.value)}
-                        placeholder="Enter LeetCode username"
-                      />
-                      <div className="flex gap-2 mt-2">
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-sm font-medium text-muted-foreground mb-1 block">
+                          LeetCode Username
+                        </label>
+                        <Input
+                          value={leetcodeUsername}
+                          onChange={e => setLeetcodeUsername(e.target.value)}
+                          placeholder="Enter LeetCode username"
+                          className="w-full"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              handleUpdateLeetcodeUsername();
+                            }
+                          }}
+                        />
+                      </div>
+                      <div className="flex gap-2">
                         <Button
                           className="flex-1"
                           onClick={handleUpdateLeetcodeUsername}
+                          disabled={loading}
                         >
-                          Save
+                          {loading ? (
+                            <>
+                              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                              Saving...
+                            </>
+                          ) : (
+                            'Save'
+                          )}
                         </Button>
                         <Button
                           variant="outline"
                           onClick={() => {
                             setIsEditingLeetcode(false);
-                            setLeetcodeUsername(user.leetcodeUsername);
+                            setLeetcodeUsername(user.leetcodeUsername || "");
+                            setSyncMessage("");
                           }}
+                          disabled={loading}
                         >
                           Cancel
                         </Button>
                       </div>
-                    </>
+                    </div>
                   ) : (
                     <>
                       <div className="flex items-center justify-between mb-2">
@@ -227,7 +256,11 @@ const Profile = () => {
               )}
 
               {syncMessage && (
-                <p className="text-sm text-center mt-2 text-green-600">
+                <p className={`text-sm text-center mt-2 ${
+                  syncMessage.includes('Failed') || syncMessage.includes('error') || syncMessage.includes('Invalid') || syncMessage.includes('Please')
+                    ? 'text-red-600'
+                    : 'text-green-600'
+                }`}>
                   {syncMessage}
                 </p>
               )}

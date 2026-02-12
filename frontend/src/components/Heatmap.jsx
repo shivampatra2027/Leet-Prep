@@ -38,6 +38,7 @@ export default function LeetCodeHeatmap() {
     return (
         <div>
             <h2 className="text-lg font-semibold mb-3">
+                LeetCode Activity Heatmap
             </h2>
 
             <CalendarHeatmap
