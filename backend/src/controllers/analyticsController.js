@@ -4,10 +4,20 @@ export async function getLeetCodeHeatmap(req, res) {
     try {
         const user = req.user;
 
+        // Defensive check
+        if (!user) {
+            console.error("Heatmap request without authenticated user");
+            return res.status(401).json({ error: "Not authenticated" });
+        }
+
         const query = {
             user: user._id,
             platform: "leetcode"
         };
+
+        // Log user and query for diagnostics
+        console.log("Heatmap fetch for user:", { id: user._id?.toString?.(), tier: user.tier });
+        console.log("Heatmap query:", query);
 
         // Free tier users can only see last 30 days
         if (user.tier === "free") {

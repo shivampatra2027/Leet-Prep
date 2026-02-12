@@ -25,6 +25,12 @@ const allowedOrigins = [
     process.env.CLIENT_URL,
 ].filter(Boolean);
 
+// Allow Vite dev server default port when developing on an alternate port
+if (process.env.NODE_ENV !== "production") {
+    const devAlt = "http://localhost:5174";
+    if (!allowedOrigins.includes(devAlt)) allowedOrigins.push(devAlt);
+}
+
 app.use(cors({
     origin: function (origin, callback) {
         if (!origin) return callback(null, true); // allow curl/postman/mobile apps
