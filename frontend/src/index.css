@@ -81,3 +81,18 @@
     @apply bg-background text-foreground;
   }
 }
+.color-empty {
+  fill: #ebedf0;
+}
+
+.color-scale-1 {
+  fill: #9be9a8;
+}
+
+.color-scale-2 {
+  fill: #40c463;
+}
+
+.color-scale-3 {
+  fill: #216e39;
+}

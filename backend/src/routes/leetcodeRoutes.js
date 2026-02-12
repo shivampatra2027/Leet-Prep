@@ -1,34 +1,26 @@
-import express from "express"
+import express from "express";
+import { protect } from "../middlewares/authMiddleware.js";
+import { syncLeetCodeCalendar } from "../services/leetcodeCalendarSync.js";
 
 const router = express.Router();
-router.get("/:username",async(req,res)=>{
-    const {username} = req.params;
-    const query = `query getUserProblemsSolved($username: String!) {
-      matchedUser(username: $username) {
-        problemsSolved {
-          title
-          titleSlug
-          difficulty
-        }
-      }
-    }
-    `;
+
+// 🔥 THIS IS THE MISSING ROUTE
+router.post("/sync-calendar", protect, async (req, res) => {
     try {
-        const response = await fetch(process.env.LEETCODE_API, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ query, variables: { username } }),
-        });
-        const data = await response.json();
-        if(!data.data?.matchedUser){
-            return res.status(404).json({
-                message:"User not found!"
-            })
+        if (!req.user.leetcodeUsername) {
+            return res.status(400).json({ error: "LeetCode username not set" });
         }
-        res.send(data.data.matchedUser.problemsSolved);
-    } catch (error) {
-        console.error("LeetCode API error:", error); res.status(500).json({ error: "Failed to fetch solved problems" });
+
+        await syncLeetCodeCalendar(
+            req.user.leetcodeUsername,
+            req.user._id
+        );
+
+        res.json({ ok: true, message: "LeetCode calendar synced" });
+    } catch (err) {
+        console.error("Calendar sync error:", err);
+        res.status(500).json({ error: err.message });
     }
-})
+});
 
 export default router;

@@ -14,6 +14,7 @@ import leetcodeRoutes from "./routes/leetcodeRoutes.js";
 import passport, { configureGoogleStrategy } from "./auth/google.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 import paymentRoutes from './routes/paymentRoutes.js'
+import analyticsRoutes from "./routes/analyticsRoutes.js"
 dotenv.config();              
 configureGoogleStrategy();    
 
@@ -43,17 +44,30 @@ app.use(cors({
 // Explicitly handle preflight requests
 // app.options("/*", cors());
 
+// app.use(session({
+//     secret: process.env.JWT_SECRET || "supersecret",
+//     resave: false,
+//     saveUninitialized: false,
+//     cookie: {
+//         secure: true,                          // Force true on Render
+//         sameSite: "none",                      // Required for cross-site
+//         httpOnly: true,                        // Prevent JS access
+//         maxAge: 24 * 60 * 60 * 1000             // Optional: 24 hours
+//     }
+// }));
+
 app.use(session({
     secret: process.env.JWT_SECRET || "supersecret",
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: true,                          // Force true on Render
-        sameSite: "none",                      // Required for cross-site
-        httpOnly: true,                        // Prevent JS access
-        maxAge: 24 * 60 * 60 * 1000             // Optional: 24 hours
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000
     }
 }));
+
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -69,6 +83,8 @@ app.use("/api/payment",paymentRoutes);
 app.use("/auth", authRouter);
 app.use("/api/likes",likeRoutes)
 app.use("/api/leetcode",leetcodeRoutes);
+app.use("/api/analytics", analyticsRoutes);
+
 // Google OAuth routes
 app.get("/auth/google",
     passport.authenticate("google", { scope: ["profile", "email"] })
@@ -101,4 +117,3 @@ connectDb().then(() => {
     });
 });
 
-//
