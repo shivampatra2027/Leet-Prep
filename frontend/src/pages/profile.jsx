@@ -184,12 +184,25 @@ const Profile = () => {
                     </>
                   ) : (
                     <>
-                      <p className="font-medium">
-                        Username: {user.leetcodeUsername}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Solved: {user.solvedProblemsCount || 0}
-                      </p>
+                      <div className="flex items-center justify-between mb-2">
+                        <div>
+                          <p className="font-medium">
+                            Username: {user.leetcodeUsername}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Solved: {user.solvedProblemsCount || 0}
+                          </p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setIsEditingLeetcode(true)}
+                          className="h-8 w-8 p-0"
+                          title="Edit username"
+                        >
+                          <span className="text-lg">✏️</span>
+                        </Button>
+                      </div>
 
                       <Button
                         className="w-full mt-2 gap-2"
