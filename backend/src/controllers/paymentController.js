@@ -25,6 +25,15 @@ export const createOrder = async (req, res) => {
     // Guardrail: ensure Razorpay creds are configured
     const keyId = process.env.RAZORPAY_KEY_ID;
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
+
+    console.log("🔍 Checking Razorpay configuration...");
+    console.log("Key ID present:", !!keyId);
+    console.log("Key Secret present:", !!keySecret);
+    console.log(
+      "Key ID value:",
+      keyId ? keyId.substring(0, 10) + "..." : "MISSING",
+    );
+
     if (
       !keyId ||
       !keySecret ||
@@ -33,10 +42,12 @@ export const createOrder = async (req, res) => {
       keyId === "hello1" ||
       keySecret === "hello"
     ) {
+      console.error("❌ Razorpay keys not configured properly!");
       return res.status(500).json({
         error: "Razorpay keys not configured",
         message:
-          "Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET with valid test/live credentials in backend .env",
+          "Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET with valid test/live credentials in backend .env or Vercel environment variables",
+        hint: "Go to Vercel Dashboard → Settings → Environment Variables",
       });
     }
 
@@ -93,20 +104,49 @@ export const createOrder = async (req, res) => {
       },
     });
   } catch (err) {
-    console.error("Error creating Razorpay order:", err);
+    console.error("❌ Error creating Razorpay order:", err);
+    console.error("Error stack:", err.stack);
+    console.error("Error details:", JSON.stringify(err, null, 2));
 
     // Handle specific Razorpay errors
     let errorMessage = "Failed to create order";
+    let errorType = "unknown";
+
     if (err.error?.description) {
       errorMessage = err.error.description;
+      errorType = err.error.code || "razorpay_error";
     } else if (err.message) {
       errorMessage = err.message;
+      errorType = err.name || "error";
+    }
+
+    // Log specific debugging info
+    if (err.message?.includes("Authentication failed")) {
+      console.error("🔑 Razorpay authentication failed - check API keys");
+      errorMessage = "Razorpay API keys are invalid or not configured";
+    } else if (
+      err.message?.includes("ENOTFOUND") ||
+      err.message?.includes("ETIMEDOUT")
+    ) {
+      console.error("🌐 Network error - cannot reach Razorpay");
+      errorMessage = "Cannot connect to Razorpay servers";
+    } else if (err.name === "MongoError" || err.name === "MongoServerError") {
+      console.error("💾 Database error - MongoDB issue");
+      errorMessage = "Database error - payment record not saved";
     }
 
     res.status(500).json({
       error: "Failed to create order",
       message: errorMessage,
-      details: process.env.NODE_ENV === "development" ? err.error : undefined,
+      errorType: errorType,
+      details:
+        process.env.NODE_ENV === "development"
+          ? {
+              errorMessage: err.message,
+              errorStack: err.stack,
+              razorpayError: err.error,
+            }
+          : undefined,
     });
   }
 };

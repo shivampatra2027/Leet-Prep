@@ -132,12 +132,29 @@ function PaymentButton({ amount, duration, planName }) {
             rzp.open();
             
         } catch (error) {
-            console.error('Payment error:', error);
+            console.error('💥 Payment error:', error);
+            console.error('Error response:', error.response?.data);
             
-            // Better error messages
+            // Better error messages with backend details
             let errorMessage = "Failed to initiate payment. Please try again.";
+            let errorDetails = "";
             
-            if (error.response?.status === 401) {
+            if (error.response?.status === 500) {
+                // Backend server error - show detailed message
+                const data = error.response.data;
+                errorMessage = data?.message || "Server error while creating payment";
+                if (data?.hint) {
+                    errorDetails = `\n\nℹ️ ${data.hint}`;
+                }
+                if (data?.errorType) {
+                    errorDetails += `\n\nError type: ${data.errorType}`;
+                }
+                
+                // Show specific guidance for common issues
+                if (errorMessage.includes("not configured") || errorMessage.includes("invalid")) {
+                    errorDetails += "\n\n⚙️ This is a configuration issue on the server. Contact admin or check Vercel environment variables.";
+                }
+            } else if (error.response?.status === 401) {
                 errorMessage = "Authentication failed. Please login again.";
             } else if (error.response?.status === 400) {
                 errorMessage = error.response.data?.message || "Invalid payment details.";
@@ -149,7 +166,7 @@ function PaymentButton({ amount, duration, planName }) {
                 errorMessage = error.message;
             }
             
-            alert("⚠️ " + errorMessage);
+            alert("⚠️ " + errorMessage + errorDetails);
             setLoading(false);
             
             // Redirect to login if unauthorized
