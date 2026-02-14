@@ -25,6 +25,15 @@ export const createOrder = async (req, res) => {
     // Guardrail: ensure Razorpay creds are configured
     const keyId = process.env.RAZORPAY_KEY_ID;
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
+
+    console.log("🔍 Checking Razorpay configuration...");
+    console.log("Key ID present:", !!keyId);
+    console.log("Key Secret present:", !!keySecret);
+    console.log(
+      "Key ID value:",
+      keyId ? keyId.substring(0, 10) + "..." : "MISSING",
+    );
+
     if (
       !keyId ||
       !keySecret ||
@@ -33,10 +42,12 @@ export const createOrder = async (req, res) => {
       keyId === "hello1" ||
       keySecret === "hello"
     ) {
+      console.error("❌ Razorpay keys not configured properly!");
       return res.status(500).json({
         error: "Razorpay keys not configured",
         message:
-          "Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET with valid test/live credentials in backend .env",
+          "Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET with valid test/live credentials in backend .env or Vercel environment variables",
+        hint: "Go to Vercel Dashboard → Settings → Environment Variables",
       });
     }
 
@@ -45,16 +56,25 @@ export const createOrder = async (req, res) => {
     }
 
     if (!Number.isInteger(amount) || amount <= 0) {
-      return res.status(400).json({ error: "Amount must be a positive integer (paise)" });
+      return res
+        .status(400)
+        .json({ error: "Amount must be a positive integer (paise)" });
     }
 
     const options = {
       amount,
       currency,
       receipt: `receipt_${Date.now()}_${req.user._id}`,
-      notes: notes || { userId: req.user._id.toString() },
+      notes: {
+        userId: req.user._id.toString(),
+        email: req.user.email,
+        ...notes,
+      },
     };
 
+    console.log(
+      `Creating Razorpay order for user ${req.user._id}, amount: ${amount}`,
+    );
     const order = await razorpay.orders.create(options);
 
     // Save payment record in database
@@ -68,6 +88,8 @@ export const createOrder = async (req, res) => {
       notes: JSON.stringify(notes),
     });
 
+    console.log(`Order created successfully: ${order.id}`);
+
     res.json({
       success: true,
       order: {
@@ -76,32 +98,16 @@ export const createOrder = async (req, res) => {
         currency: order.currency,
         receipt: order.receipt,
       },
+      user: {
+        name: req.user.name || req.user.username,
+        email: req.user.email,
+      },
     });
   } catch (err) {
-    const rpStatus = err?.statusCode || err?.response?.statusCode;
-    const rpDesc = err?.error?.description || err?.response?.data?.error?.description;
-    const rpCode = err?.error?.code || err?.response?.data?.error?.code;
-
-    console.error("Error creating Razorpay order:", {
-      statusCode: rpStatus,
-      code: rpCode,
-      description: rpDesc,
-      message: err?.message,
-    });
-
-    // If Razorpay rejects credentials, surface a clearer error
-    if (rpStatus === 401 || rpCode === "BAD_REQUEST_ERROR") {
-      return res.status(502).json({
-        error: "Razorpay authentication failed",
-        message:
-          "Razorpay rejected the API keys. Verify RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET in backend environment and redeploy.",
-      });
-    }
-
-    res.status(500).json({
-      error: "Failed to create order",
-      message: rpDesc || err.message || "Unknown error",
-    });
+    console.error("Error creating Razorpay order:", err);
+    res
+      .status(500)
+      .json({ error: "Failed to create order", message: err.message });
   }
 };
 
