@@ -15,10 +15,37 @@ const razorpay = new Razorpay({
  */
 export const createOrder = async (req, res) => {
   try {
-    const { amount = 99900, currency = "INR", notes } = req.body;
+    const { amount: rawAmount, currency = "INR", notes } = req.body ?? {};
+
+    // Default to ₹999.00 in paise if amount not provided or invalid
+    const amount = Number.isFinite(Number(rawAmount))
+      ? Number(rawAmount)
+      : 99900;
+
+    // Guardrail: ensure Razorpay creds are configured
+    const keyId = process.env.RAZORPAY_KEY_ID;
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    if (
+      !keyId ||
+      !keySecret ||
+      keyId.toLowerCase().includes("your") ||
+      keySecret.toLowerCase().includes("your") ||
+      keyId === "hello1" ||
+      keySecret === "hello"
+    ) {
+      return res.status(500).json({
+        error: "Razorpay keys not configured",
+        message:
+          "Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET with valid test/live credentials in backend .env",
+      });
+    }
 
     if (!req.user) {
       return res.status(401).json({ error: "User not authenticated" });
+    }
+
+    if (!Number.isInteger(amount) || amount <= 0) {
+      return res.status(400).json({ error: "Amount must be a positive integer (paise)" });
     }
 
     const options = {
