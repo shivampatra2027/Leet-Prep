@@ -78,10 +78,30 @@ export const createOrder = async (req, res) => {
       },
     });
   } catch (err) {
-    console.error("Error creating Razorpay order:", err);
-    res
-      .status(500)
-      .json({ error: "Failed to create order", message: err.message });
+    const rpStatus = err?.statusCode || err?.response?.statusCode;
+    const rpDesc = err?.error?.description || err?.response?.data?.error?.description;
+    const rpCode = err?.error?.code || err?.response?.data?.error?.code;
+
+    console.error("Error creating Razorpay order:", {
+      statusCode: rpStatus,
+      code: rpCode,
+      description: rpDesc,
+      message: err?.message,
+    });
+
+    // If Razorpay rejects credentials, surface a clearer error
+    if (rpStatus === 401 || rpCode === "BAD_REQUEST_ERROR") {
+      return res.status(502).json({
+        error: "Razorpay authentication failed",
+        message:
+          "Razorpay rejected the API keys. Verify RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET in backend environment and redeploy.",
+      });
+    }
+
+    res.status(500).json({
+      error: "Failed to create order",
+      message: rpDesc || err.message || "Unknown error",
+    });
   }
 };
 
