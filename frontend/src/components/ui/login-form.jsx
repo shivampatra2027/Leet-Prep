@@ -41,16 +41,16 @@ export function LoginForm({
     <form className={cn("flex flex-col gap-6", className)} onSubmit={handleLogin} {...props}>
       <FieldGroup>
         <div className="flex flex-col items-center gap-1 text-center">
-          <h1 className="text-2xl font-bold">Welcome back</h1>
-          <p className="text-muted-foreground text-sm text-balance">
+          <h1 className="text-2xl font-bold">Welcome back! Coder</h1>
+          {/* <p className="text-muted-foreground text-sm text-balance">
             Enter your credentials to sign in to your account
-          </p>
+          </p> */}
         </div>
-        <Field>
+        {/* <Field>
           <FieldLabel htmlFor="email">Email</FieldLabel>
           <Input id="email" name="email" type="email" placeholder="m@example.com" required />
-        </Field>
-        <Field>
+        </Field> */}
+        {/* <Field>
           <FieldLabel htmlFor="password">Password</FieldLabel>
           <Input id="password" name="password" type="password" required />
           <FieldDescription>
@@ -58,11 +58,11 @@ export function LoginForm({
               Forgot your password?
             </a>
           </FieldDescription>
-        </Field>
-        <Field>
+        </Field> */}
+        {/* <Field>
           <Button type="submit" className="w-full hover:cursor-pointer">Sign In</Button>
-        </Field>
-        <FieldSeparator>Or continue with</FieldSeparator>
+        </Field> */}
+        {/* <FieldSeparator>Or continue with</FieldSeparator> */}
         <Field>
           <Button 
             variant="outline" 
@@ -79,10 +79,10 @@ export function LoginForm({
             Sign in with Google
           </Button>
           <FieldDescription className="px-6 text-center">
-            Don&apos;t have an account?{" "}
-            <a href="/signup" className="text-primary hover:underline">
+            Don&apos;t have an account? Click⬆️, to create your account with google automatically{" "}
+            {/* <a href="/signup" className="text-primary hover:underline">
               Sign up
-            </a>
+            </a> */}
           </FieldDescription>
         </Field>
       </FieldGroup>
