@@ -1,15 +1,29 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
-import { paymentAPI } from "../lib/api";
+import { paymentAPI, profileAPI } from "../lib/api";
 
 function PaymentButton({ amount, duration, planName }) {
     const [loading, setLoading] = useState(false);
+    const [userProfile, setUserProfile] = useState(null);
+
+    // Fetch user profile for prefill (best practice for better conversion)
+    useEffect(() => {
+        const fetchProfile = async () => {
+            try {
+                const response = await profileAPI.getProfile();
+                setUserProfile(response.data);
+            } catch (error) {
+                console.error('Error fetching profile:', error);
+            }
+        };
+        fetchProfile();
+    }, []);
 
     const handlePayment = async () => {
         try {
             setLoading(true);
 
-            // Call backend to create Razorpay order using configured api instance
+            // Step 1: Create Razorpay order (as per official docs Section 1.1)
             const response = await paymentAPI.createOrder({ 
                 amount: amount, // Amount in paise
                 currency: "INR",
@@ -25,16 +39,40 @@ function PaymentButton({ amount, duration, planName }) {
                 throw new Error('Failed to create order');
             }
 
+            // Step 2: Configure Razorpay Checkout (as per official docs Section 1.2)
             const options = {
-                key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-                amount: data.order.amount,
+                key: import.meta.env.VITE_RAZORPAY_KEY_ID, // Your API Key ID
+                amount: data.order.amount, // Amount from order
                 currency: data.order.currency,
-                name: "Leet-Prep Premium",
-                description: `${planName} - Premium Access`,
-                order_id: data.order.id,
+                name: "Leet-Prep", // Your business name
+                description: `${planName} Subscription`,
+                image: "https://leet-prep.vercel.app/logo.png", // Your logo
+                order_id: data.order.id, // Order ID from Step 1
+                
+                // Prefill customer information (increases conversion rate)
+                prefill: {
+                    name: userProfile?.username || data.user?.name || "",
+                    email: userProfile?.email || data.user?.email || "",
+                    contact: "" // Add phone number if you collect it
+                },
+                
+                // Notes for your reference
+                notes: {
+                    plan: planName,
+                    duration: `${duration} month${duration > 1 ? 's' : ''}`,
+                },
+                
+                // Theme customization
+                theme: { 
+                    color: "#6366f1" // Your brand color
+                },
+                
+                // Payment success handler (Section 1.3)
                 handler: async function (response) {
                     try {
-                        // Verify payment with backend using configured api instance
+                        console.log('Payment successful, verifying...', response);
+                        
+                        // Step 3: Verify payment signature on server (Section 1.5)
                         const verifyResponse = await paymentAPI.verifyPayment({
                             razorpay_order_id: response.razorpay_order_id,
                             razorpay_payment_id: response.razorpay_payment_id,
@@ -42,41 +80,76 @@ function PaymentButton({ amount, duration, planName }) {
                         });
 
                         if (verifyResponse.data.success) {
-                            alert("Payment successful! Premium unlocked. Redirecting to dashboard...");
-                            // Redirect to dashboard after successful payment
+                            // Payment verified successfully
+                            alert(`🎉 Payment successful! Premium activated for ${duration} month${duration > 1 ? 's' : ''}. Redirecting to dashboard...`);
+                            
+                            // Redirect to premium dashboard
                             setTimeout(() => {
                                 window.location.href = '/dashboard';
                             }, 1500);
+                        } else {
+                            throw new Error('Payment verification failed');
                         }
                     } catch (error) {
                         console.error('Verification error:', error);
-                        alert("Payment verification failed. Please contact support.");
-                    }
-                },
-                modal: {
-                    ondismiss: function() {
+                        alert("⚠️ Payment verification failed. Please contact support with your payment ID: " + response.razorpay_payment_id);
                         setLoading(false);
                     }
                 },
-                theme: { 
-                    color: "#6366f1" 
+                
+                // Modal configuration
+                modal: {
+                    ondismiss: function() {
+                        console.log('Payment cancelled by user');
+                        setLoading(false);
+                    },
+                    // Prevent accidental dismissal
+                    confirm_close: true,
+                },
+                
+                // Retry configuration (allows up to 3 automatic retries)
+                retry: {
+                    enabled: true,
+                    max_count: 3
                 },
             };
 
+            // Step 3: Initialize Razorpay Checkout
+            if (!window.Razorpay) {
+                throw new Error('Razorpay SDK not loaded. Please refresh the page.');
+            }
+
             const rzp = new window.Razorpay(options);
+            
+            // Payment failure handler (Section 1.3)
             rzp.on('payment.failed', function (response) {
                 console.error('Payment failed:', response.error);
-                alert(`Payment failed: ${response.error.description}`);
+                alert(`❌ Payment failed: ${response.error.description}\n\nReason: ${response.error.reason}\n\nPlease try again or use a different payment method.`);
                 setLoading(false);
             });
 
+            // Open Razorpay Checkout
             rzp.open();
+            
         } catch (error) {
             console.error('Payment error:', error);
-            const errorMessage = error.response?.status === 401 
-                ? "Authentication failed. Please login again."
-                : error.response?.data?.error || "Failed to initiate payment. Please try again.";
-            alert(errorMessage);
+            
+            // Better error messages
+            let errorMessage = "Failed to initiate payment. Please try again.";
+            
+            if (error.response?.status === 401) {
+                errorMessage = "Authentication failed. Please login again.";
+            } else if (error.response?.status === 400) {
+                errorMessage = error.response.data?.message || "Invalid payment details.";
+            } else if (error.response?.data?.message) {
+                errorMessage = error.response.data.message;
+            } else if (error.response?.data?.error) {
+                errorMessage = error.response.data.error;
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+            
+            alert("⚠️ " + errorMessage);
             setLoading(false);
             
             // Redirect to login if unauthorized

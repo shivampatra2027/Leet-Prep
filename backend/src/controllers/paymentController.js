@@ -45,16 +45,25 @@ export const createOrder = async (req, res) => {
     }
 
     if (!Number.isInteger(amount) || amount <= 0) {
-      return res.status(400).json({ error: "Amount must be a positive integer (paise)" });
+      return res
+        .status(400)
+        .json({ error: "Amount must be a positive integer (paise)" });
     }
 
     const options = {
       amount,
       currency,
       receipt: `receipt_${Date.now()}_${req.user._id}`,
-      notes: notes || { userId: req.user._id.toString() },
+      notes: {
+        userId: req.user._id.toString(),
+        email: req.user.email,
+        ...notes,
+      },
     };
 
+    console.log(
+      `Creating Razorpay order for user ${req.user._id}, amount: ${amount}`,
+    );
     const order = await razorpay.orders.create(options);
 
     // Save payment record in database
@@ -68,6 +77,8 @@ export const createOrder = async (req, res) => {
       notes: JSON.stringify(notes),
     });
 
+    console.log(`Order created successfully: ${order.id}`);
+
     res.json({
       success: true,
       order: {
@@ -76,12 +87,27 @@ export const createOrder = async (req, res) => {
         currency: order.currency,
         receipt: order.receipt,
       },
+      user: {
+        name: req.user.name || req.user.username,
+        email: req.user.email,
+      },
     });
   } catch (err) {
     console.error("Error creating Razorpay order:", err);
-    res
-      .status(500)
-      .json({ error: "Failed to create order", message: err.message });
+
+    // Handle specific Razorpay errors
+    let errorMessage = "Failed to create order";
+    if (err.error?.description) {
+      errorMessage = err.error.description;
+    } else if (err.message) {
+      errorMessage = err.message;
+    }
+
+    res.status(500).json({
+      error: "Failed to create order",
+      message: errorMessage,
+      details: process.env.NODE_ENV === "development" ? err.error : undefined,
+    });
   }
 };
 
