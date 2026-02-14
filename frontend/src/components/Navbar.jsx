@@ -124,7 +124,16 @@ export default function Navbar() {
         </NavigationMenu>
 
         {/* Right Side Actions */}
-        <div className="flex items-center gap-3 relative">
+        <div className="flex items-center gap-2 sm:gap-3 relative">
+          <Link to="/premium" className="block">
+            <Button
+              variant="secondary"
+              size="sm"
+              className="border-primary/40 px-3 sm:px-4"
+            >
+              Premium
+            </Button>
+          </Link>
           {/* Auth Buttons */}
           {isLoggedIn ? (
             <Button

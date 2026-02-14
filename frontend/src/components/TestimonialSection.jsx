@@ -92,6 +92,11 @@ const TestimonialCard = ({ quote, author }) => {
 };
 
 const TestimonialSection = () => {
+  const columns = [[], [], []];
+  testimonials.forEach((item, idx) => {
+    columns[idx % 3].push(item);
+  });
+
   return (
     <section className="py-24 bg-muted/30">
       <div className="container px-4 sm:px-6 lg:px-8">
@@ -104,17 +109,24 @@ const TestimonialSection = () => {
           </p>
         </div>
 
-        {/* Top Row - 3 Testimonials */}
-        <div className="grid md:grid-cols-3 gap-8 mb-8">
-          {testimonials.slice(0, 3).map((testimonial, idx) => (
-            <TestimonialCard key={idx} {...testimonial} />
-          ))}
-        </div>
-
-        {/* Bottom Row - 3 Testimonials */}
-        <div className="grid md:grid-cols-3 gap-8">
-          {testimonials.slice(3, 6).map((testimonial, idx) => (
-            <TestimonialCard key={idx + 3} {...testimonial} />
+        <div className="grid gap-6 md:grid-cols-3">
+          {columns.map((col, colIdx) => (
+            <div
+              key={colIdx}
+              className="relative h-[520px] overflow-hidden rounded-2xl border bg-card/50 glass"
+            >
+              <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-background via-transparent to-background/80" />
+              <div
+                className={`marquee-column space-y-4 px-4`}
+                style={{ animationDelay: `${colIdx * 1.5}s` }}
+              >
+                {[...col, ...col].map((testimonial, idx) => (
+                  <div key={`${colIdx}-${idx}`} className="rounded-2xl border bg-background/70 shadow-sm">
+                    <TestimonialCard {...testimonial} />
+                  </div>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       </div>

@@ -97,7 +97,10 @@ const HeroSection = () => {
                 </Link>
               </Button>
               <Button size="lg" variant="outline" asChild className="glass border-primary/30">
-                <Link to="/premium">See premium workflow</Link>
+                <Link to="/premium" className="flex items-center gap-2">
+                  Premium
+                  <Sparkles className="h-4 w-4" />
+                </Link>
               </Button>
             </div>
 
@@ -221,7 +224,7 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#050712] via-[#080d1b] to-[#0b1324] text-foreground relative overflow-hidden">
+    <div className="min-h-screen hero-surface text-foreground relative overflow-hidden">
       <div className="pointer-events-none absolute inset-0 bg-grid opacity-[0.05]" />
       <Navbar />
 
@@ -402,7 +405,7 @@ export default function Home() {
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                   <Link
-                    to="/signup"
+                    to="/login"
                     className="w-full sm:w-auto px-8 py-4 text-base font-semibold text-primary-foreground bg-primary rounded-xl shadow-glow hover:-translate-y-0.5 transition-transform"
                   >
                     Start free today
