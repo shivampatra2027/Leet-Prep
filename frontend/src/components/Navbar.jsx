@@ -3,7 +3,7 @@ import * as React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ModeToggle } from "./mode-toggle";
 import { Button } from "@/components/ui/button.jsx";
-import { LogOut, Heart, Bell } from "lucide-react";
+import { LogOut, Heart, Bell, Menu, X } from "lucide-react";
 import axios from "axios";
 
 import {
@@ -23,6 +23,7 @@ export default function Navbar() {
   const [hasLiked, setHasLiked] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState(false);
+  const [mobileOpen, setMobileOpen] = React.useState(false);
 
   // 🔔 Bell state
   const [showBellBox, setShowBellBox] = React.useState(false);
@@ -69,6 +70,20 @@ export default function Navbar() {
     localStorage.removeItem("authToken");
     navigate("/login");
   }, [navigate]);
+
+  const closeMobile = () => setMobileOpen(false);
+
+  const mainLinks = [
+    { to: "/", label: "Home", auth: "any" },
+    { to: "/dashboard", label: "Dashboard", auth: "authed" },
+    { to: "/profile", label: "Profile", auth: "authed" },
+    { to: "/premium", label: "Premium", auth: "any" },
+    { to: "/login", label: "Login", auth: "guest" },
+  ].filter((link) => {
+    if (link.auth === "any") return true;
+    if (link.auth === "authed") return isLoggedIn;
+    return !isLoggedIn;
+  });
 
   return (
     <nav className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
@@ -125,11 +140,20 @@ export default function Navbar() {
 
         {/* Right Side Actions */}
         <div className="flex items-center gap-2 sm:gap-3 relative">
+          <button
+            className="md:hidden rounded-lg border px-2 py-2 text-muted-foreground hover:text-foreground hover:border-foreground/30 transition"
+            aria-label="Toggle menu"
+            onClick={() => setMobileOpen((o) => !o)}
+          >
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+
           <Link to="/premium" className="block">
             <Button
               variant="secondary"
               size="sm"
               className="border-primary/40 px-3 sm:px-4"
+              onClick={closeMobile}
             >
               Premium
             </Button>
@@ -212,6 +236,50 @@ export default function Navbar() {
           <ModeToggle />
         </div>
       </div>
+
+      {/* Mobile Drawer */}
+      {mobileOpen && (
+        <div className="md:hidden border-t bg-background/98 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+          <div className="container mx-auto px-4 py-4 space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              {mainLinks.map((link) => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  onClick={closeMobile}
+                  className="rounded-xl border bg-card/70 px-4 py-3 text-sm font-semibold text-foreground flex items-center justify-between hover:border-primary/40 transition"
+                >
+                  {link.label}
+                  <span className="h-2 w-2 rounded-full bg-primary/40" />
+                </Link>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-between">
+              {isLoggedIn ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    closeMobile();
+                    handleLogout();
+                  }}
+                >
+                  Logout
+                </Button>
+              ) : (
+                <Link to="/login" onClick={closeMobile}>
+                  <Button variant="outline" size="sm">
+                    Login
+                  </Button>
+                </Link>
+              )}
+
+              <ModeToggle />
+            </div>
+          </div>
+        </div>
+      )}
     </nav>
   );
 }

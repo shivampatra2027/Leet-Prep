@@ -1,5 +1,6 @@
 import React from "react";
 import { FaFacebook, FaInstagram, FaLinkedin, FaTwitter } from "react-icons/fa";
+import { Sparkles, ArrowRight } from "lucide-react";
 
 const defaultSections = [
   {
@@ -57,44 +58,58 @@ const Footer7 = ({
   legalLinks = defaultLegalLinks,
 }) => {
   return (
-    <footer className="bg-muted/30 border-t pt-16 pb-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex w-full flex-col justify-between gap-10 lg:flex-row lg:items-start">
-          <div className="flex w-full flex-col gap-6 lg:items-start lg:max-w-sm">
-            {/* Logo */}
-            <div className="flex items-center gap-2">
-              <a href={logo.url} className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold">
-                  L
-                </div>
-                <span className="text-xl font-bold text-foreground">{logo.title}</span>
-              </a>
+    <footer className="relative overflow-hidden border-t bg-gradient-to-b from-background via-background to-background/60">
+      <div className="pointer-events-none absolute inset-0 bg-grid opacity-[0.04]" />
+      <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-primary/15 blur-3xl" />
+      <div className="pointer-events-none absolute -left-20 top-10 h-56 w-56 rounded-full bg-accent/20 blur-3xl" />
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-16 lg:py-20 relative">
+        <div className="grid gap-12 lg:grid-cols-4">
+          <div className="flex flex-col gap-5 lg:col-span-1">
+            <a href={logo.url} className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center font-bold shadow-glow">
+                L
+              </div>
+              <div>
+                <p className="text-lg font-semibold text-foreground">{logo.title}</p>
+                <p className="text-xs text-muted-foreground">Interview prep, redesigned</p>
+              </div>
+            </a>
+            <div className="inline-flex items-center gap-2 rounded-full bg-foreground/5 px-3 py-1 text-xs font-semibold text-muted-foreground w-fit border border-border/80">
+              <Sparkles className="h-4 w-4 text-primary" />
+              12k+ learners shipped offers
             </div>
-            <p className="text-muted-foreground text-sm leading-relaxed">
+            <p className="text-sm text-muted-foreground leading-relaxed">
               {description}
             </p>
-            <ul className="flex items-center space-x-6">
+            <div className="flex items-center gap-3">
               {socialLinks.map((social, idx) => (
-                <li key={idx}>
-                  <a 
-                    href={social.href} 
-                    aria-label={social.label}
-                    className="w-8 h-8 rounded-full bg-background border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/20 transition-all"
-                  >
-                    {social.icon}
-                  </a>
-                </li>
+                <a
+                  key={idx}
+                  href={social.href}
+                  aria-label={social.label}
+                  className="h-10 w-10 rounded-xl border bg-card/70 flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/30 transition-all shadow-sm"
+                >
+                  {social.icon}
+                </a>
               ))}
-            </ul>
+            </div>
           </div>
-          <div className="grid w-full gap-8 grid-cols-2 md:grid-cols-3 lg:gap-12">
+
+          <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3 lg:col-span-3">
             {sections.map((section, sectionIdx) => (
-              <div key={sectionIdx}>
-                <h4 className="font-bold text-foreground mb-6">{section.title}</h4>
-                <ul className="space-y-3 text-sm text-muted-foreground">
+              <div key={sectionIdx} className="space-y-3">
+                <h4 className="text-sm font-semibold text-foreground tracking-wide uppercase">
+                  {section.title}
+                </h4>
+                <ul className="space-y-2 text-sm text-muted-foreground">
                   {section.links.map((link, linkIdx) => (
                     <li key={linkIdx}>
-                      <a href={link.href} className="hover:text-primary transition-colors">
+                      <a
+                        href={link.href}
+                        className="hover:text-primary transition-colors flex items-center gap-2"
+                      >
+                        <span className="h-1.5 w-1.5 rounded-full bg-primary/40" />
                         {link.name}
                       </a>
                     </li>
@@ -102,19 +117,52 @@ const Footer7 = ({
                 </ul>
               </div>
             ))}
+
+            <div className="space-y-4 lg:col-span-1">
+              <h4 className="text-sm font-semibold text-foreground uppercase tracking-wide">
+                Stay updated
+              </h4>
+              <p className="text-sm text-muted-foreground">
+                Weekly drops: fresh company patterns, system design drills, and release notes.
+              </p>
+              <form className="flex flex-col sm:flex-row gap-2">
+                <input
+                  type="email"
+                  placeholder="you@tech.com"
+                  className="flex-1 rounded-xl border bg-background/60 px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                />
+                <button
+                  type="submit"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-glow hover:-translate-y-0.5 transition-transform"
+                >
+                  Join
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              </form>
+              <p className="text-xs text-muted-foreground">
+                No spam. Opt out anytime.
+              </p>
+            </div>
           </div>
         </div>
-        <div className="border-t mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
+
+        <div className="border-t mt-14 pt-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between text-sm text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="rounded-full border bg-background/70 px-3 py-1 text-xs font-semibold text-foreground/80">
+              ISO interview-ready
+            </span>
+            <span className="rounded-full border bg-background/70 px-3 py-1 text-xs font-semibold text-foreground/80">
+              Updated Feb 2026
+            </span>
+          </div>
           <p>{copyright}</p>
-          <ul className="flex flex-col md:flex-row gap-2 md:gap-6">
+          <div className="flex flex-wrap gap-3">
             {legalLinks.map((link, idx) => (
-              <li key={idx}>
-                <a href={link.href} className="hover:text-foreground transition-colors">
-                  {link.name}
-                </a>
-              </li>
+              <a key={idx} href={link.href} className="hover:text-foreground transition-colors">
+                {link.name}
+              </a>
             ))}
-          </ul>
+          </div>
         </div>
       </div>
     </footer>
