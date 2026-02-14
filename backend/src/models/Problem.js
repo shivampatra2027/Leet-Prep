@@ -18,9 +18,23 @@ const ProblemSchema = new Schema({
         type:String,
         required:true
     }],
+    companyOccurrences:[{
+        company:{
+            type:String,
+            required:true
+        },
+        occurrences:{
+            type:Number,
+            default:0
+        }
+    }],
     difficulty:{
         type:String,
         index:true
+    },
+    sortOrder:{
+        type:Number,
+        default:4
     },
     topics:{
         type:[String],
