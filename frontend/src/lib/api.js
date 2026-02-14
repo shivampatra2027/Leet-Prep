@@ -5,6 +5,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 // Create axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true, // Enable sending cookies for CORS requests
   headers: {
     "Content-Type": "application/json",
   },
@@ -21,7 +22,7 @@ api.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Response interceptor - handle auth errors globally
@@ -34,7 +35,7 @@ api.interceptors.response.use(
       window.location.href = "/login";
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 // API endpoints
@@ -52,9 +53,23 @@ export const problemsAPI = {
 
 export const profileAPI = {
   getProfile: () => api.get("/api/profile"),
-  updateLeetcodeUsername: (username) => api.put("/api/profile/leetcode-username", { leetcodeUsername: username }),
+  updateLeetcodeUsername: (username) =>
+    api.put("/api/profile/leetcode-username", { leetcodeUsername: username }),
   syncLeetcode: () => api.post("/api/profile/sync-leetcode"),
   getSolvedProblems: () => api.get("/api/profile/solved-problems"),
+};
+
+export const paymentAPI = {
+  createOrder: (orderData) =>
+    api.post("/api/payment/create-order", orderData, { withCredentials: true }),
+  verifyPayment: (verificationData) =>
+    api.post("/api/payment/verify", verificationData, {
+      withCredentials: true,
+    }),
+  getPaymentStatus: (orderId) =>
+    api.get(`/api/payment/status/${orderId}`, { withCredentials: true }),
+  getPaymentHistory: () =>
+    api.get("/api/payment/history", { withCredentials: true }),
 };
 
 export const premiumAPI = {

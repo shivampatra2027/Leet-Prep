@@ -1,6 +1,6 @@
-import axios from "axios";
 import { useState } from "react";
 import { Button } from "./ui/button";
+import { paymentAPI } from "../lib/api";
 
 function PaymentButton({ amount, duration, planName }) {
     const [loading, setLoading] = useState(false);
@@ -9,24 +9,17 @@ function PaymentButton({ amount, duration, planName }) {
         try {
             setLoading(true);
 
-            // Call backend to create Razorpay order
-            const { data } = await axios.post(
-                `${import.meta.env.VITE_API_URL}/api/payment/create-order`,
-                { 
-                    amount: amount, // Amount in paise
-                    currency: "INR",
-                    notes: {
-                        duration: duration, // 1 or 3 months
-                        planName: planName
-                    }
-                },
-                { 
-                    withCredentials: true,
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
+            // Call backend to create Razorpay order using configured api instance
+            const response = await paymentAPI.createOrder({ 
+                amount: amount, // Amount in paise
+                currency: "INR",
+                notes: {
+                    duration: duration, // 1 or 2 months
+                    planName: planName
                 }
-            );
+            });
+
+            const data = response.data;
 
             if (!data.success) {
                 throw new Error('Failed to create order');
@@ -41,21 +34,12 @@ function PaymentButton({ amount, duration, planName }) {
                 order_id: data.order.id,
                 handler: async function (response) {
                     try {
-                        // Verify payment with backend
-                        const verifyResponse = await axios.post(
-                            `${import.meta.env.VITE_API_URL}/api/payment/verify`,
-                            {
-                                razorpay_order_id: response.razorpay_order_id,
-                                razorpay_payment_id: response.razorpay_payment_id,
-                                razorpay_signature: response.razorpay_signature,
-                            },
-                            { 
-                                withCredentials: true,
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                }
-                            }
-                        );
+                        // Verify payment with backend using configured api instance
+                        const verifyResponse = await paymentAPI.verifyPayment({
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature,
+                        });
 
                         if (verifyResponse.data.success) {
                             alert("Payment successful! Premium unlocked. Redirecting to dashboard...");
@@ -89,8 +73,18 @@ function PaymentButton({ amount, duration, planName }) {
             rzp.open();
         } catch (error) {
             console.error('Payment error:', error);
-            alert("Failed to initiate payment. Please try again.");
+            const errorMessage = error.response?.status === 401 
+                ? "Authentication failed. Please login again."
+                : error.response?.data?.error || "Failed to initiate payment. Please try again.";
+            alert(errorMessage);
             setLoading(false);
+            
+            // Redirect to login if unauthorized
+            if (error.response?.status === 401) {
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 2000);
+            }
         }
     };
 
