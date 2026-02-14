@@ -1,49 +1,50 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Sora:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
 @layer base {
   :root {
-    --background: hsl(0 0% 100%);
-    --foreground: hsl(240 10% 3.9%);
+    --background: hsl(222 33% 97%);
+    --foreground: hsl(220 24% 12%);
     --card: hsl(0 0% 100%);
-    --card-foreground: hsl(240 10% 3.9%);
+    --card-foreground: hsl(220 24% 12%);
     --popover: hsl(0 0% 100%);
-    --popover-foreground: hsl(240 10% 3.9%);
-    --primary: hsl(240 5.9% 10%);
-    --primary-foreground: hsl(0 0% 98%);
-    --secondary: hsl(240 4.8% 95.9%);
-    --secondary-foreground: hsl(240 5.9% 10%);
-    --muted: hsl(240 4.8% 95.9%);
-    --muted-foreground: hsl(240 3.8% 46.1%);
-    --accent: hsl(240 4.8% 95.9%);
-    --accent-foreground: hsl(240 5.9% 10%);
-    --destructive: hsl(0 84.2% 60.2%);
+    --popover-foreground: hsl(220 24% 12%);
+    --primary: hsl(198 92% 45%);
+    --primary-foreground: hsl(222 50% 6%);
+    --secondary: hsl(214 32% 92%);
+    --secondary-foreground: hsl(222 40% 16%);
+    --muted: hsl(214 28% 90%);
+    --muted-foreground: hsl(219 15% 38%);
+    --accent: hsl(33 96% 63%);
+    --accent-foreground: hsl(222 50% 6%);
+    --destructive: hsl(0 72% 50%);
     --destructive-foreground: hsl(0 0% 98%);
-    --border: hsl(240 5.9% 90%);
-    --input: hsl(240 5.9% 90%);
-    --ring: hsl(240 10% 3.9%);
-    --radius: 0.5rem;
+    --border: hsl(214 30% 86%);
+    --input: hsl(214 30% 86%);
+    --ring: hsl(198 92% 45%);
+    --radius: 0.875rem;
   }
 
   .dark {
-    --background: hsl(240 10% 3.9%);
-    --foreground: hsl(0 0% 98%);
-    --card: hsl(240 10% 3.9%);
-    --card-foreground: hsl(0 0% 98%);
-    --popover: hsl(240 10% 3.9%);
-    --popover-foreground: hsl(0 0% 98%);
-    --primary: hsl(0 0% 98%);
-    --primary-foreground: hsl(240 5.9% 10%);
-    --secondary: hsl(240 3.7% 15.9%);
-    --secondary-foreground: hsl(0 0% 98%);
-    --muted: hsl(240 3.7% 15.9%);
-    --muted-foreground: hsl(240 5% 64.9%);
-    --accent: hsl(240 3.7% 15.9%);
-    --accent-foreground: hsl(0 0% 98%);
-    --destructive: hsl(0 62.8% 30.6%);
+    --background: hsl(222 42% 6%);
+    --foreground: hsl(222 12% 92%);
+    --card: hsl(222 46% 9%);
+    --card-foreground: hsl(0 0% 100%);
+    --popover: hsl(222 46% 10%);
+    --popover-foreground: hsl(0 0% 100%);
+    --primary: hsl(198 90% 68%);
+    --primary-foreground: hsl(221 70% 9%);
+    --secondary: hsl(222 28% 14%);
+    --secondary-foreground: hsl(0 0% 100%);
+    --muted: hsl(222 24% 18%);
+    --muted-foreground: hsl(222 10% 65%);
+    --accent: hsl(33 96% 63%);
+    --accent-foreground: hsl(222 70% 8%);
+    --destructive: hsl(0 62% 58%);
     --destructive-foreground: hsl(0 0% 98%);
-    --border: hsl(240 3.7% 15.9%);
-    --input: hsl(240 3.7% 15.9%);
-    --ring: hsl(240 4.9% 83.9%);
+    --border: hsl(222 24% 22%);
+    --input: hsl(222 24% 22%);
+    --ring: hsl(198 90% 68%);
   }
 }
 
@@ -78,7 +79,39 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-family: "Sora", "Space Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+    background-image:
+      radial-gradient(circle at 10% 20%, hsl(198 90% 65% / 0.12), transparent 25%),
+      radial-gradient(circle at 80% 0%, hsl(33 96% 63% / 0.14), transparent 30%),
+      radial-gradient(circle at 50% 70%, hsl(222 40% 40% / 0.12), transparent 32%);
+    background-attachment: fixed;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: "Space Grotesk", "Sora", system-ui, -apple-system, "Segoe UI", sans-serif;
+    letter-spacing: -0.02em;
+  }
+
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, color-mix(in srgb, var(--border) 55%, transparent) 1px, transparent 1px),
+      linear-gradient(to bottom, color-mix(in srgb, var(--border) 55%, transparent) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  .glass {
+    background: color-mix(in srgb, var(--card) 70%, transparent);
+    backdrop-filter: blur(14px) saturate(130%);
+    -webkit-backdrop-filter: blur(14px) saturate(130%);
+  }
+
+  .shadow-glow {
+    box-shadow:
+      0 15px 55px hsl(198 90% 55% / 0.12),
+      0 8px 30px hsl(222 40% 20% / 0.18);
   }
 }
 .color-empty {
