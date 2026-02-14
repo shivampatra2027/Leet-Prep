@@ -19,7 +19,7 @@ export const getAllProblems = async (req, res) => {
         const skip = (pageNum - 1) * limitNum;
 
         const [problems, total] = await Promise.all([
-            Problem.find(query).skip(skip).limit(limitNum).sort({ createdAt: -1 }).lean(),
+            Problem.find(query).skip(skip).limit(limitNum).sort({ sortOrder: 1, createdAt: -1 }).lean(),
             Problem.countDocuments(query)
         ]);
 

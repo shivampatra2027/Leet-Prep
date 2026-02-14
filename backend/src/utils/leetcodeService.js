@@ -144,12 +144,45 @@ export const fetchAllSolvedProblems = async (username) => {
 };
 
 /**
- * Map LeetCode problem title/slug to our database problemId
+ * Fetch problem details from LeetCode
  * @param {string} titleSlug - LeetCode problem slug
- * @returns {string} Problem ID or slug
+ * @returns {Object} Problem details including difficulty and acceptance rate
  */
-export const mapLeetCodeProblemToId = (titleSlug) => {
-    // This will need to be customized based on how your problemId is stored
-    // For now, return the slug as-is
-    return titleSlug;
+export const fetchProblemDetails = async (titleSlug) => {
+    try {
+        const query = {
+            query: `
+                query getProblem($titleSlug: String!) {
+                    question(titleSlug: $titleSlug) {
+                        questionId
+                        title
+                        titleSlug
+                        difficulty
+                        acRate
+                    }
+                }
+            `,
+            variables: { titleSlug }
+        };
+
+        const response = await axios.post('https://leetcode.com/graphql', query, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Referer': 'https://leetcode.com'
+            }
+        });
+
+        const question = response.data.data.question;
+        if (!question) {
+            throw new Error('Problem not found');
+        }
+
+        return {
+            difficulty: question.difficulty,
+            acceptance: parseFloat(question.acRate)
+        };
+    } catch (error) {
+        console.error(`Error fetching problem details for ${titleSlug}:`, error.message);
+        return { difficulty: 'Unknown', acceptance: null };
+    }
 };
