@@ -213,7 +213,7 @@ const Profile = () => {
                     </div>
                   ) : (
                     <>
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between mb-2">
                         <div>
                           <p className="font-medium">
                             Username: {user.leetcodeUsername}
@@ -224,12 +224,12 @@ const Profile = () => {
                         </div>
                         <Button
                           variant="ghost"
-                          size="icon"
+                          size="sm"
                           onClick={() => setIsEditingLeetcode(true)}
-                          className="h-8 w-8"
-                          title="Edit LeetCode username"
+                          className="h-8 w-8 p-0"
+                          title="Edit username"
                         >
-                          <Pencil className="h-4 w-4" />
+                          <span className="text-lg">✏️</span>
                         </Button>
                       </div>
 

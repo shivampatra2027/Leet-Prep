@@ -13,7 +13,10 @@ export async function syncLeetCodeCalendar(username, userId) {
 
     const response = await fetch(process.env.LEETCODE_API, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+            "Content-Type": "application/json",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+        },
         body: JSON.stringify({
             query,
             variables: { username }
@@ -43,15 +46,20 @@ export async function syncLeetCodeCalendar(username, userId) {
 
     if (data.errors) {
         console.error("LeetCode GraphQL errors:", data.errors);
-        throw new Error("LeetCode API returned errors");
+        const errorMsg = data.errors[0]?.message || "Unknown GraphQL error";
+        throw new Error(`LeetCode error: ${errorMsg}`);
     }
 
-    const calendarStr =
-        data.data?.matchedUser?.userCalendar?.submissionCalendar;
+    const matchedUser = data.data?.matchedUser;
+    if (!matchedUser) {
+        console.error("User not found on LeetCode", { username });
+        throw new Error(`LeetCode user '${username}' not found or is private`);
+    }
 
+    const calendarStr = matchedUser.userCalendar?.submissionCalendar;
     if (!calendarStr) {
         console.error("Calendar missing", { username });
-        throw new Error("LeetCode calendar not found");
+        throw new Error("LeetCode calendar data not available (user may be private)");
     }
 
     let calendar;
