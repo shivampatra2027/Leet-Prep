@@ -5,6 +5,9 @@
   :root {
     --background: hsl(222 33% 97%);
     --foreground: hsl(220 24% 12%);
+    --hero-from: #f7fbff;
+    --hero-via: #eef3ff;
+    --hero-to: #e5f0ff;
     --card: hsl(0 0% 100%);
     --card-foreground: hsl(220 24% 12%);
     --popover: hsl(0 0% 100%);
@@ -28,6 +31,9 @@
   .dark {
     --background: hsl(222 42% 6%);
     --foreground: hsl(222 12% 92%);
+    --hero-from: #050712;
+    --hero-via: #080d1b;
+    --hero-to: #0b1324;
     --card: hsl(222 46% 9%);
     --card-foreground: hsl(0 0% 100%);
     --popover: hsl(222 46% 10%);
@@ -112,6 +118,32 @@
     box-shadow:
       0 15px 55px hsl(198 90% 55% / 0.12),
       0 8px 30px hsl(222 40% 20% / 0.18);
+  }
+
+  .hero-surface {
+    background: linear-gradient(
+      to bottom,
+      var(--hero-from),
+      var(--hero-via),
+      var(--hero-to)
+    );
+  }
+
+  @keyframes marquee-vertical {
+    0% {
+      transform: translateY(0);
+    }
+    100% {
+      transform: translateY(-50%);
+    }
+  }
+
+  .marquee-column {
+    animation: marquee-vertical 22s linear infinite;
+  }
+
+  .marquee-column:hover {
+    animation-play-state: paused;
   }
 }
 .color-empty {
