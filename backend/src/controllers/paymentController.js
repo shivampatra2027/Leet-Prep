@@ -111,19 +111,38 @@ export const verifyPayment = async (req, res) => {
         .json({ success: false, message: "Payment record not found" });
     }
 
-    // Update user to premium (30 days from now)
+    // Calculate premium expiry based on duration from payment notes
+    let durationMonths = 1; // Default to 1 month
+
+    if (paymentRecord.notes) {
+      try {
+        const notes = JSON.parse(paymentRecord.notes);
+        if (notes.duration) {
+          durationMonths = parseInt(notes.duration);
+        }
+      } catch (e) {
+        console.log("Could not parse payment notes, using default duration");
+      }
+    }
+
+    // Update user to premium (based on duration: 1 or 2 months)
     const premiumExpiresAt = new Date();
-    premiumExpiresAt.setDate(premiumExpiresAt.getDate() + 30);
+    premiumExpiresAt.setMonth(premiumExpiresAt.getMonth() + durationMonths);
 
     await User.findByIdAndUpdate(req.user._id, {
       tier: "premium",
       premiumExpiresAt: premiumExpiresAt,
     });
 
+    console.log(
+      `User ${req.user._id} upgraded to premium until ${premiumExpiresAt.toISOString()} (${durationMonths} month${durationMonths > 1 ? "s" : ""})`,
+    );
+
     return res.json({
       success: true,
       message: "Payment verified successfully",
       premiumExpiresAt,
+      duration: durationMonths,
     });
   } catch (err) {
     console.error("Error verifying Razorpay payment:", err);
@@ -386,21 +405,6 @@ export const handleWebhook = async (req, res) => {
         await handleRefundProcessed(payload.refund.entity);
         break;
 
-      case "subscription.activated":
-        await handleSubscriptionActivated(payload.subscription.entity);
-        break;
-
-      case "subscription.cancelled":
-        await handleSubscriptionCancelled(payload.subscription.entity);
-        break;
-
-      case "subscription.charged":
-        await handleSubscriptionCharged(
-          payload.subscription.entity,
-          payload.payment.entity,
-        );
-        break;
-
       default:
         console.log(`Unhandled webhook event: ${event}`);
     }
@@ -484,193 +488,3 @@ async function handleRefundProcessed(refundEntity) {
     console.error("Error handling refund:", error);
   }
 }
-
-async function handleSubscriptionActivated(subscriptionEntity) {
-  try {
-    const userId = subscriptionEntity.notes?.userId;
-    if (!userId) {
-      console.error("User ID not found in subscription notes");
-      return;
-    }
-
-    const startDate = new Date(subscriptionEntity.start_at * 1000);
-    const endDate = subscriptionEntity.end_at
-      ? new Date(subscriptionEntity.end_at * 1000)
-      : null;
-
-    await User.findByIdAndUpdate(userId, {
-      tier: "premium",
-      subscriptionId: subscriptionEntity.id,
-      subscriptionStatus: "active",
-      subscriptionStartDate: startDate,
-      subscriptionEndDate: endDate,
-    });
-
-    console.log(
-      `Subscription ${subscriptionEntity.id} activated for user ${userId}`,
-    );
-  } catch (error) {
-    console.error("Error handling subscription activation:", error);
-  }
-}
-
-async function handleSubscriptionCancelled(subscriptionEntity) {
-  try {
-    const user = await User.findOne({ subscriptionId: subscriptionEntity.id });
-
-    if (user) {
-      user.subscriptionStatus = "cancelled";
-      user.tier = "free";
-      await user.save();
-
-      console.log(`Subscription ${subscriptionEntity.id} cancelled`);
-    }
-  } catch (error) {
-    console.error("Error handling subscription cancellation:", error);
-  }
-}
-
-async function handleSubscriptionCharged(subscriptionEntity, paymentEntity) {
-  try {
-    const user = await User.findOne({ subscriptionId: subscriptionEntity.id });
-
-    if (user) {
-      // Create payment record
-      await Payment.create({
-        user: user._id,
-        paymentId: paymentEntity.id,
-        amount: paymentEntity.amount,
-        currency: paymentEntity.currency,
-        status: paymentEntity.status,
-        paymentMethod: paymentEntity.method,
-        subscriptionId: subscriptionEntity.id,
-        notes: "Subscription charge",
-      });
-
-      // Extend premium
-      const premiumExpiresAt = new Date();
-      premiumExpiresAt.setDate(premiumExpiresAt.getDate() + 30);
-
-      user.premiumExpiresAt = premiumExpiresAt;
-      await user.save();
-
-      console.log(`Subscription charged for user ${user._id}`);
-    }
-  } catch (error) {
-    console.error("Error handling subscription charge:", error);
-  }
-}
-
-/**
- * Create a subscription plan
- * @route POST /api/payment/create-subscription
- * @access Private
- */
-export const createSubscription = async (req, res) => {
-  try {
-    const { planId, totalCount = 12, notes } = req.body; // totalCount = number of billing cycles
-
-    if (!req.user) {
-      return res.status(401).json({ error: "User not authenticated" });
-    }
-
-    if (!planId) {
-      return res.status(400).json({ error: "Plan ID is required" });
-    }
-
-    // Create subscription
-    const subscription = await razorpay.subscriptions.create({
-      plan_id: planId,
-      total_count: totalCount,
-      quantity: 1,
-      customer_notify: 1,
-      notes: {
-        userId: req.user._id.toString(),
-        ...notes,
-      },
-    });
-
-    // Update user
-    await User.findByIdAndUpdate(req.user._id, {
-      subscriptionId: subscription.id,
-      subscriptionStatus: "active",
-      subscriptionStartDate: new Date(subscription.start_at * 1000),
-      tier: "premium",
-    });
-
-    res.json({
-      success: true,
-      subscription: {
-        id: subscription.id,
-        planId: subscription.plan_id,
-        status: subscription.status,
-        startAt: subscription.start_at,
-        shortUrl: subscription.short_url,
-      },
-    });
-  } catch (err) {
-    console.error("Error creating subscription:", err);
-    res.status(500).json({
-      error: "Failed to create subscription",
-      message: err.message,
-    });
-  }
-};
-
-/**
- * Cancel an active subscription
- * @route POST /api/payment/cancel-subscription
- * @access Private
- */
-export const cancelSubscription = async (req, res) => {
-  try {
-    const { cancelAtCycleEnd = true } = req.body;
-
-    if (!req.user) {
-      return res.status(401).json({ error: "User not authenticated" });
-    }
-
-    const user = await User.findById(req.user._id);
-
-    if (!user.subscriptionId) {
-      return res.status(400).json({
-        success: false,
-        message: "No active subscription found",
-      });
-    }
-
-    // Cancel subscription in Razorpay
-    const subscription = await razorpay.subscriptions.cancel(
-      user.subscriptionId,
-      cancelAtCycleEnd,
-    );
-
-    // Update user status
-    user.subscriptionStatus = cancelAtCycleEnd ? "paused" : "cancelled";
-
-    if (!cancelAtCycleEnd) {
-      user.tier = "free";
-      user.premiumExpiresAt = null;
-    }
-
-    await user.save();
-
-    res.json({
-      success: true,
-      message: cancelAtCycleEnd
-        ? "Subscription will be cancelled at the end of billing cycle"
-        : "Subscription cancelled immediately",
-      subscription: {
-        id: subscription.id,
-        status: subscription.status,
-        endedAt: subscription.ended_at,
-      },
-    });
-  } catch (err) {
-    console.error("Error cancelling subscription:", err);
-    res.status(500).json({
-      error: "Failed to cancel subscription",
-      message: err.message,
-    });
-  }
-};

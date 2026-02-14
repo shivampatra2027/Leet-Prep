@@ -40,13 +40,17 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           {/* <Route path="/signup" element={<Signup />} /> */}
-          <Route path="/premium" element={<Pricing4 />} />
+          <Route path="/premium" element={
+            <PrivateRoute>
+              <Pricing4 />
+            </PrivateRoute>
+          } />
           <Route path="/logout" element={<Logout />} />
           <Route
             path="/freedashboard"
             element={
               <PrivateRoute>
-                <Dashboard /> 
+                <FreeDashboard /> 
               </PrivateRoute>
             }
           />

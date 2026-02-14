@@ -1,7 +1,8 @@
 import axios from "axios";
 import { useState } from "react";
+import { Button } from "./ui/button";
 
-function PaymentButton({ userId, user }) {
+function PaymentButton({ amount, duration, planName }) {
     const [loading, setLoading] = useState(false);
 
     const handlePayment = async () => {
@@ -12,8 +13,12 @@ function PaymentButton({ userId, user }) {
             const { data } = await axios.post(
                 `${import.meta.env.VITE_API_URL}/api/payment/create-order`,
                 { 
-                    amount: 99900, // ₹999
-                    currency: "INR" 
+                    amount: amount, // Amount in paise
+                    currency: "INR",
+                    notes: {
+                        duration: duration, // 1 or 3 months
+                        planName: planName
+                    }
                 },
                 { 
                     withCredentials: true,
@@ -32,7 +37,7 @@ function PaymentButton({ userId, user }) {
                 amount: data.order.amount,
                 currency: data.order.currency,
                 name: "Leet-Prep Premium",
-                description: "Upgrade to premium access",
+                description: `${planName} - Premium Access`,
                 order_id: data.order.id,
                 handler: async function (response) {
                     try {
@@ -53,8 +58,11 @@ function PaymentButton({ userId, user }) {
                         );
 
                         if (verifyResponse.data.success) {
-                            alert("Payment successful! Premium unlocked.");
-                            window.location.reload(); // Refresh to update user status
+                            alert("Payment successful! Premium unlocked. Redirecting to dashboard...");
+                            // Redirect to dashboard after successful payment
+                            setTimeout(() => {
+                                window.location.href = '/dashboard';
+                            }, 1500);
                         }
                     } catch (error) {
                         console.error('Verification error:', error);
@@ -65,10 +73,6 @@ function PaymentButton({ userId, user }) {
                     ondismiss: function() {
                         setLoading(false);
                     }
-                },
-                prefill: {
-                    email: user?.email || "",
-                    name: user?.name || ""
                 },
                 theme: { 
                     color: "#6366f1" 
@@ -91,13 +95,14 @@ function PaymentButton({ userId, user }) {
     };
 
     return (
-        <button 
+        <Button 
             onClick={handlePayment}
             disabled={loading}
-            className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full"
+            size="lg"
         >
-            {loading ? "Processing..." : "Upgrade to Premium"}
-        </button>
+            {loading ? "Processing..." : "Get Premium Access"}
+        </Button>
     );
 }
 

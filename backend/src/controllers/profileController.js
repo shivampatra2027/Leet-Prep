@@ -1,5 +1,8 @@
-import User from '../models/User.js';
-import { fetchLeetCodeUserData, fetchAllSolvedProblems } from '../utils/leetcodeService.js';
+import User from "../models/User.js";
+import {
+  fetchLeetCodeUserData,
+  fetchAllSolvedProblems,
+} from "../utils/leetcodeService.js";
 
 // @desc    Get user profile
 // @route   GET /api/profile
@@ -9,24 +12,35 @@ export const getUserProfile = async (req, res) => {
     const user = await User.findById(req.user._id);
 
     if (user) {
+      // Check if premium has expired and update tier if needed
+      if (user.tier === "premium" && user.premiumExpiresAt) {
+        if (new Date() > new Date(user.premiumExpiresAt)) {
+          user.tier = "free";
+          user.premiumExpiresAt = null;
+          await user.save();
+          console.log(`User ${user._id} premium expired - downgraded to free`);
+        }
+      }
+
       res.json({
         _id: user._id,
         username: user.name,
         email: user.email,
         avatarUrl: user.avatarUrl || "https://github.com/shadcn.png", // Default or from DB
-        tier: user.tier || 'free', // 'free' or 'premium'
-        isPremium: user.tier === 'premium', // For backward compatibility
+        tier: user.tier || "free", // 'free' or 'premium'
+        isPremium: user.tier === "premium", // For backward compatibility
+        premiumExpiresAt: user.premiumExpiresAt, // Send expiry date to frontend
         isAdmin: user.isAdmin,
         leetcodeUsername: user.leetcodeUsername,
         lastLeetcodeSync: user.lastLeetcodeSync,
         solvedProblemsCount: user.solvedProblems?.length || 0,
       });
     } else {
-      res.status(404).json({ error: 'User not found' });
+      res.status(404).json({ error: "User not found" });
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: "Server error" });
   }
 };
 
@@ -36,22 +50,26 @@ export const getUserProfile = async (req, res) => {
 export const updateLeetcodeUsername = async (req, res) => {
   try {
     const { leetcodeUsername } = req.body;
-    
-    if (!leetcodeUsername || leetcodeUsername.trim() === '') {
-      return res.status(400).json({ error: 'LeetCode username is required' });
+
+    if (!leetcodeUsername || leetcodeUsername.trim() === "") {
+      return res.status(400).json({ error: "LeetCode username is required" });
     }
 
     const user = await User.findById(req.user._id);
-    
+
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
 
     // Verify the username exists on LeetCode
     try {
       await fetchLeetCodeUserData(leetcodeUsername);
     } catch (error) {
-      return res.status(400).json({ error: 'Invalid LeetCode username or user not found on LeetCode' });
+      return res
+        .status(400)
+        .json({
+          error: "Invalid LeetCode username or user not found on LeetCode",
+        });
     }
 
     user.leetcodeUsername = leetcodeUsername;
@@ -59,12 +77,12 @@ export const updateLeetcodeUsername = async (req, res) => {
 
     res.json({
       ok: true,
-      message: 'LeetCode username updated successfully',
-      leetcodeUsername: user.leetcodeUsername
+      message: "LeetCode username updated successfully",
+      leetcodeUsername: user.leetcodeUsername,
     });
   } catch (error) {
-    console.error('Error updating LeetCode username:', error);
-    res.status(500).json({ error: 'Server error' });
+    console.error("Error updating LeetCode username:", error);
+    res.status(500).json({ error: "Server error" });
   }
 };
 
@@ -74,18 +92,20 @@ export const updateLeetcodeUsername = async (req, res) => {
 export const syncLeetcodeProblems = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
-    
+
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
 
     if (!user.leetcodeUsername) {
-      return res.status(400).json({ error: 'Please set your LeetCode username first' });
+      return res
+        .status(400)
+        .json({ error: "Please set your LeetCode username first" });
     }
 
     // Fetch solved problems from LeetCode
     const solvedProblems = await fetchAllSolvedProblems(user.leetcodeUsername);
-    
+
     // Update user's solved problems
     user.solvedProblems = solvedProblems;
     user.lastLeetcodeSync = new Date();
@@ -93,15 +113,15 @@ export const syncLeetcodeProblems = async (req, res) => {
 
     res.json({
       ok: true,
-      message: 'LeetCode data synced successfully',
+      message: "LeetCode data synced successfully",
       solvedCount: solvedProblems.length,
-      lastSync: user.lastLeetcodeSync
+      lastSync: user.lastLeetcodeSync,
     });
   } catch (error) {
-    console.error('Error syncing LeetCode data:', error);
-    res.status(500).json({ 
-      error: 'Failed to sync LeetCode data',
-      message: error.message 
+    console.error("Error syncing LeetCode data:", error);
+    res.status(500).json({
+      error: "Failed to sync LeetCode data",
+      message: error.message,
     });
   }
 };
@@ -111,20 +131,21 @@ export const syncLeetcodeProblems = async (req, res) => {
 // @access  Private
 export const getSolvedProblems = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).select('solvedProblems lastLeetcodeSync');
-    
+    const user = await User.findById(req.user._id).select(
+      "solvedProblems lastLeetcodeSync",
+    );
+
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
 
     res.json({
       ok: true,
       solvedProblems: user.solvedProblems || [],
-      lastSync: user.lastLeetcodeSync
+      lastSync: user.lastLeetcodeSync,
     });
   } catch (error) {
-    console.error('Error fetching solved problems:', error);
-    res.status(500).json({ error: 'Server error' });
+    console.error("Error fetching solved problems:", error);
+    res.status(500).json({ error: "Server error" });
   }
 };
-

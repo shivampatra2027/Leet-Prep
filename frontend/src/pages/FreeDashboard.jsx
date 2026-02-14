@@ -1,16 +1,40 @@
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { problemsAPI, profileAPI } from "../lib/api";
 import { DataTable } from "@/components/DataTable.jsx";
 import { columns } from "@/components/columns.jsx";
 import Navbar from "@/components/Navbar.jsx";
+import { Button } from "@/components/ui/button.jsx";
+import { Crown } from "lucide-react";
 
 export default function FreeDashboard() {
+  const navigate = useNavigate();
   const [problems, setProblems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState(null);
   const [filteredCount, setFilteredCount] = useState(0);
   const [solvedProblems, setSolvedProblems] = useState([]);
+  const [userTier, setUserTier] = useState(null);
+
+  // Check user tier on mount
+  useEffect(() => {
+    const checkUserTier = async () => {
+      try {
+        const response = await profileAPI.getProfile();
+        const tier = response.data.tier || "free";
+        setUserTier(tier);
+        
+        // Redirect premium users to full dashboard
+        if (tier === "premium") {
+          navigate("/dashboard", { replace: true });
+        }
+      } catch (err) {
+        console.error("Error fetching user profile:", err);
+      }
+    };
+    checkUserTier();
+  }, [navigate]);
 
   const fetchProblems = useCallback(async () => {
     setLoading(true);
@@ -26,17 +50,17 @@ export default function FreeDashboard() {
       const allProblems = problemsRes.data.data || [];
       setSolvedProblems(solvedRes.data.solvedProblems || []);
       
-      // Limit to 2 problems per company
+      // Limit to 1 problem per company
       const companyProblemCount = new Map();
       const limitedProblems = allProblems.filter((problem) => {
         // Get companies for this problem
         const companies = problem.companies || [];
         
-        // hui hui vercel check
+        // Check if any company hasn't reached the limit
         let canInclude = false;
         for (const company of companies) {
           const count = companyProblemCount.get(company) || 0;
-          if (count < 2) {
+          if (count < 1) {
             canInclude = true;
             break;
           }
@@ -66,18 +90,42 @@ export default function FreeDashboard() {
     fetchProblems();
   }, [fetchProblems]);
 
+  // Don't render for premium users (will be redirected)
+  if (userTier === "premium") {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-muted border-t-primary"></div>
+      </div>
+    );
+  }
+
   return (
     <>
       <Navbar />
         <div className="min-h-screen bg-background p-6">
           <div className="max-w-7xl mx-auto">
+            {/* Upgrade Banner */}
+            <div className="mb-6 bg-primary/10 border border-primary/20 rounded-lg p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Crown className="h-6 w-6 text-primary" />
+                <div>
+                  <h3 className="font-semibold text-primary">Free Tier - Limited Access</h3>
+                  <p className="text-sm text-muted-foreground">You're viewing 1 problem per company. Upgrade to access all 500+ problems!</p>
+                </div>
+              </div>
+              <Button onClick={() => navigate("/premium")} className="flex items-center gap-2">
+                <Crown className="h-4 w-4" />
+                Upgrade to Premium
+              </Button>
+            </div>
+
             {/* Header */}
             <div className="mb-8">
               <h1 className="text-3xl font-bold tracking-tight text-foreground">
                 Problems
               </h1>
               <p className="text-muted-foreground">
-                {filteredCount > 0 ? filteredCount : (pagination?.totalProblems || 0)} problems available
+                {filteredCount > 0 ? filteredCount : (pagination?.totalProblems || 0)} problems available (Limited to 1 per company)
               </p>
             </div>
 
