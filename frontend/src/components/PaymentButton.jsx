@@ -138,23 +138,29 @@ function PaymentButton({ amount, duration, planName }) {
             let errorMessage = "Failed to initiate payment. Please try again.";
             let errorDetails = "";
             
-            if (error.response?.status === 500) {
-                // Backend server error - show detailed message
+            if (error.response?.status === 500 || error.response?.status === 401) {
+                // Backend server error or Razorpay authentication error
                 const data = error.response.data;
                 errorMessage = data?.message || "Server error while creating payment";
+                
                 if (data?.hint) {
-                    errorDetails = `\n\nℹ️ ${data.hint}`;
-                }
-                if (data?.errorType) {
-                    errorDetails += `\n\nError type: ${data.errorType}`;
+                    errorDetails = `\n\n💡 ${data.hint}`;
                 }
                 
-                // Show specific guidance for common issues
-                if (errorMessage.includes("not configured") || errorMessage.includes("invalid")) {
-                    errorDetails += "\n\n⚙️ This is a configuration issue on the server. Contact admin or check Vercel environment variables.";
+                if (data?.solution) {
+                    errorDetails += `\n\n📋 Solution:\n${data.solution}`;
                 }
-            } else if (error.response?.status === 401) {
-                errorMessage = "Authentication failed. Please login again.";
+                
+                if (data?.errorType) {
+                    errorDetails += `\n\n🔍 Error Type: ${data.errorType}`;
+                }
+                
+                // Show specific guidance for configuration issues
+                if (errorMessage.toLowerCase().includes("not configured") || 
+                    errorMessage.toLowerCase().includes("invalid") ||
+                    errorMessage.toLowerCase().includes("authentication")) {
+                    errorDetails += "\n\n⚙️ This is a server configuration issue. Please contact the administrator.";
+                }
             } else if (error.response?.status === 400) {
                 errorMessage = error.response.data?.message || "Invalid payment details.";
             } else if (error.response?.data?.message) {
@@ -165,15 +171,9 @@ function PaymentButton({ amount, duration, planName }) {
                 errorMessage = error.message;
             }
             
+            // Show detailed error in alert
             alert("⚠️ " + errorMessage + errorDetails);
             setLoading(false);
-            
-            // Redirect to login if unauthorized
-            if (error.response?.status === 401) {
-                setTimeout(() => {
-                    window.location.href = '/login';
-                }, 2000);
-            }
         }
     };
 

@@ -55,25 +55,60 @@ export const createOrder = async (req, res) => {
     console.log("Key Secret present:", !!keySecret);
     console.log(
       "Key ID value:",
-      keyId ? keyId.substring(0, 10) + "..." : "MISSING",
+      keyId ? keyId.substring(0, 15) + "..." : "MISSING",
     );
 
+    // Check if keys are missing
+    if (!keyId || !keySecret) {
+      console.error("❌ Razorpay keys are MISSING!");
+      return res.status(500).json({
+        error: "Razorpay keys not configured",
+        message:
+          "RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET must be set in environment variables",
+        hint: "Add keys to Render.com Dashboard → Environment Variables or .env file",
+      });
+    }
+
+    // Check if keys are placeholder values
     if (
-      !keyId ||
-      !keySecret ||
       keyId.toLowerCase().includes("your") ||
       keySecret.toLowerCase().includes("your") ||
       keyId === "hello1" ||
       keySecret === "hello"
     ) {
-      console.error("❌ Razorpay keys not configured properly!");
+      console.error("❌ Razorpay keys are placeholder values!");
       return res.status(500).json({
-        error: "Razorpay keys not configured",
-        message:
-          "Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET with valid test/live credentials in backend .env or Vercel environment variables",
-        hint: "Go to Vercel Dashboard → Settings → Environment Variables",
+        error: "Invalid Razorpay keys",
+        message: "Replace placeholder values with actual Razorpay API keys",
+        hint: "Get keys from https://dashboard.razorpay.com/app/keys",
       });
     }
+
+    // Validate Key ID format (must start with rzp_test_ or rzp_live_)
+    if (!keyId.startsWith("rzp_test_") && !keyId.startsWith("rzp_live_")) {
+      console.error("❌ Invalid Razorpay Key ID format!");
+      return res.status(500).json({
+        error: "Invalid Razorpay Key ID format",
+        message:
+          "Key ID must start with 'rzp_test_' (test mode) or 'rzp_live_' (production)",
+        hint: "Copy the correct Key ID from Razorpay Dashboard → Settings → API Keys",
+        currentKeyPrefix: keyId.substring(0, 10) + "...",
+      });
+    }
+
+    // Validate Key Secret length (should be at least 20 characters)
+    if (keySecret.length < 20) {
+      console.error("❌ Invalid Razorpay Key Secret - too short!");
+      return res.status(500).json({
+        error: "Invalid Razorpay Key Secret",
+        message: "Key Secret appears to be incomplete or corrupted",
+        hint: "Copy the full Key Secret from Razorpay Dashboard (it should be a long alphanumeric string)",
+      });
+    }
+
+    // Log the mode being used
+    const mode = keyId.startsWith("rzp_test_") ? "TEST" : "LIVE";
+    console.log(`🔑 Using Razorpay ${mode} mode keys`);
 
     // Step 4: Create Razorpay order options
     const options = {
@@ -138,6 +173,8 @@ export const createOrder = async (req, res) => {
       statusCode: err?.statusCode,
       errorCode: err?.error?.code,
       description: err?.error?.description,
+      source: err?.error?.source,
+      reason: err?.error?.reason,
       stack: process.env.NODE_ENV === "development" ? err?.stack : undefined,
     });
 
@@ -146,31 +183,70 @@ export const createOrder = async (req, res) => {
     const errorDescription =
       err?.error?.description || err?.message || "Unknown error occurred";
     const errorType = err?.error?.code || err?.name || "OrderCreationError";
+    const errorReason = err?.error?.reason;
 
     // Provide helpful hints based on error type
     let hint = undefined;
+    let solution = undefined;
+
+    // 401 Authentication Error - Invalid or expired API keys
     if (
       statusCode === 401 ||
-      statusCode === 403 ||
-      errorDescription.includes("authentication")
+      errorDescription.toLowerCase().includes("authentication") ||
+      errorDescription.toLowerCase().includes("oauth") ||
+      errorReason === "authentication_failed"
     ) {
-      hint =
-        "Check Razorpay API key/secret and ensure correct mode (test vs live)";
-    } else if (
+      console.error("🔐 AUTHENTICATION FAILED - Invalid Razorpay API keys!");
+      hint = "Your Razorpay API keys are invalid, expired, or in wrong mode";
+      solution = [
+        "1. Go to https://dashboard.razorpay.com/app/keys",
+        "2. Regenerate your Test Keys or Live Keys",
+        "3. Copy BOTH Key ID and Key Secret",
+        "4. Update environment variables in Render.com:",
+        "   - RAZORPAY_KEY_ID=rzp_test_XXXXX",
+        "   - RAZORPAY_KEY_SECRET=YYYYY",
+        "5. Restart your backend server",
+        "",
+        "⚠️ Make sure you're using TEST keys for testing, LIVE keys for production",
+      ].join("\n");
+    }
+    // 403 Insufficient Permissions
+    else if (statusCode === 403) {
+      hint = "API keys don't have sufficient permissions for this operation";
+      solution =
+        "Contact Razorpay support to enable payment creation permissions";
+    }
+    // Network errors
+    else if (
       errorDescription.includes("network") ||
-      errorDescription.includes("ENOTFOUND")
+      errorDescription.includes("ENOTFOUND") ||
+      errorDescription.includes("ETIMEDOUT")
     ) {
-      hint = "Check internet connection and Razorpay server status";
-    } else if (errorDescription.includes("amount")) {
-      hint = "Verify amount is a positive integer in paise (₹1 = 100 paise)";
+      hint = "Cannot connect to Razorpay servers";
+      solution = "Check internet connection and verify Razorpay API status";
+    }
+    // Amount validation errors
+    else if (errorDescription.includes("amount")) {
+      hint = "Invalid amount format";
+      solution = "Amount must be a positive integer in paise (₹1 = 100 paise)";
     }
 
     res.status(statusCode).json({
       error: "Failed to create order",
       message: errorDescription,
       errorType,
+      errorReason,
       statusCode,
       hint,
+      solution,
+      debugInfo:
+        process.env.NODE_ENV === "development"
+          ? {
+              keyIdPrefix: RZP_KEY_ID?.substring(0, 15),
+              keySecretLength: RZP_KEY_SECRET?.length,
+              mode: RZP_KEY_ID?.startsWith("rzp_test_") ? "TEST" : "LIVE",
+            }
+          : undefined,
     });
   }
 };
