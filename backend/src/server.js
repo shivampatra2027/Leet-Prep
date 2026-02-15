@@ -78,7 +78,20 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use(express.json());
+/**
+ * Razorpay webhooks must receive the exact raw request body for
+ * signature verification. We attach a raw body parser for that path
+ * first, then fall back to the normal JSON parser for every other route.
+ */
+const jsonParser = express.json();
+app.use("/api/payment/webhook", express.raw({ type: "application/json" }));
+app.use((req, res, next) => {
+    if (req.originalUrl === "/api/payment/webhook") {
+        return next();
+    }
+    return jsonParser(req, res, next);
+});
+
 app.use(helmet());
 
 // Routes

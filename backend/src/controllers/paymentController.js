@@ -3,9 +3,13 @@ import crypto from "crypto";
 import User from "../models/User.js";
 import Payment from "../models/Payment.js";
 
+// Trim environment variables to avoid hidden whitespace (common on Windows CRLF)
+const RZP_KEY_ID = process.env.RAZORPAY_KEY_ID?.trim();
+const RZP_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET?.trim();
+
 const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
+  key_id: RZP_KEY_ID,
+  key_secret: RZP_KEY_SECRET,
 });
 
 /**
@@ -23,8 +27,8 @@ export const createOrder = async (req, res) => {
       : 99900;
 
     // Guardrail: ensure Razorpay creds are configured
-    const keyId = process.env.RAZORPAY_KEY_ID;
-    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    const keyId = RZP_KEY_ID;
+    const keySecret = RZP_KEY_SECRET;
 
     console.log("🔍 Checking Razorpay configuration...");
     console.log("Key ID present:", !!keyId);
@@ -104,10 +108,29 @@ export const createOrder = async (req, res) => {
       },
     });
   } catch (err) {
-    console.error("Error creating Razorpay order:", err);
-    res
-      .status(500)
-      .json({ error: "Failed to create order", message: err.message });
+    const statusCode = err?.statusCode || 500;
+    const errorDescription =
+      err?.error?.description || err?.message || "Unknown error";
+    const errorType = err?.error?.code || err?.name || "OrderCreationError";
+
+    console.error("Error creating Razorpay order:", {
+      statusCode,
+      errorType,
+      message: errorDescription,
+      stack: err?.stack,
+      raw: err?.error,
+    });
+
+    res.status(statusCode).json({
+      error: "Failed to create order",
+      message: errorDescription,
+      errorType,
+      statusCode,
+      hint:
+        statusCode === 401 || statusCode === 403
+          ? "Check Razorpay API key/secret and ensure correct mode (test vs live)"
+          : undefined,
+    });
   }
 };
 
@@ -426,10 +449,21 @@ export const handleWebhook = async (req, res) => {
       return res.status(500).json({ error: "Webhook not configured" });
     }
 
+    if (!signature) {
+      console.error("Missing Razorpay signature header");
+      return res.status(400).json({ error: "Signature header missing" });
+    }
+
+    // Razorpay signs the raw request body. If express.json() has parsed it
+    // we lose the original bytes, so fallback to Buffer when available.
+    const rawBody = Buffer.isBuffer(req.body)
+      ? req.body
+      : Buffer.from(JSON.stringify(req.body || {}));
+
     // Verify webhook signature
     const expectedSignature = crypto
       .createHmac("sha256", webhookSecret)
-      .update(JSON.stringify(req.body))
+      .update(rawBody)
       .digest("hex");
 
     if (expectedSignature !== signature) {
@@ -437,8 +471,18 @@ export const handleWebhook = async (req, res) => {
       return res.status(400).json({ error: "Invalid signature" });
     }
 
-    const event = req.body.event;
-    const payload = req.body.payload;
+    let parsedBody = req.body;
+    if (Buffer.isBuffer(req.body)) {
+      try {
+        parsedBody = JSON.parse(req.body.toString("utf8"));
+      } catch (parseErr) {
+        console.error("Failed to parse webhook body:", parseErr);
+        return res.status(400).json({ error: "Malformed webhook payload" });
+      }
+    }
+
+    const event = parsedBody?.event;
+    const payload = parsedBody?.payload;
 
     console.log(`Webhook received: ${event}`);
 
@@ -446,16 +490,16 @@ export const handleWebhook = async (req, res) => {
     switch (event) {
       case "payment.authorized":
       case "payment.captured":
-        await handlePaymentSuccess(payload.payment.entity);
+        await handlePaymentSuccess(payload?.payment?.entity);
         break;
 
       case "payment.failed":
-        await handlePaymentFailed(payload.payment.entity);
+        await handlePaymentFailed(payload?.payment?.entity);
         break;
 
       case "refund.created":
       case "refund.processed":
-        await handleRefundProcessed(payload.refund.entity);
+        await handleRefundProcessed(payload?.refund?.entity);
         break;
 
       default:
@@ -474,6 +518,10 @@ export const handleWebhook = async (req, res) => {
 // Helper functions for webhook handlers
 async function handlePaymentSuccess(paymentEntity) {
   try {
+    if (!paymentEntity) {
+      console.error("Webhook payment entity missing");
+      return;
+    }
     const payment = await Payment.findOne({ orderId: paymentEntity.order_id });
 
     if (payment) {
@@ -500,6 +548,10 @@ async function handlePaymentSuccess(paymentEntity) {
 
 async function handlePaymentFailed(paymentEntity) {
   try {
+    if (!paymentEntity) {
+      console.error("Webhook payment entity missing");
+      return;
+    }
     await Payment.findOneAndUpdate(
       { orderId: paymentEntity.order_id },
       {
@@ -516,6 +568,10 @@ async function handlePaymentFailed(paymentEntity) {
 
 async function handleRefundProcessed(refundEntity) {
   try {
+    if (!refundEntity) {
+      console.error("Webhook refund entity missing");
+      return;
+    }
     const payment = await Payment.findOne({
       paymentId: refundEntity.payment_id,
     });
