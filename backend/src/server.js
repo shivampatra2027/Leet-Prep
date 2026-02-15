@@ -29,6 +29,8 @@ const allowedOrigins = [
   process.env.CLIENT_URL,
   "https://leet-io-frontend.onrender.com",
   "https://leet-prep.vercel.app",
+  "https://www.leetcodepremium.xyz",
+  "https://leetcodepremium.xyz",
   "http://localhost:5173",
   "http://127.0.0.1:5173",
 ].filter(Boolean);
