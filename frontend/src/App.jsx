@@ -14,6 +14,7 @@ import ErrorPage from "./ErrorPage";
 import FreeDashboard from "./pages/FreeDashboard";
 import PaymentButton from "./components/PaymentButton";
 import { Analytics } from "@vercel/analytics/react";
+import ResumeAnalyzer from "./pages/ResumeAnalyzer";
 
 function App() {
   // useEffect(() => {
@@ -59,6 +60,14 @@ function App() {
             element={
               <PrivateRoute>
                 <Dashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/resume-analyzer"
+            element={
+              <PrivateRoute>
+                <ResumeAnalyzer />
               </PrivateRoute>
             }
           />

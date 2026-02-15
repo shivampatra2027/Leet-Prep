@@ -16,7 +16,7 @@ import {
 
 export default function Navbar() {
   const navigate = useNavigate();
-  const token = React.useMemo(() => localStorage.getItem("authToken"), []);
+  const [token, setToken] = React.useState(() => localStorage.getItem("authToken"));
   const isLoggedIn = !!token;
 
   const [likes, setLikes] = React.useState(0);
@@ -47,6 +47,17 @@ export default function Navbar() {
     }
   }, [API_URL]);
 
+  // Keep token in sync (login/logout/storage)
+  React.useEffect(() => {
+    const updateToken = () => setToken(localStorage.getItem("authToken"));
+    window.addEventListener("storage", updateToken);
+    window.addEventListener("focus", updateToken);
+    return () => {
+      window.removeEventListener("storage", updateToken);
+      window.removeEventListener("focus", updateToken);
+    };
+  }, []);
+
   const handleLike = async () => {
     if (hasLiked || loading) return;
 
@@ -76,6 +87,7 @@ export default function Navbar() {
   const mainLinks = [
     { to: "/", label: "Home", auth: "any" },
     { to: "/dashboard", label: "Dashboard", auth: "authed" },
+    { to: "/resume-analyzer", label: "Resume Analyzer", auth: "authed" },
     { to: "/profile", label: "Profile", auth: "authed" },
     { to: "/premium", label: "Premium", auth: "any" },
     { to: "/login", label: "Login", auth: "guest" },
@@ -124,6 +136,14 @@ export default function Navbar() {
                     className="absolute -top-1 -right-2 h-2 w-2 rounded-full bg-emerald-500 ring-4 ring-background animate-pulse"
                     aria-hidden="true"
                   />
+                </NavigationMenuItem>
+
+                <NavigationMenuItem>
+                  <NavigationMenuLink asChild>
+                    <Link to="/resume-analyzer" className={navigationMenuTriggerStyle()}>
+                      Resume Analyzer
+                    </Link>
+                  </NavigationMenuLink>
                 </NavigationMenuItem>
 
                 <NavigationMenuItem>

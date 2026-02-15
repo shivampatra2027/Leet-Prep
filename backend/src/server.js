@@ -15,6 +15,7 @@ import passport, { configureGoogleStrategy } from "./auth/google.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 import paymentRoutes from './routes/paymentRoutes.js'
 import analyticsRoutes from "./routes/analyticsRoutes.js"
+import resumeRoutes from "./routes/resumeRoutes.js"
 dotenv.config();              
 configureGoogleStrategy();    
 
@@ -28,8 +29,15 @@ const allowedOrigins = [
 
 // Allow Vite dev server default port when developing on an alternate port
 if (process.env.NODE_ENV !== "production") {
-    const devAlt = "http://localhost:5174";
-    if (!allowedOrigins.includes(devAlt)) allowedOrigins.push(devAlt);
+    const devOrigins = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:5174",
+    ];
+    devOrigins.forEach((o) => {
+        if (!allowedOrigins.includes(o)) allowedOrigins.push(o);
+    });
 }
 
 app.use(cors({
@@ -128,6 +136,7 @@ app.use("/auth", authRouter);
 app.use("/api/likes",likeRoutes)
 app.use("/api/leetcode",leetcodeRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/resume", resumeRoutes);
 
 // Google OAuth routes
 app.get("/auth/google",

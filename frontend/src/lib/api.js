@@ -64,6 +64,14 @@ export const profileAPI = {
   getSolvedSummary: () => api.get("/api/profile/solved-summary"),
 };
 
+export const resumeAPI = {
+  analyze: (formData) =>
+    api.post("/api/resume/analyze", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+      withCredentials: true,
+    }),
+};
+
 export const paymentAPI = {
   createOrder: (orderData) =>
     api.post("/api/payment/create-order", orderData, { withCredentials: true }),
