@@ -30,6 +30,13 @@ const RZP_WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET?.trim();
  */
 export const createOrder = async (req, res) => {
   try {
+    console.log("==== CREATE ORDER DEBUG ====");
+    console.log("Auth header:", req.headers.authorization);
+    console.log("User from middleware:", req.user);
+    console.log("JWT secret exists:", !!process.env.JWT_SECRET);
+    console.log("Razorpay key exists:", !!process.env.RAZORPAY_KEY_ID);
+    console.log("===========================");
+
     // Step 1: Check authentication FIRST
     if (!req.user) {
       console.error("createOrder: req.user missing after protect");
