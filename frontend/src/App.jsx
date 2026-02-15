@@ -15,6 +15,7 @@ import FreeDashboard from "./pages/FreeDashboard";
 import PaymentButton from "./components/PaymentButton";
 import { Analytics } from "@vercel/analytics/react";
 import ResumeAnalyzer from "./pages/ResumeAnalyzer";
+import PaymentProcessing from "./pages/PaymentProcessing";
 
 function App() {
   // useEffect(() => {
@@ -45,6 +46,11 @@ function App() {
             <PrivateRoute>
               <Pricing4 />
             </PrivateRoute>
+          } />
+          <Route path="/payment-processing" element={
+            // <PrivateRoute>
+              <PaymentProcessing />
+            // </PrivateRoute>
           } />
           <Route path="/logout" element={<Logout />} />
           <Route

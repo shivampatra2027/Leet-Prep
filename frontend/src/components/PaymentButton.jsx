@@ -71,24 +71,15 @@ function PaymentButton({ amount, duration, planName }) {
                     try {
                         console.log('Payment successful, verifying...', response);
                         
-                        // Step 3: Verify payment signature on server (Section 1.5)
-                        const verifyResponse = await paymentAPI.verifyPayment({
+                        // Step 3: Verify payment signature on server (non-blocking UI check)
+                        await paymentAPI.verifyPayment({
                             razorpay_order_id: response.razorpay_order_id,
                             razorpay_payment_id: response.razorpay_payment_id,
                             razorpay_signature: response.razorpay_signature,
                         });
 
-                        if (verifyResponse.data.success) {
-                            // Payment verified successfully
-                            alert(`🎉 Payment successful! Premium activated for ${duration} month${duration > 1 ? 's' : ''}. Redirecting to dashboard...`);
-                            
-                            // Redirect to premium dashboard
-                            setTimeout(() => {
-                                window.location.href = '/dashboard';
-                            }, 1500);
-                        } else {
-                            throw new Error('Payment verification failed');
-                        }
+                        // Navigate to processing page - webhook will activate premium
+                        window.location.href = `/payment-processing?order=${response.razorpay_order_id}`;
                     } catch (error) {
                         console.error('Verification error:', error);
                         alert("⚠️ Payment verification failed. Please contact support with your payment ID: " + response.razorpay_payment_id);
