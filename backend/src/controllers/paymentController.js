@@ -19,14 +19,34 @@ const razorpay = new Razorpay({
  */
 export const createOrder = async (req, res) => {
   try {
+    // Step 1: Check authentication FIRST
+    if (!req.user) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+
     const { amount: rawAmount, currency = "INR", notes } = req.body ?? {};
 
-    // Default to ₹999.00 in paise if amount not provided or invalid
+    // Step 2: Validate and sanitize amount
     const amount = Number.isFinite(Number(rawAmount))
-      ? Number(rawAmount)
+      ? Math.floor(Number(rawAmount)) // Ensure integer (paise)
       : 99900;
 
-    // Guardrail: ensure Razorpay creds are configured
+    if (amount <= 0) {
+      return res.status(400).json({
+        error: "Invalid amount",
+        message: "Amount must be a positive integer (in paise)",
+      });
+    }
+
+    // Minimum amount: ₹1.00 (100 paise)
+    if (amount < 100) {
+      return res.status(400).json({
+        error: "Amount too small",
+        message: "Minimum amount is ₹1.00 (100 paise)",
+      });
+    }
+
+    // Step 3: Validate Razorpay credentials
     const keyId = RZP_KEY_ID;
     const keySecret = RZP_KEY_SECRET;
 
@@ -55,16 +75,7 @@ export const createOrder = async (req, res) => {
       });
     }
 
-    if (!req.user) {
-      return res.status(401).json({ error: "User not authenticated" });
-    }
-
-    if (!Number.isInteger(amount) || amount <= 0) {
-      return res
-        .status(400)
-        .json({ error: "Amount must be a positive integer (paise)" });
-    }
-
+    // Step 4: Create Razorpay order options
     const options = {
       amount,
       currency,
@@ -72,28 +83,42 @@ export const createOrder = async (req, res) => {
       notes: {
         userId: req.user._id.toString(),
         email: req.user.email,
+        username: req.user.username || req.user.name || "User",
         ...notes,
       },
     };
 
     console.log(
-      `Creating Razorpay order for user ${req.user._id}, amount: ${amount}`,
+      `📦 Creating Razorpay order for user ${req.user._id}, amount: ₹${amount / 100} (${amount} paise)`,
     );
+
+    // Step 5: Create order on Razorpay
     const order = await razorpay.orders.create(options);
 
-    // Save payment record in database
-    await Payment.create({
-      user: req.user._id,
-      orderId: order.id,
-      amount: amount,
-      currency: currency,
-      status: "created",
-      receipt: options.receipt,
-      notes: JSON.stringify(notes),
-    });
+    console.log(`✅ Razorpay order created: ${order.id}`);
 
-    console.log(`Order created successfully: ${order.id}`);
+    // Step 6: Save payment record in database
+    try {
+      await Payment.create({
+        user: req.user._id,
+        orderId: order.id,
+        amount: amount,
+        currency: currency,
+        status: "created",
+        receipt: options.receipt,
+        notes: JSON.stringify(notes || {}),
+      });
+      console.log(`💾 Payment record saved to database`);
+    } catch (dbErr) {
+      console.error("❌ Database error while saving payment:", dbErr);
+      // Order created on Razorpay but DB save failed
+      // This is OK - webhook can recover this
+      console.warn(
+        "⚠️ Order created on Razorpay but DB save failed. Webhook will handle it.",
+      );
+    }
 
+    // Step 7: Return success response
     res.json({
       success: true,
       order: {
@@ -108,28 +133,44 @@ export const createOrder = async (req, res) => {
       },
     });
   } catch (err) {
+    console.error("❌ Error creating Razorpay order:", {
+      message: err?.message,
+      statusCode: err?.statusCode,
+      errorCode: err?.error?.code,
+      description: err?.error?.description,
+      stack: process.env.NODE_ENV === "development" ? err?.stack : undefined,
+    });
+
+    // Determine status code and error message
     const statusCode = err?.statusCode || 500;
     const errorDescription =
-      err?.error?.description || err?.message || "Unknown error";
+      err?.error?.description || err?.message || "Unknown error occurred";
     const errorType = err?.error?.code || err?.name || "OrderCreationError";
 
-    console.error("Error creating Razorpay order:", {
-      statusCode,
-      errorType,
-      message: errorDescription,
-      stack: err?.stack,
-      raw: err?.error,
-    });
+    // Provide helpful hints based on error type
+    let hint = undefined;
+    if (
+      statusCode === 401 ||
+      statusCode === 403 ||
+      errorDescription.includes("authentication")
+    ) {
+      hint =
+        "Check Razorpay API key/secret and ensure correct mode (test vs live)";
+    } else if (
+      errorDescription.includes("network") ||
+      errorDescription.includes("ENOTFOUND")
+    ) {
+      hint = "Check internet connection and Razorpay server status";
+    } else if (errorDescription.includes("amount")) {
+      hint = "Verify amount is a positive integer in paise (₹1 = 100 paise)";
+    }
 
     res.status(statusCode).json({
       error: "Failed to create order",
       message: errorDescription,
       errorType,
       statusCode,
-      hint:
-        statusCode === 401 || statusCode === 403
-          ? "Check Razorpay API key/secret and ensure correct mode (test vs live)"
-          : undefined,
+      hint,
     });
   }
 };

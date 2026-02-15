@@ -46,7 +46,6 @@ function PaymentButton({ amount, duration, planName }) {
                 currency: data.order.currency,
                 name: "Leet-Prep", // Your business name
                 description: `${planName} Subscription`,
-                image: "https://leet-prep.vercel.app/logo.png", // Your logo
                 order_id: data.order.id, // Order ID from Step 1
                 
                 // Prefill customer information (increases conversion rate)
