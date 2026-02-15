@@ -73,6 +73,10 @@ const PaymentSchema = new Schema(
     receipt: {
       type: String,
     },
+    capturedAt: {
+      type: Date,
+      index: true, // For revenue reports
+    },
   },
   { timestamps: true },
 );

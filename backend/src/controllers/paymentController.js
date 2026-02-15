@@ -99,29 +99,11 @@ export const createOrder = async (req, res) => {
     const order = await razorpay.orders.create(options);
 
     console.log(`✅ Razorpay order created: ${order.id}`);
+    console.log(
+      `📌 No DB write - webhook will create record on successful payment`,
+    );
 
-    // Step 6: Save payment record in database
-    try {
-      await Payment.create({
-        user: req.user._id,
-        orderId: order.id,
-        amount: amount,
-        currency: currency,
-        status: "created",
-        receipt: options.receipt,
-        notes: JSON.stringify(notes || {}),
-      });
-      console.log(`💾 Payment record saved to database`);
-    } catch (dbErr) {
-      console.error("❌ Database error while saving payment:", dbErr);
-      // Order created on Razorpay but DB save failed
-      // This is OK - webhook can recover this
-      console.warn(
-        "⚠️ Order created on Razorpay but DB save failed. Webhook will handle it.",
-      );
-    }
-
-    // Step 7: Return success response
+    // Step 6: Return success response (no DB write - webhook handles it)
     res.json({
       success: true,
       key: process.env.RAZORPAY_KEY_ID, // REQUIRED for frontend Razorpay Checkout
@@ -208,10 +190,8 @@ export const verifyPayment = async (req, res) => {
       .digest("hex");
 
     if (generated_signature !== razorpay_signature) {
-      // Update payment status to failed
-      await Payment.findOneAndUpdate(
-        { orderId: razorpay_order_id },
-        { status: "failed" },
+      console.log(
+        `❌ Signature verification failed for order ${razorpay_order_id}`,
       );
       return res.status(400).json({
         success: false,
@@ -219,38 +199,16 @@ export const verifyPayment = async (req, res) => {
       });
     }
 
-    // Fetch payment details from Razorpay (get fresh instance per request)
-    const razorpay = getRazorpay();
-    const payment = await razorpay.payments.fetch(razorpay_payment_id);
-
-    // Update payment record
-    const paymentRecord = await Payment.findOneAndUpdate(
-      { orderId: razorpay_order_id },
-      {
-        paymentId: razorpay_payment_id,
-        signature: razorpay_signature,
-        status: payment.status === "captured" ? "captured" : "authorized",
-        paymentMethod: payment.method,
-      },
-      { new: true },
-    );
-
-    if (!paymentRecord) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Payment record not found" });
-    }
-
+    // Signature verified! Webhook will handle DB operations and premium activation
     console.log(
-      `Payment signature verified for order ${razorpay_order_id}. Webhook will activate premium.`,
+      `✅ Payment signature verified for order ${razorpay_order_id}. Webhook will handle DB and activation.`,
     );
 
     return res.json({
       success: true,
-      message: "Payment verified. Activating premium via webhook...",
+      message: "Payment verified. Premium will be activated via webhook...",
       orderId: razorpay_order_id,
       paymentId: razorpay_payment_id,
-      status: paymentRecord.status,
     });
   } catch (err) {
     console.error("Error verifying Razorpay payment:", err);
@@ -280,10 +238,23 @@ export const getPaymentStatus = async (req, res) => {
       user: req.user._id,
     }).select("-__v");
 
+    // Payment might not exist yet (webhook hasn't arrived)
     if (!payment) {
-      return res.status(404).json({
-        success: false,
-        message: "Payment not found",
+      // Fetch user's current tier to check if already upgraded
+      const user = await User.findById(req.user._id).select(
+        "tier premiumExpiresAt",
+      );
+
+      return res.json({
+        success: true,
+        payment: {
+          orderId: orderId,
+          status: "pending", // Webhook hasn't processed yet
+        },
+        user: {
+          tier: user.tier,
+          premiumExpiresAt: user.premiumExpiresAt,
+        },
       });
     }
 
@@ -565,42 +536,65 @@ async function handlePaymentSuccess(paymentEntity) {
       console.error("Webhook payment entity missing");
       return;
     }
-    const payment = await Payment.findOne({ orderId: paymentEntity.order_id });
 
-    if (payment) {
-      payment.paymentId = paymentEntity.id;
-      payment.status = paymentEntity.status;
-      payment.paymentMethod = paymentEntity.method;
-      await payment.save();
+    // 1️⃣ Prevent duplicate entries (webhooks retry many times)
+    const existing = await Payment.findOne({
+      paymentId: paymentEntity.id,
+    });
 
-      // Calculate premium duration from payment notes
-      let durationMonths = 1;
-      if (payment.notes) {
-        try {
-          const notes = JSON.parse(payment.notes);
-          if (notes.duration) {
-            durationMonths = parseInt(notes.duration);
-          }
-        } catch (e) {
-          console.log("Could not parse payment notes, using default duration");
-        }
-      }
-
-      // Update user to premium
-      const premiumExpiresAt = new Date();
-      premiumExpiresAt.setMonth(premiumExpiresAt.getMonth() + durationMonths);
-
-      await User.findByIdAndUpdate(payment.user, {
-        tier: "premium",
-        premiumExpiresAt,
-      });
-
+    if (existing) {
       console.log(
-        `[WEBHOOK] User ${payment.user} upgraded to premium until ${premiumExpiresAt.toISOString()} (${durationMonths} month${durationMonths > 1 ? "s" : ""})`,
+        "⚠️ Webhook retry ignored - payment already processed:",
+        paymentEntity.id,
       );
+      return;
     }
+
+    // 2️⃣ Extract plan metadata from payment notes
+    const notes = paymentEntity.notes || {};
+    const durationMonths = parseInt(notes.duration || 1);
+    const userId = notes.userId;
+
+    if (!userId) {
+      console.error(
+        "❌ No userId in payment notes - cannot process:",
+        paymentEntity.id,
+      );
+      return;
+    }
+
+    // 3️⃣ Store ONLY successful payments (first DB write happens here)
+    const payment = await Payment.create({
+      user: userId,
+      orderId: paymentEntity.order_id,
+      paymentId: paymentEntity.id,
+      amount: paymentEntity.amount,
+      currency: paymentEntity.currency,
+      status: paymentEntity.status, // captured
+      paymentMethod: paymentEntity.method,
+      receipt: paymentEntity.receipt || null,
+      notes: JSON.stringify(notes),
+      capturedAt: new Date(),
+    });
+
+    console.log(`✅ Payment record created in DB: ${paymentEntity.id}`);
+
+    // 4️⃣ Upgrade user to premium
+    const premiumExpiresAt = new Date();
+    premiumExpiresAt.setMonth(premiumExpiresAt.getMonth() + durationMonths);
+
+    await User.findByIdAndUpdate(userId, {
+      tier: "premium",
+      premiumExpiresAt,
+    });
+
+    console.log(
+      `🎉 [WEBHOOK] User ${userId} upgraded to premium until ${premiumExpiresAt.toISOString()} (${durationMonths} month${durationMonths > 1 ? "s" : ""})`,
+    );
+    console.log(`💰 Revenue recorded: ₹${paymentEntity.amount / 100}`);
   } catch (error) {
-    console.error("Error handling payment success:", error);
+    console.error("❌ Error handling payment success:", error);
+    // Don't throw - webhook will retry automatically
   }
 }
 
@@ -610,15 +604,35 @@ async function handlePaymentFailed(paymentEntity) {
       console.error("Webhook payment entity missing");
       return;
     }
-    await Payment.findOneAndUpdate(
-      { orderId: paymentEntity.order_id },
-      {
-        paymentId: paymentEntity.id,
-        status: "failed",
-        paymentMethod: paymentEntity.method,
-      },
-    );
-    console.log(`Payment ${paymentEntity.id} marked as failed`);
+
+    // Check if already recorded (webhook retries)
+    const existing = await Payment.findOne({
+      paymentId: paymentEntity.id,
+    });
+
+    if (existing) {
+      console.log(
+        "⚠️ Webhook retry ignored - failed payment already recorded:",
+        paymentEntity.id,
+      );
+      return;
+    }
+
+    // Record failed payment for analytics (optional but useful)
+    const notes = paymentEntity.notes || {};
+    await Payment.create({
+      user: notes.userId,
+      orderId: paymentEntity.order_id,
+      paymentId: paymentEntity.id,
+      amount: paymentEntity.amount,
+      currency: paymentEntity.currency,
+      status: "failed",
+      paymentMethod: paymentEntity.method,
+      receipt: paymentEntity.receipt || null,
+      notes: JSON.stringify(notes),
+    });
+
+    console.log(`❌ Payment ${paymentEntity.id} marked as failed`);
   } catch (error) {
     console.error("Error handling payment failure:", error);
   }

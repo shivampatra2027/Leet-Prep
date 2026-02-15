@@ -107,9 +107,8 @@ const Footer7 = ({
                     <li key={linkIdx}>
                       <a
                         href={link.href}
-                        className="hover:text-primary transition-colors flex items-center gap-2"
+                        className="hover:text-primary transition-colors"
                       >
-                        <span className="h-1.5 w-1.5 rounded-full bg-primary/40" />
                         {link.name}
                       </a>
                     </li>

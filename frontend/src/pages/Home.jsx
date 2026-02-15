@@ -73,7 +73,6 @@ const HeroSection = () => {
         <div className="grid items-center gap-12 lg:grid-cols-12">
           <div className="space-y-8 lg:col-span-7">
             <div className="inline-flex items-center gap-3 rounded-full glass border px-4 py-2 text-sm shadow-glow">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
               <span className="text-muted-foreground">Interview prep, rebuilt for 2026</span>
             </div>
 
@@ -390,7 +389,7 @@ export default function Home() {
               <AccordionItem value="item-4">
                 <AccordionTrigger>Is Leet-prep free?</AccordionTrigger>
                 <AccordionContent>
-                  Yes, Leet-prep offers a comprehensive free tier with access to 500+ DSA problems. Premium features unlock advanced
+                  Yes, Leet-prep offers a comprehensive free tier with access to 2200+ company wise problems. Premium features unlock advanced
                   analytics, exclusive problems, and company-specific interview patterns.
                 </AccordionContent>
               </AccordionItem>

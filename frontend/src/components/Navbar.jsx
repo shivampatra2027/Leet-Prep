@@ -126,16 +126,12 @@ export default function Navbar() {
 
             {isLoggedIn && (
               <>
-                <NavigationMenuItem className="relative">
+                <NavigationMenuItem>
                   <NavigationMenuLink asChild>
                     <Link to="/dashboard" className={navigationMenuTriggerStyle()}>
                       Dashboard
                     </Link>
                   </NavigationMenuLink>
-                  <span
-                    className="absolute -top-1 -right-2 h-2 w-2 rounded-full bg-emerald-500 ring-4 ring-background animate-pulse"
-                    aria-hidden="true"
-                  />
                 </NavigationMenuItem>
 
                 <NavigationMenuItem>

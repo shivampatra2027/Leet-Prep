@@ -167,61 +167,61 @@ export default function FreeDashboard() {
   return (
     <>
       <Navbar />
-        <div className="min-h-screen bg-background p-6">
+        <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
           <div className="max-w-7xl mx-auto">
             {/* Upgrade Banner */}
-            <div className="mb-6 bg-primary/10 border border-primary/20 rounded-lg p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Crown className="h-6 w-6 text-primary" />
-                <div>
-                  <h3 className="font-semibold text-primary">Free Tier - Limited Access</h3>
-                  <p className="text-sm text-muted-foreground">You're viewing 1 problem per company. Upgrade to access all 500+ problems!</p>
+            <div className="mb-4 sm:mb-6 bg-primary/10 border border-primary/20 rounded-lg p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 sm:justify-between">
+              <div className="flex items-start gap-2 sm:gap-3 flex-1">
+                <Crown className="h-5 w-5 sm:h-6 sm:w-6 text-primary flex-shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-primary text-sm sm:text-base">Free Tier - Limited Access</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">You're viewing 1 problem per company. Upgrade to access all 2200+ problems!</p>
                 </div>
               </div>
-              <Button onClick={() => navigate("/premium")} className="flex items-center gap-2">
-                <Crown className="h-4 w-4" />
+              <Button onClick={() => navigate("/premium")} className="flex items-center gap-2 w-full sm:w-auto flex-shrink-0 text-sm sm:text-base">
+                <Crown className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 Upgrade to Premium
               </Button>
             </div>
 
             {/* Header */}
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold tracking-tight text-foreground">
+            <div className="mb-6 sm:mb-8">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-foreground">
                 Problems
               </h1>
-              <p className="text-muted-foreground">
+              <p className="text-sm sm:text-base text-muted-foreground mt-1">
                 {filteredCount > 0 ? filteredCount : (pagination?.totalProblems || 0)} problems available (Limited to 1 per company)
               </p>
             </div>
 
             {/* Summary cards */}
-            <div className="grid gap-4 md:grid-cols-3 mb-6">
+            <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-3 mb-4 sm:mb-6">
               <Card>
-                <CardHeader>
-                  <CardTitle>Solved</CardTitle>
+                <CardHeader className="pb-2 sm:pb-6">
+                  <CardTitle className="text-sm sm:text-base">Solved</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  <div className="text-2xl font-semibold">{summary.solvedCount}</div>
+                  <div className="text-xl sm:text-2xl font-semibold">{summary.solvedCount}</div>
                   <Progress value={summary.progress * 100} />
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs sm:text-sm text-muted-foreground">
                     {Math.round((summary.progress || 0) * 100)}% of total
                   </p>
                 </CardContent>
               </Card>
               <Card>
-                <CardHeader>
-                  <CardTitle>Total Problems</CardTitle>
+                <CardHeader className="pb-2 sm:pb-6">
+                  <CardTitle className="text-sm sm:text-base">Total Problems</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-semibold">{summary.totalProblems || pagination?.totalProblems || 0}</div>
+                  <div className="text-xl sm:text-2xl font-semibold">{summary.totalProblems || pagination?.totalProblems || 0}</div>
                 </CardContent>
               </Card>
               <Card>
-                <CardHeader>
-                  <CardTitle>Remaining</CardTitle>
+                <CardHeader className="pb-2 sm:pb-6">
+                  <CardTitle className="text-sm sm:text-base">Remaining</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-semibold">
+                  <div className="text-xl sm:text-2xl font-semibold">
                     {(summary.totalProblems || pagination?.totalProblems || 0) - (summary.solvedCount || 0)}
                   </div>
                 </CardContent>
