@@ -27,6 +27,8 @@ const SITE_URL = (
 // CORS configuration
 const allowedOrigins = [
   process.env.CLIENT_URL,
+  "https://www.leetcodepremium.xyz",
+  "https://leetcodepremium.xyz",
   "https://leet-io-frontend.onrender.com",
   "https://leet-prep.vercel.app",
   "http://localhost:5173",
