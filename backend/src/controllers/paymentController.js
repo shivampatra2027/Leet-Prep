@@ -58,32 +58,19 @@ export const createOrder = async (req, res) => {
       });
     }
 
-    // Step 3: Validate Razorpay credentials
-    const keyId = RZP_KEY_ID;
-    const keySecret = RZP_KEY_SECRET;
+    // Step 3: Validate Razorpay credentials (read fresh from env)
+    const keyId = process.env.RAZORPAY_KEY_ID;
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
 
     console.log("🔍 Checking Razorpay configuration...");
     console.log("Key ID present:", !!keyId);
     console.log("Key Secret present:", !!keySecret);
-    console.log(
-      "Key ID value:",
-      keyId ? keyId.substring(0, 10) + "..." : "MISSING",
-    );
 
-    if (
-      !keyId ||
-      !keySecret ||
-      keyId.toLowerCase().includes("your") ||
-      keySecret.toLowerCase().includes("your") ||
-      keyId === "hello1" ||
-      keySecret === "hello"
-    ) {
-      console.error("❌ Razorpay keys not configured properly!");
+    if (!keyId || !keySecret) {
       return res.status(500).json({
         error: "Razorpay keys not configured",
         message:
-          "Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET with valid test/live credentials in backend .env or Vercel environment variables",
-        hint: "Go to Vercel Dashboard → Settings → Environment Variables",
+          "Missing RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET in environment",
       });
     }
 
@@ -134,6 +121,7 @@ export const createOrder = async (req, res) => {
     // Step 7: Return success response
     res.json({
       success: true,
+      key: process.env.RAZORPAY_KEY_ID, // REQUIRED for frontend Razorpay Checkout
       order: {
         id: order.id,
         amount: order.amount,
@@ -202,7 +190,7 @@ export const verifyPayment = async (req, res) => {
       return res.status(401).json({ error: "User not authenticated" });
     }
 
-    if (!RZP_KEY_SECRET) {
+    if (!process.env.RAZORPAY_KEY_SECRET) {
       return res.status(500).json({
         error: "Razorpay secret missing",
         message:
@@ -212,7 +200,7 @@ export const verifyPayment = async (req, res) => {
 
     // Verify signature
     const generated_signature = crypto
-      .createHmac("sha256", RZP_KEY_SECRET)
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
       .update(razorpay_order_id + "|" + razorpay_payment_id)
       .digest("hex");
 
