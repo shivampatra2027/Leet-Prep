@@ -6,6 +6,7 @@ import Payment from "../models/Payment.js";
 // Trim environment variables to avoid hidden whitespace (common on Windows CRLF)
 const RZP_KEY_ID = process.env.RAZORPAY_KEY_ID?.trim();
 const RZP_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET?.trim();
+const RZP_WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET?.trim();
 
 const razorpay = new Razorpay({
   key_id: RZP_KEY_ID,
@@ -21,6 +22,7 @@ export const createOrder = async (req, res) => {
   try {
     // Step 1: Check authentication FIRST
     if (!req.user) {
+      console.error("createOrder: req.user missing after protect");
       return res.status(401).json({ error: "User not authenticated" });
     }
 
@@ -189,9 +191,17 @@ export const verifyPayment = async (req, res) => {
       return res.status(401).json({ error: "User not authenticated" });
     }
 
+    if (!RZP_KEY_SECRET) {
+      return res.status(500).json({
+        error: "Razorpay secret missing",
+        message:
+          "RAZORPAY_KEY_SECRET is not configured on the backend. Please set it in the environment variables.",
+      });
+    }
+
     // Verify signature
     const generated_signature = crypto
-      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+      .createHmac("sha256", RZP_KEY_SECRET)
       .update(razorpay_order_id + "|" + razorpay_payment_id)
       .digest("hex");
 
@@ -482,7 +492,7 @@ export const getPaymentHistory = async (req, res) => {
  */
 export const handleWebhook = async (req, res) => {
   try {
-    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
+    const webhookSecret = RZP_WEBHOOK_SECRET;
     const signature = req.headers["x-razorpay-signature"];
 
     if (!webhookSecret) {
