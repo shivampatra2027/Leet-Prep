@@ -22,6 +22,7 @@ export const createOrder = async (req, res) => {
   try {
     // Step 1: Check authentication FIRST
     if (!req.user) {
+      console.error("createOrder: req.user missing after protect");
       return res.status(401).json({ error: "User not authenticated" });
     }
 

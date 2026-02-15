@@ -34,11 +34,18 @@ export const protect = async (req, res, next) => {
         return res.status(401).json({ error: "Token missing" });
       }
 
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      let decoded;
+      try {
+        decoded = jwt.verify(token, process.env.JWT_SECRET);
+      } catch (err) {
+        console.error("Auth error: JWT verify failed:", err.message);
+        return res.status(401).json({ error: "Invalid or expired token" });
+      }
 
       req.user = await User.findById(decoded.id).select("-passwordHash");
 
       if (!req.user) {
+        console.error("Auth error: user not found for token id", decoded.id);
         return res.status(401).json({ error: "User not found" });
       }
 
