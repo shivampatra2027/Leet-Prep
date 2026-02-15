@@ -11,11 +11,8 @@ export const likeSite = async (req, res) => {
 
     res.json({ totalLikes: updated.totalLikes });
   } catch (error) {
-    console.error("❌ Like error:", error.message);
-    res.status(500).json({
-      message: "Internal Server error!",
-      error: process.env.NODE_ENV === "development" ? error.message : undefined,
-    });
+    console.error("Like error:", error.message);
+    res.status(500).json({ message: "Internal Server error!" });
   }
 };
 
@@ -25,10 +22,7 @@ export const getLikes = async (req, res) => {
     const total = siteLike?.totalLikes || 0;
     res.json({ totalLikes: total });
   } catch (error) {
-    console.error("❌ Get likes error:", error.message);
-    res.status(500).json({
-      message: "Server error",
-      error: process.env.NODE_ENV === "development" ? error.message : undefined,
-    });
+    console.error("Get likes error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
