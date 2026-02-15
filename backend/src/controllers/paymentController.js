@@ -241,38 +241,16 @@ export const verifyPayment = async (req, res) => {
         .json({ success: false, message: "Payment record not found" });
     }
 
-    // Calculate premium expiry based on duration from payment notes
-    let durationMonths = 1; // Default to 1 month
-
-    if (paymentRecord.notes) {
-      try {
-        const notes = JSON.parse(paymentRecord.notes);
-        if (notes.duration) {
-          durationMonths = parseInt(notes.duration);
-        }
-      } catch (e) {
-        console.log("Could not parse payment notes, using default duration");
-      }
-    }
-
-    // Update user to premium (based on duration: 1 or 2 months)
-    const premiumExpiresAt = new Date();
-    premiumExpiresAt.setMonth(premiumExpiresAt.getMonth() + durationMonths);
-
-    await User.findByIdAndUpdate(req.user._id, {
-      tier: "premium",
-      premiumExpiresAt: premiumExpiresAt,
-    });
-
     console.log(
-      `User ${req.user._id} upgraded to premium until ${premiumExpiresAt.toISOString()} (${durationMonths} month${durationMonths > 1 ? "s" : ""})`,
+      `Payment signature verified for order ${razorpay_order_id}. Webhook will activate premium.`,
     );
 
     return res.json({
       success: true,
-      message: "Payment verified successfully",
-      premiumExpiresAt,
-      duration: durationMonths,
+      message: "Payment verified. Activating premium via webhook...",
+      orderId: razorpay_order_id,
+      paymentId: razorpay_payment_id,
+      status: paymentRecord.status,
     });
   } catch (err) {
     console.error("Error verifying Razorpay payment:", err);
@@ -328,6 +306,11 @@ export const getPaymentStatus = async (req, res) => {
       }
     }
 
+    // Fetch user's current tier
+    const user = await User.findById(req.user._id).select(
+      "tier premiumExpiresAt",
+    );
+
     res.json({
       success: true,
       payment: {
@@ -339,6 +322,10 @@ export const getPaymentStatus = async (req, res) => {
         paymentMethod: payment.paymentMethod,
         createdAt: payment.createdAt,
         updatedAt: payment.updatedAt,
+      },
+      user: {
+        tier: user.tier,
+        premiumExpiresAt: user.premiumExpiresAt,
       },
     });
   } catch (err) {
@@ -586,16 +573,31 @@ async function handlePaymentSuccess(paymentEntity) {
       payment.paymentMethod = paymentEntity.method;
       await payment.save();
 
+      // Calculate premium duration from payment notes
+      let durationMonths = 1;
+      if (payment.notes) {
+        try {
+          const notes = JSON.parse(payment.notes);
+          if (notes.duration) {
+            durationMonths = parseInt(notes.duration);
+          }
+        } catch (e) {
+          console.log("Could not parse payment notes, using default duration");
+        }
+      }
+
       // Update user to premium
       const premiumExpiresAt = new Date();
-      premiumExpiresAt.setDate(premiumExpiresAt.getDate() + 30);
+      premiumExpiresAt.setMonth(premiumExpiresAt.getMonth() + durationMonths);
 
       await User.findByIdAndUpdate(payment.user, {
         tier: "premium",
         premiumExpiresAt,
       });
 
-      console.log(`Payment ${paymentEntity.id} marked as successful`);
+      console.log(
+        `[WEBHOOK] User ${payment.user} upgraded to premium until ${premiumExpiresAt.toISOString()} (${durationMonths} month${durationMonths > 1 ? "s" : ""})`,
+      );
     }
   } catch (error) {
     console.error("Error handling payment success:", error);
