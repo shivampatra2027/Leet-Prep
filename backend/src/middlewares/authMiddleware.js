@@ -1,35 +1,35 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
+const downgradeExpiredPremium = async (user) => {
+  if (user?.tier !== "premium" || !user.premiumExpiresAt) return;
+
+  if (new Date() > new Date(user.premiumExpiresAt)) {
+    user.tier = "free";
+    user.premiumExpiresAt = null;
+    await user.save();
+    console.log(`User ${user._id} premium expired - downgraded to free`);
+  }
+};
+
 export const protect = async (req, res, next) => {
   try {
-    // 1️⃣ Passport session (Google OAuth, browser)
-    if (req.isAuthenticated && req.isAuthenticated()) {
-      // Check if premium has expired for authenticated user
-      if (
-        req.user &&
-        req.user.tier === "premium" &&
-        req.user.premiumExpiresAt
-      ) {
-        if (new Date() > new Date(req.user.premiumExpiresAt)) {
-          // Premium expired - downgrade to free
-          req.user.tier = "free";
-          req.user.premiumExpiresAt = null;
-          await req.user.save();
-          console.log(
-            `User ${req.user._id} premium expired - downgraded to free`,
-          );
-        }
-      }
+    // 1) Passport session (Google OAuth, browser)
+    if (typeof req.isAuthenticated === "function" && req.isAuthenticated()) {
+      await downgradeExpiredPremium(req.user);
       return next();
     }
 
-    // 2️⃣ JWT (API / Postman)
+    // 2) JWT (API / Postman)
     const authHeader = req.headers.authorization;
 
     if (authHeader && authHeader.startsWith("Bearer ")) {
-      const token = authHeader.split(" ")[1];
+      if (!process.env.JWT_SECRET) {
+        console.error("Auth error: JWT_SECRET missing in environment");
+        return res.status(500).json({ error: "Server configuration error" });
+      }
 
+      const token = authHeader.split(" ")[1];
       if (!token) {
         return res.status(401).json({ error: "Token missing" });
       }
@@ -43,29 +43,16 @@ export const protect = async (req, res, next) => {
       }
 
       req.user = await User.findById(decoded.id).select("-passwordHash");
-
       if (!req.user) {
         console.error("Auth error: user not found for token id", decoded.id);
         return res.status(401).json({ error: "User not found" });
       }
 
-      // Check if premium has expired
-      if (req.user.tier === "premium" && req.user.premiumExpiresAt) {
-        if (new Date() > new Date(req.user.premiumExpiresAt)) {
-          // Premium expired - downgrade to free
-          req.user.tier = "free";
-          req.user.premiumExpiresAt = null;
-          await req.user.save();
-          console.log(
-            `User ${req.user._id} premium expired - downgraded to free`,
-          );
-        }
-      }
-
+      await downgradeExpiredPremium(req.user);
       return next();
     }
 
-    // 3️⃣ No auth at all
+    // 3) No auth at all
     return res.status(401).json({ error: "Not authenticated" });
   } catch (err) {
     console.error("Auth error:", err.message);
