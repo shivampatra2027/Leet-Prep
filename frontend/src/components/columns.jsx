@@ -33,21 +33,6 @@ export const columns = [
     size: 70,
   },
   {
-    accessorKey: "problemId",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          ID
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => <div className="font-medium">{row.getValue("problemId")}</div>,
-  },
-  {
     accessorKey: "title",
     header: "Title",
     cell: ({ row }) => {
@@ -103,8 +88,12 @@ export const columns = [
       );
     },
     cell: ({ row }) => {
-      const acceptance = row.getValue("acceptance");
-      return <div>{acceptance ? `${acceptance}%` : "N/A"}</div>;
+      const acceptance = Number(row.getValue("acceptance"));
+      return (
+        <div>
+          {Number.isFinite(acceptance) ? `${acceptance.toFixed(2)}%` : "N/A"}
+        </div>
+      );
     },
   },
   {

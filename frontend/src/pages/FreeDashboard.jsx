@@ -51,7 +51,26 @@ export default function FreeDashboard() {
         profileAPI.getSolvedSummary().catch(() => ({ data: { solvedCount: 0, totalProblems: 0, progress: 0 } }))
       ]);
       
-      const allProblems = problemsRes.data.data || [];
+      const difficultyRank = { Easy: 0, Medium: 1, Hard: 2 };
+      const hasAllFields = (p) =>
+        Boolean(p?.difficulty) &&
+        Number.isFinite(Number(p?.acceptance)) &&
+        Array.isArray(p?.topics) &&
+        p.topics.length > 0;
+
+      const allProblems = [...(problemsRes.data.data || [])].sort((a, b) => {
+        const completeA = hasAllFields(a) ? 1 : 0;
+        const completeB = hasAllFields(b) ? 1 : 0;
+        if (completeA !== completeB) return completeB - completeA; // complete first
+
+        const rankA = difficultyRank[a.difficulty] ?? 3;
+        const rankB = difficultyRank[b.difficulty] ?? 3;
+        if (rankA !== rankB) return rankA - rankB;
+
+        const accA = Number(a.acceptance) || 0;
+        const accB = Number(b.acceptance) || 0;
+        return accB - accA;
+      });
       setSolvedProblems(solvedRes.data.solvedProblems || []);
       setSummary({
         solvedCount: summaryRes.data.solvedCount || 0,
