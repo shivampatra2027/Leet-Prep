@@ -117,8 +117,8 @@ const TestimonialSection = () => {
             >
               <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-background via-transparent to-background/80" />
               <div
-                className={`marquee-column space-y-4 px-4`}
-                style={{ animationDelay: `${colIdx * 1.5}s` }}
+                className={`marquee-column ${colIdx === 1 ? "marquee-column-reverse" : ""} space-y-4 px-4`}
+                style={{ animationDelay: `${colIdx * 1.2}s` }}
               >
                 {[...col, ...col].map((testimonial, idx) => (
                   <div key={`${colIdx}-${idx}`} className="rounded-2xl border bg-background/70 shadow-sm">
