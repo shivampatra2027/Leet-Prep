@@ -1,4 +1,5 @@
 import User from "../models/User.js";
+import Problem from "../models/Problem.js";
 import {
   fetchLeetCodeUserData,
   fetchAllSolvedProblems,
@@ -146,6 +147,95 @@ export const getSolvedProblems = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching solved problems:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+// @desc    Mark a problem as solved (manual checkbox)
+// @route   POST /api/profile/solved-problems
+// @access  Private
+export const addSolvedProblem = async (req, res) => {
+  try {
+    const { problemId } = req.body;
+    if (!problemId) {
+      return res.status(400).json({ error: "problemId is required" });
+    }
+
+    // Validate problem exists to keep data clean
+    const exists = await Problem.exists({ problemId });
+    if (!exists) {
+      return res
+        .status(404)
+        .json({ error: "Problem not found", problemId });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { $addToSet: { solvedProblems: problemId } },
+      { new: true, select: "solvedProblems" },
+    );
+
+    return res.json({
+      ok: true,
+      solvedProblems: user.solvedProblems,
+      solvedCount: user.solvedProblems.length,
+    });
+  } catch (error) {
+    console.error("Error adding solved problem:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+// @desc    Unmark a solved problem
+// @route   DELETE /api/profile/solved-problems/:problemId
+// @access  Private
+export const removeSolvedProblem = async (req, res) => {
+  try {
+    const { problemId } = req.params;
+    if (!problemId) {
+      return res.status(400).json({ error: "problemId is required" });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { $pull: { solvedProblems: problemId } },
+      { new: true, select: "solvedProblems" },
+    );
+
+    return res.json({
+      ok: true,
+      solvedProblems: user.solvedProblems,
+      solvedCount: user.solvedProblems.length,
+    });
+  } catch (error) {
+    console.error("Error removing solved problem:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+// @desc    Summary numbers for dashboard
+// @route   GET /api/profile/solved-summary
+// @access  Private
+export const getSolvedSummary = async (req, res) => {
+  try {
+    const [user, totalProblems] = await Promise.all([
+      User.findById(req.user._id).select("solvedProblems"),
+      Problem.countDocuments(),
+    ]);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const solvedCount = user.solvedProblems?.length || 0;
+    res.json({
+      ok: true,
+      solvedCount,
+      totalProblems,
+      progress: totalProblems ? solvedCount / totalProblems : 0,
+    });
+  } catch (error) {
+    console.error("Error fetching solved summary:", error);
     res.status(500).json({ error: "Server error" });
   }
 };

@@ -6,6 +6,8 @@ import { columns } from "@/components/columns.jsx";
 import Navbar from "@/components/Navbar.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { Crown } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card.jsx";
+import { Progress } from "@/components/ui/progress.jsx";
 
 export default function FreeDashboard() {
   const navigate = useNavigate();
@@ -16,6 +18,7 @@ export default function FreeDashboard() {
   const [filteredCount, setFilteredCount] = useState(0);
   const [solvedProblems, setSolvedProblems] = useState([]);
   const [userTier, setUserTier] = useState(null);
+  const [summary, setSummary] = useState({ solvedCount: 0, totalProblems: 0, progress: 0 });
 
   // Check user tier on mount
   useEffect(() => {
@@ -42,13 +45,19 @@ export default function FreeDashboard() {
     try {
       const params = { limit: 10000 }; // Fetch all problems
 
-      const [problemsRes, solvedRes] = await Promise.all([
+      const [problemsRes, solvedRes, summaryRes] = await Promise.all([
         problemsAPI.getAll(params),
-        profileAPI.getSolvedProblems().catch(() => ({ data: { solvedProblems: [] } }))
+        profileAPI.getSolvedProblems().catch(() => ({ data: { solvedProblems: [] } })),
+        profileAPI.getSolvedSummary().catch(() => ({ data: { solvedCount: 0, totalProblems: 0, progress: 0 } }))
       ]);
       
       const allProblems = problemsRes.data.data || [];
       setSolvedProblems(solvedRes.data.solvedProblems || []);
+      setSummary({
+        solvedCount: summaryRes.data.solvedCount || 0,
+        totalProblems: summaryRes.data.totalProblems || (problemsRes.data.pagination?.totalProblems || 0),
+        progress: summaryRes.data.progress || 0,
+      });
       
       // Limit to 1 problem per company
       const companyProblemCount = new Map();
@@ -90,6 +99,42 @@ export default function FreeDashboard() {
     fetchProblems();
   }, [fetchProblems]);
 
+  const toggleSolved = useCallback(async (problemId, nextChecked) => {
+    setSolvedProblems((prev) => {
+      if (nextChecked) return Array.from(new Set([...prev, problemId]));
+      return prev.filter((id) => id !== problemId);
+    });
+    try {
+      if (nextChecked) {
+        const res = await profileAPI.addSolvedProblem(problemId);
+        setSummary((s) => {
+          const newCount = res.data.solvedCount ?? (s.solvedCount + 1);
+          return {
+            ...s,
+            solvedCount: newCount,
+            progress: (s.totalProblems || 0) ? newCount / s.totalProblems : s.progress,
+          };
+        });
+      } else {
+        const res = await profileAPI.removeSolvedProblem(problemId);
+        setSummary((s) => {
+          const newCount = res.data.solvedCount ?? Math.max(0, s.solvedCount - 1);
+          return {
+            ...s,
+            solvedCount: newCount,
+            progress: (s.totalProblems || 0) ? newCount / s.totalProblems : s.progress,
+          };
+        });
+      }
+    } catch (err) {
+      setSolvedProblems((prev) => {
+        if (nextChecked) return prev.filter((id) => id !== problemId);
+        return Array.from(new Set([...prev, problemId]));
+      });
+      console.error("Failed to toggle solved state:", err);
+    }
+  }, []);
+
   // Don't render for premium users (will be redirected)
   if (userTier === "premium") {
     return (
@@ -129,6 +174,40 @@ export default function FreeDashboard() {
               </p>
             </div>
 
+            {/* Summary cards */}
+            <div className="grid gap-4 md:grid-cols-3 mb-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Solved</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="text-2xl font-semibold">{summary.solvedCount}</div>
+                  <Progress value={summary.progress * 100} />
+                  <p className="text-sm text-muted-foreground">
+                    {Math.round((summary.progress || 0) * 100)}% of total
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Total Problems</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-semibold">{summary.totalProblems || pagination?.totalProblems || 0}</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Remaining</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-semibold">
+                    {(summary.totalProblems || pagination?.totalProblems || 0) - (summary.solvedCount || 0)}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
             {/* Content */}
             {loading ? (
               <div className="flex justify-center items-center h-64">
@@ -144,6 +223,7 @@ export default function FreeDashboard() {
                 data={problems} 
                 onFilteredCountChange={setFilteredCount}
                 solvedProblems={solvedProblems}
+                onToggleSolved={toggleSolved}
               />
             )}
           </div>

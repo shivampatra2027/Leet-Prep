@@ -78,9 +78,8 @@ const CompanyLogo = ({ company, className }) => {
   );
 };
 
-export function DataTable({ columns, data, onFilteredCountChange, solvedProblems = [] }) {
+export function DataTable({ columns, data, onFilteredCountChange, solvedProblems = [], onToggleSolved }) {
   const [sorting, setSorting] = React.useState([]);
-  const [rowSelection, setRowSelection] = React.useState({});
   const [difficultyFilter, setDifficultyFilter] = React.useState("all");
   const [companyFilter, setCompanyFilter] = React.useState("all");
   const [globalSearch, setGlobalSearch] = React.useState("");
@@ -145,7 +144,6 @@ export function DataTable({ columns, data, onFilteredCountChange, solvedProblems
     data: enhancedData,
     columns,
     onSortingChange: setSorting,
-    onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -153,7 +151,9 @@ export function DataTable({ columns, data, onFilteredCountChange, solvedProblems
     initialState: { pagination: { pageSize: 30 } },
     state: {
       sorting,
-      rowSelection,
+    },
+    meta: {
+      toggleSolved: onToggleSolved,
     },
   });
 

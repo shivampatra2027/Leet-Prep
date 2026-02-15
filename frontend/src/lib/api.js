@@ -57,6 +57,11 @@ export const profileAPI = {
     api.put("/api/profile/leetcode-username", { leetcodeUsername: username }),
   syncLeetcode: () => api.post("/api/profile/sync-leetcode"),
   getSolvedProblems: () => api.get("/api/profile/solved-problems"),
+  addSolvedProblem: (problemId) =>
+    api.post("/api/profile/solved-problems", { problemId }),
+  removeSolvedProblem: (problemId) =>
+    api.delete(`/api/profile/solved-problems/${problemId}`),
+  getSolvedSummary: () => api.get("/api/profile/solved-summary"),
 };
 
 export const paymentAPI = {

@@ -14,26 +14,23 @@ const logoApiBase = import.meta.env.VITE_LOGO_API_BASE;
 
 export const columns = [
   {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
+    id: "solved",
+    header: "Solved",
+    cell: ({ row, table }) => {
+      const toggleSolved = table.options?.meta?.toggleSolved;
+      const checked = !!row.original.isSolved;
+      return (
+        <Checkbox
+          checked={checked}
+          onCheckedChange={(value) =>
+            toggleSolved?.(row.original.problemId, !!value)
+          }
+          aria-label="Mark solved"
+        />
+      );
+    },
     enableSorting: false,
-    enableHiding: false,
+    size: 70,
   },
   {
     accessorKey: "problemId",
