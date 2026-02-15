@@ -24,6 +24,7 @@ import {
   Database,
 } from "lucide-react";
 import Navbar from "@/components/Navbar.jsx";
+import Seo from "@/components/Seo.jsx";
 
 // Lazy load components below the fold
 const TestimonialSection = lazy(() =>
@@ -193,6 +194,8 @@ const HeroSection = () => {
 };
 
 export default function Home() {
+  const siteUrl = import.meta.env.VITE_SITE_URL || "https://leet-prep.vercel.app";
+
   const steps = [
     {
       title: "Pick your target companies",
@@ -225,6 +228,20 @@ export default function Home() {
 
   return (
     <div className="min-h-screen hero-surface text-foreground relative overflow-hidden">
+      <Seo
+        title="Leet-Prep | Company-wise LeetCode-style Problems & Interview Practice"
+        description="1,800+ curated problems by company and pattern, honest difficulty, analytics, and daily focus lanes for FAANG-level interviews."
+        canonical={`${siteUrl}/`}
+        ogImage="https://img.logo.dev/leetcode.com?token=public"
+        schema={{
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "Leet-Prep",
+          url: `${siteUrl}/`,
+          description:
+            "Company-wise coding interview prep with curated problem sets, analytics, and daily practice plans.",
+        }}
+      />
       <div className="pointer-events-none absolute inset-0 bg-grid opacity-[0.05]" />
       <Navbar />
 

@@ -3,6 +3,7 @@ import { GalleryVerticalEnd } from "lucide-react";
 import { LoginForm } from "@/components/ui/login-form.jsx";
 import CodePreview from "@/components/CodePreview.jsx"; // import here
 import { premiumAPI } from "@/lib/api.js";
+import Seo from "@/components/Seo.jsx";
 
 export default function Login() {
   useEffect(() => {
@@ -24,6 +25,11 @@ export default function Login() {
 
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
+      <Seo
+        title="Login | Leet-Prep"
+        description="Sign in to practice company-wise coding interview problems and track your analytics."
+        canonical={`${import.meta.env.VITE_SITE_URL || "https://leetcodepremium.xyz"}/login`}
+      />
       <div className="flex flex-col gap-4 p-6 md:p-10">
         <div className="flex justify-center gap-2 md:justify-start">
           <a href="/" className="flex items-center gap-2 font-medium">

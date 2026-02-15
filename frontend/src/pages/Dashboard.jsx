@@ -131,6 +131,7 @@ export default function Dashboard() {
     }
   }, []);
 
+
   // Don't render anything for free users (will be redirected)
   if (userTier !== "premium") {
     return (

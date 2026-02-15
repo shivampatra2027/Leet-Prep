@@ -19,6 +19,7 @@ dotenv.config();
 configureGoogleStrategy();    
 
 const app = express();
+const SITE_URL = (process.env.CLIENT_URL || "https://leet-prep.vercel.app").replace(/\/$/, "");
 
 // CORS configuration
 const allowedOrigins = [
@@ -93,6 +94,30 @@ app.use((req, res, next) => {
 });
 
 app.use(helmet());
+
+// Robots.txt
+app.get("/robots.txt", (req, res) => {
+    res.type("text/plain").send(`User-agent: *\nAllow: /\nSitemap: ${SITE_URL}/sitemap.xml\n`);
+});
+
+// Simple sitemap (public pages)
+app.get("/sitemap.xml", (req, res) => {
+    const urls = [
+        "/",
+        "/login",
+        "/premium",
+        "/freedashboard",
+    ];
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls
+        .map(
+            (path) => `<url><loc>${SITE_URL}${path}</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>`
+        )
+        .join("\n")}
+</urlset>`;
+    res.type("application/xml").send(xml);
+});
 
 // Routes
 app.use("/api/problems", problemRoutes);

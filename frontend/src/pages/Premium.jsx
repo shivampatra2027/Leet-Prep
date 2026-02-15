@@ -6,6 +6,7 @@ import Navbar from "../components/Navbar";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { profileAPI } from "../lib/api";
+import Seo from "@/components/Seo.jsx";
 
 const Pricing4 = ({
   title = "Upgrade to Premium",
@@ -88,6 +89,11 @@ const Pricing4 = ({
 
   return (
     <>
+      <Seo
+        title="Premium Coding Interview Prep | Leet-Prep"
+        description="Unlock all 1,800+ curated problems, company filters, analytics, and daily focus lanes with Leet-Prep Premium."
+        canonical={`${import.meta.env.VITE_SITE_URL || "https://leetcodepremium.xyz"}/premium`}
+      />
       <Navbar />
       <main>
         <section

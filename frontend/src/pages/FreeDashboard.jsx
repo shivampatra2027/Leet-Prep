@@ -154,6 +154,7 @@ export default function FreeDashboard() {
     }
   }, []);
 
+
   // Don't render for premium users (will be redirected)
   if (userTier === "premium") {
     return (
