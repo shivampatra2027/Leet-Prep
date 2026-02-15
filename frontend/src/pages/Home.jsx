@@ -312,7 +312,7 @@ export default function Home() {
         <section className="py-20 lg:py-24 bg-secondary/10 border-y border-border/60">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10">
             <div className="text-center space-y-3">
-              <p className="text-sm font-mono uppercase tracking-[0.18em] text-primary">Stacks we cover</p>
+              <p className="text-sm font-mono uppercase tracking-[0.18em] text-primary">Stacks coming soon</p>
               <h2 className="font-display text-3xl md:text-4xl">Everything you need to sound like the team you want to join.</h2>
               <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
                 Languages, frameworks, data, infra, and collaboration -- all mapped to the kinds of questions recruiters actually ask about.

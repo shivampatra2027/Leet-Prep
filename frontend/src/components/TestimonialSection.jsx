@@ -1,90 +1,77 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar.jsx";
-
 const testimonials = [
   {
-    quote: "Leet.IO helped me crack my Google interview! The company-specific problems were incredibly helpful and the platform is very intuitive.",
+    quote: "Generate, optimize, and debug code across 50+ languages with incredible precision",
     author: {
-      name: "RS",
+      name: "Sarah Chen",
       role: "Software Engineer at Google",
-      avatar: {
-        src: "https://api.dicebear.com/7.x/avataaars/svg?seed=Rahul",
-        alt: "Rahul Sharma",
-      },
+      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop",
+      background: "https://images.unsplash.com/photo-1635776062360-af423602aff3?w=800&q=80",
+      stat: "95% accuracy rate"
     },
   },
   {
-    quote: "The best platform for interview preparation. The problems are well-curated and the filtering by company makes practice so much easier.",
+    quote: "The platform transformed how I approach coding interviews. Practice feels purposeful now",
     author: {
-      name: "Prem Pujari",
-      role: "SDE at Amazon",
-      avatar: {
-        src: "https://api.dicebear.com/7.x/avataaars/svg?seed=Priya",
-        alt: "Prem Pujari",
-      },
+      name: "Michael Rodriguez",
+      role: "Senior Developer at Meta",
+      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop",
+      background: "https://images.unsplash.com/photo-1579548122080-c35fd6820ecb?w=800&q=80",
+      stat: "Human-like quality"
     },
   },
   {
-    quote: "I love the clean interface and dark mode. Spent countless hours preparing here and landed my dream job at Microsoft!",
+    quote: "Company-specific problem sets helped me crack Microsoft in just 6 weeks of focused prep",
     author: {
-      name: "Ajay ",
-      role: "Full Stack Developer at Microsoft",
-      avatar: {
-        src: "https://api.dicebear.com/7.x/avataaars/svg?seed=Amit",
-        alt: "Ajay",
-      },
+      name: "Priya Sharma",
+      role: "SDE at Microsoft",
+      avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop",
+      background: "https://images.unsplash.com/photo-1635776062127-d379bfcba9f8?w=800&q=80",
+      stat: "Real-time insights"
     },
   },
   {
-    quote: "The system design resources and data structures problems helped me tremendously. Highly recommend for  students!",
+    quote: "Best investment for my career. The curated problems saved me 40+ hours every week",
     author: {
-      name: "Sj",
-      role: "Backend Engineer at Flipkart",
-      avatar: {
-        src: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sneha",
-        alt: "Sj",
-      },
-    },
-  },
-  {
-    quote: "As a data engineering aspirant, the SQL and database problems were exactly what I needed. Got placed at LinkedIn thanks to this platform!",
-    author: {
-      name: "Vikrant Singh",
-      role: "Data Engineer at LinkedIn",
-      avatar: {
-        src: "https://api.dicebear.com/7.x/avataaars/svg?seed=Vikram",
-        alt: "Vikrant",
-      },
-    },
-  },
-  {
-    quote: "The search functionality and filters make finding relevant problems so easy. Cracked my Netflix interview on the first attempt!",
-    author: {
-      name: "Anjali Gupta",
-      role: "Frontend Developer at Netflix",
-      avatar: {
-        src: "https://api.dicebear.com/7.x/avataaars/svg?seed=Anjali",
-        alt: "Anjali Gupta",
-      },
+      name: "James Wilson",
+      role: "Tech Lead at Amazon",
+      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop",
+      background: "https://images.unsplash.com/photo-1635776063328-153b13e3c245?w=800&q=80",
+      stat: "Save 40+ hours/week"
     },
   },
 ];
 
 const TestimonialCard = ({ quote, author }) => {
   return (
-    <div className="flex flex-col items-center text-center p-8">
-      <p className="mb-8 max-w-2xl px-4 font-medium text-lg md:text-xl text-muted-foreground">
-        &ldquo;{quote}&rdquo;
-      </p>
-      <div className="flex items-center gap-3">
-        <Avatar className="size-12 md:size-14">
-          <AvatarImage src={author.avatar.src} alt={author.avatar.alt} />
-          <AvatarFallback>{author.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-        </Avatar>
-        <div className="text-left">
-          <p className="text-sm font-semibold md:text-base">{author.name}</p>
-          <p className="text-muted-foreground text-xs md:text-sm">
-            {author.role}
+    <div
+      className="group cursor-pointer"
+    >
+      <div
+        className="relative transform overflow-hidden rounded-2xl p-6 shadow-lg transition-all duration-300 group-hover:scale-105 hover:shadow-xl"
+        style={{
+          background: `url(${author.background})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        <div className="relative">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full overflow-hidden border-2 border-white/30">
+            <img 
+              src={author.avatar} 
+              alt={author.name}
+              className="h-full w-full object-cover"
+            />
+          </div>
+          <h3 className="mb-2 font-sans text-lg font-medium text-white">
+            {author.name}
+          </h3>
+          <p className="mb-4 font-sans text-sm text-white/80">
+            {quote}
           </p>
+          <div className="flex items-center justify-between text-white/90 border-t border-white/20 pt-4 mt-4">
+            <span className="font-sans text-xs">{author.role}</span>
+            <span className="font-sans text-xs font-semibold">{author.stat}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -92,11 +79,6 @@ const TestimonialCard = ({ quote, author }) => {
 };
 
 const TestimonialSection = () => {
-  const columns = [[], [], []];
-  testimonials.forEach((item, idx) => {
-    columns[idx % 3].push(item);
-  });
-
   return (
     <section className="py-24 bg-muted/30">
       <div className="container px-4 sm:px-6 lg:px-8">
@@ -105,28 +87,13 @@ const TestimonialSection = () => {
             What our users are saying
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Hear from students who have cracked their dream interviews using Leet.IO
+            Hear from developers who transformed their interview prep
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-3">
-          {columns.map((col, colIdx) => (
-            <div
-              key={colIdx}
-              className="relative h-[520px] overflow-hidden rounded-2xl border bg-card/50 glass"
-            >
-              <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-background via-transparent to-background/80" />
-              <div
-                className={`marquee-column ${colIdx === 1 ? "marquee-column-reverse" : ""} space-y-4 px-4`}
-                style={{ animationDelay: `${colIdx * 1.2}s` }}
-              >
-                {[...col, ...col].map((testimonial, idx) => (
-                  <div key={`${colIdx}-${idx}`} className="rounded-2xl border bg-background/70 shadow-sm">
-                    <TestimonialCard {...testimonial} />
-                  </div>
-                ))}
-              </div>
-            </div>
+        <div className="mx-auto my-8 grid w-full max-w-7xl grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {testimonials.map((testimonial, idx) => (
+            <TestimonialCard key={idx} {...testimonial} />
           ))}
         </div>
       </div>

@@ -128,36 +128,6 @@
       var(--hero-to)
     );
   }
-
-  @keyframes marquee-vertical {
-    0% {
-      transform: translateY(0);
-    }
-    100% {
-      transform: translateY(-50%);
-    }
-  }
-
-  @keyframes marquee-vertical-reverse {
-    0% {
-      transform: translateY(-50%);
-    }
-    100% {
-      transform: translateY(0);
-    }
-  }
-
-  .marquee-column {
-    animation: marquee-vertical 16s linear infinite;
-  }
-
-  .marquee-column:hover {
-    animation-play-state: paused;
-  }
-
-  .marquee-column-reverse {
-    animation-name: marquee-vertical-reverse;
-  }
 }
 .color-empty {
   fill: #ebedf0;
