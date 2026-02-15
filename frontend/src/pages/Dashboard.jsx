@@ -144,20 +144,20 @@ export default function Dashboard() {
   return (
     <>
       <Navbar />
-        <div className="min-h-screen bg-background p-6">
+        <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
           <div className="max-w-7xl mx-auto">
             {/* Header */}
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold tracking-tight text-foreground">
+            <div className="mb-6 sm:mb-8">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-foreground">
                 Problems
               </h1>
-              <p className="text-muted-foreground">
+              <p className="text-sm sm:text-base text-muted-foreground mt-1">
                 {filteredCount > 0 ? filteredCount : (pagination?.totalProblems || 0)} problems available
               </p>
             </div>
 
             {/* Summary cards */}
-            <div className="grid gap-4 md:grid-cols-3 mb-6">
+            <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-3 mb-4 sm:mb-6">
               <Card>
                 <CardHeader>
                   <CardTitle>Solved</CardTitle>

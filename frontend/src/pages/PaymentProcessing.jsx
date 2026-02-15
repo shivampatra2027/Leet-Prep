@@ -67,33 +67,33 @@ export default function PaymentProcessing() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black p-6">
-        <Card className="w-full max-w-md border-white/20 bg-white/10 backdrop-blur-md">
-          <CardHeader className="text-center space-y-4 pb-8">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black p-4 sm:p-6 lg:p-8">
+        <Card className="w-full max-w-md mx-4 border-white/20 bg-white/10 backdrop-blur-md">
+          <CardHeader className="text-center space-y-3 sm:space-y-4 pb-6 sm:pb-8">
             <div className="flex justify-center">
               {status === "checking" && (
-                <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center">
-                  <Loader2 className="w-10 h-10 text-primary animate-spin" />
+                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-primary/20 flex items-center justify-center">
+                  <Loader2 className="w-8 h-8 sm:w-10 sm:h-10 text-primary animate-spin" />
                 </div>
               )}
               {status === "slow" && (
-                <div className="w-16 h-16 rounded-full bg-yellow-500/20 flex items-center justify-center">
-                  <Loader2 className="w-10 h-10 text-yellow-500 animate-spin" />
+                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-yellow-500/20 flex items-center justify-center">
+                  <Loader2 className="w-8 h-8 sm:w-10 sm:h-10 text-yellow-500 animate-spin" />
                 </div>
               )}
               {status === "success" && (
-                <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center">
-                  <CheckCircle2 className="w-10 h-10 text-green-500" />
+                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-green-500/20 flex items-center justify-center">
+                  <CheckCircle2 className="w-8 h-8 sm:w-10 sm:h-10 text-green-500" />
                 </div>
               )}
               {status === "failed" && (
-                <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center">
-                  <XCircle className="w-10 h-10 text-red-500" />
+                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-red-500/20 flex items-center justify-center">
+                  <XCircle className="w-8 h-8 sm:w-10 sm:h-10 text-red-500" />
                 </div>
               )}
               {status === "timeout" && (
-                <div className="w-16 h-16 rounded-full bg-yellow-500/20 flex items-center justify-center">
-                  <AlertCircle className="w-10 h-10 text-yellow-500" />
+                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-yellow-500/20 flex items-center justify-center">
+                  <AlertCircle className="w-8 h-8 sm:w-10 sm:h-10 text-yellow-500" />
                 </div>
               )}
             </div>
@@ -101,50 +101,50 @@ export default function PaymentProcessing() {
             <div>
               {status === "checking" && (
                 <>
-                  <CardTitle className="text-2xl font-bold text-foreground mb-2">
+                  <CardTitle className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground mb-2">
                     Processing Payment
                   </CardTitle>
-                  <CardDescription className="text-muted-foreground">
+                  <CardDescription className="text-sm sm:text-base text-muted-foreground">
                     Activating your premium subscription
                   </CardDescription>
                 </>
               )}
               {status === "slow" && (
                 <>
-                  <CardTitle className="text-2xl font-bold text-foreground mb-2">
+                  <CardTitle className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground mb-2">
                     Almost There...
                   </CardTitle>
-                  <CardDescription className="text-muted-foreground">
+                  <CardDescription className="text-sm sm:text-base text-muted-foreground">
                     Your payment is taking a bit longer than usual
                   </CardDescription>
                 </>
               )}
               {status === "success" && (
                 <>
-                  <CardTitle className="text-2xl font-bold text-green-500 mb-2">
+                  <CardTitle className="text-xl sm:text-2xl lg:text-3xl font-bold text-green-500 mb-2">
                     🎉 Premium Activated!
                   </CardTitle>
-                  <CardDescription className="text-muted-foreground">
+                  <CardDescription className="text-sm sm:text-base text-muted-foreground">
                     Redirecting to your dashboard...
                   </CardDescription>
                 </>
               )}
               {status === "failed" && (
                 <>
-                  <CardTitle className="text-2xl font-bold text-red-500 mb-2">
+                  <CardTitle className="text-xl sm:text-2xl lg:text-3xl font-bold text-red-500 mb-2">
                     Payment Failed
                   </CardTitle>
-                  <CardDescription className="text-muted-foreground">
+                  <CardDescription className="text-sm sm:text-base text-muted-foreground">
                     Your payment could not be processed
                   </CardDescription>
                 </>
               )}
               {status === "timeout" && (
                 <>
-                  <CardTitle className="text-2xl font-bold text-yellow-500 mb-2">
+                  <CardTitle className="text-xl sm:text-2xl lg:text-3xl font-bold text-yellow-500 mb-2">
                     Taking Longer Than Expected
                   </CardTitle>
-                  <CardDescription className="text-muted-foreground">
+                  <CardDescription className="text-sm sm:text-base text-muted-foreground">
                     Your payment is being processed
                   </CardDescription>
                 </>
@@ -154,13 +154,13 @@ export default function PaymentProcessing() {
 
           <CardContent className="text-center space-y-4">
             {status === "checking" && (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground px-2">
                 Please don't close this window
               </p>
             )}
             
             {status === "slow" && (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground px-2">
                 Don't worry — we'll activate your premium automatically
               </p>
             )}
@@ -176,7 +176,7 @@ export default function PaymentProcessing() {
 
             {status === "timeout" && (
               <>
-                <p className="text-sm text-muted-foreground mb-4">
+                <p className="text-xs sm:text-sm text-muted-foreground mb-4 px-2">
                   Premium will be activated automatically. Check back in a few minutes or contact support if needed.
                 </p>
                 <Button 

@@ -45,7 +45,7 @@ const Pricing4 = ({
       amount: 19900, // in paise
       duration: 1, // months
       features: [
-        "Access to all 500+ problems",
+        "Access to all 2200+ problems",
         "All company filters unlocked",
         "Advanced analytics dashboard",
         "Progress tracking",

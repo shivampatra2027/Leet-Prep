@@ -105,33 +105,34 @@ const HeroSection = () => {
               </Button>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-3">
               {stats.map((stat) => (
-                <div key={stat.label} className="glass border px-4 py-3 rounded-2xl">
-                  <p className="text-sm text-muted-foreground">{stat.label}</p>
-                  <p className="text-2xl font-semibold text-foreground">{stat.value}</p>
-                  <p className="text-xs text-muted-foreground">{stat.hint}</p>
+                <div key={stat.label} className="glass border px-3 py-2 sm:px-4 sm:py-3 rounded-2xl">
+                  <p className="text-xs sm:text-sm text-muted-foreground">{stat.label}</p>
+                  <p className="text-xl sm:text-2xl font-semibold text-foreground">{stat.value}</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">{stat.hint}</p>
                 </div>
               ))}
             </div>
           </div>
 
           <div className="lg:col-span-5">
-            <div className="relative">
-              <div className="glass border shadow-glow rounded-3xl p-6 space-y-5">
+            <div className="relative mt-8 lg:mt-0">
+              <div className="glass border shadow-glow rounded-3xl p-4 sm:p-6 space-y-4 sm:space-y-5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="h-10 w-10 rounded-2xl bg-primary/15 flex items-center justify-center text-primary">
-                      <ShieldCheck className="h-5 w-5" />
+                    <span className="h-8 w-8 sm:h-10 sm:w-10 rounded-2xl bg-primary/15 flex items-center justify-center text-primary">
+                      <ShieldCheck className="h-4 w-4 sm:h-5 sm:w-5" />
                     </span>
                     <div>
-                      <p className="text-xs uppercase tracking-wide text-muted-foreground">Company mode</p>
-                      <p className="text-sm font-semibold">Google / Meta / Amazon</p>
+                      <p className="text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground">Company mode</p>
+                      <p className="text-xs sm:text-sm font-semibold">Google / Meta / Amazon</p>
                     </div>
                   </div>
-                  <Badge className="rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-                    <Sparkles className="h-4 w-4 mr-1" />
-                    Smart filters
+                  <Badge className="rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-xs">
+                    <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                    <span className="hidden sm:inline">Smart filters</span>
+                    <span className="sm:hidden">Smart</span>
                   </Badge>
                 </div>
 
@@ -158,15 +159,15 @@ const HeroSection = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3 text-sm">
+                <div className="grid grid-cols-3 gap-2 sm:gap-3 text-sm">
                   {[
                     { label: "Offer rate", value: "72%", accent: "text-emerald-400" },
                     { label: "Daily focus", value: "45m", accent: "text-primary" },
                     { label: "Consistency", value: "6.4x", accent: "text-accent" },
                   ].map((item) => (
-                    <div key={item.label} className="rounded-xl border bg-card/60 px-3 py-3">
-                      <p className="text-xs text-muted-foreground">{item.label}</p>
-                      <p className={`text-lg font-semibold ${item.accent}`}>{item.value}</p>
+                    <div key={item.label} className="rounded-xl border bg-card/60 px-2 py-2 sm:px-3 sm:py-3">
+                      <p className="text-[10px] sm:text-xs text-muted-foreground">{item.label}</p>
+                      <p className={`text-base sm:text-lg font-semibold ${item.accent}`}>{item.value}</p>
                     </div>
                   ))}
                 </div>
@@ -265,16 +266,16 @@ export default function Home() {
               <p className="text-lg text-muted-foreground">
                 Each lane is time-boxed, measurable, and tuned to company signals. No endless scrolling, no guesswork.
               </p>
-              <div className="grid grid-cols-2 gap-3 pt-2">
-                <div className="glass border rounded-2xl p-4">
-                  <p className="text-sm text-muted-foreground">Time-boxed blocks</p>
-                  <p className="text-xl font-semibold">45 min</p>
-                  <p className="text-xs text-muted-foreground">Focus before fatigue hits.</p>
+              <div className="grid grid-cols-2 gap-2 sm:gap-3 pt-2">
+                <div className="glass border rounded-2xl p-3 sm:p-4">
+                  <p className="text-xs sm:text-sm text-muted-foreground">Time-boxed blocks</p>
+                  <p className="text-lg sm:text-xl font-semibold">45 min</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">Focus before fatigue hits.</p>
                 </div>
-                <div className="glass border rounded-2xl p-4">
-                  <p className="text-sm text-muted-foreground">Weekly retros</p>
-                  <p className="text-xl font-semibold">Sunday</p>
-                  <p className="text-xs text-muted-foreground">Adjust lanes with data.</p>
+                <div className="glass border rounded-2xl p-3 sm:p-4">
+                  <p className="text-xs sm:text-sm text-muted-foreground">Weekly retros</p>
+                  <p className="text-lg sm:text-xl font-semibold">Sunday</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">Adjust lanes with data.</p>
                 </div>
               </div>
             </div>

@@ -165,16 +165,16 @@ export function DataTable({ columns, data, onFilteredCountChange, solvedProblems
   return (
     <div className="w-full space-y-4">
       {/* Filters Bar */}
-      <div className="flex flex-wrap items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
         <Input
           placeholder="Search by title, ID, company, or topic..."
           value={globalSearch}
           onChange={(e) => setGlobalSearch(e.target.value)}
-          className="w-full max-w-sm bg-muted/30 hover:bg-muted/50 transition:colors"
+          className="w-full sm:max-w-sm bg-muted/30 hover:bg-muted/50 transition:colors"
         />
 
         <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
-          <SelectTrigger className="w-[180px] cursor-pointer bg-muted/30 hover:bg-muted/50 transition-colors">
+          <SelectTrigger className="w-full sm:w-[180px] cursor-pointer bg-muted/30 hover:bg-muted/50 transition-colors">
             <SelectValue placeholder="All Difficulty" />
           </SelectTrigger>
           <SelectContent>
@@ -186,7 +186,7 @@ export function DataTable({ columns, data, onFilteredCountChange, solvedProblems
         </Select>
 
         <Select value={companyFilter} onValueChange={setCompanyFilter}>
-          <SelectTrigger className="w-[220px] cursor-pointer bg-muted/30 transition-colors hover:bg-muted/50 transition-colors">
+          <SelectTrigger className="w-full sm:w-[220px] cursor-pointer bg-muted/30 transition-colors hover:bg-muted/50 transition-colors">
             <SelectValue placeholder="All Companies" />
           </SelectTrigger>
           <SelectContent>
@@ -205,7 +205,7 @@ export function DataTable({ columns, data, onFilteredCountChange, solvedProblems
         {/* Topics Dropdown with Count */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="w-[220px] cursor-pointer bg-muted/30 transition-colors hover:bg-muted/50 transition-colors">
+            <Button variant="outline" className="w-full sm:w-[220px] cursor-pointer bg-muted/30 transition-colors hover:bg-muted/50 transition-colors justify-between">
               {topicFilters.length > 0 ? `Topics (${topicFilters.length})` : "All Topics"}
               <ChevronDown className="ml-auto h-4 w-4 opacity-50" />
             </Button>
@@ -248,8 +248,8 @@ export function DataTable({ columns, data, onFilteredCountChange, solvedProblems
         </DropdownMenu>
       </div>
 
-      {/* Table */}
-      <div className="rounded-md border bg-gradient-to-br from-background via-muted/40 to-background">
+      {/* Table with horizontal scroll on mobile */}
+      <div className="rounded-md border bg-gradient-to-br from-background via-muted/40 to-background overflow-x-auto">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -287,8 +287,8 @@ export function DataTable({ columns, data, onFilteredCountChange, solvedProblems
       </div>
 
       {/* Pagination & Selection Info */}
-      <div className="flex items-center justify-between">
-        <div className="text-sm text-muted-foreground">
+      <div className="flex flex-col sm:flex-row items-center gap-4 sm:justify-between">
+        <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
           {table.getFilteredSelectedRowModel().rows.length} of{" "}
           {table.getFilteredRowModel().rows.length} row(s) selected.
         </div>
