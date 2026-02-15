@@ -82,10 +82,13 @@ export const createOrder = async (req, res) => {
     }
 
     // Step 4: Create Razorpay order options
+    const shortUserId = req.user._id.toString().slice(-6);
+    const shortTime = Date.now().toString().slice(-6);
+
     const options = {
       amount,
       currency,
-      receipt: `receipt_${Date.now()}_${req.user._id}`,
+      receipt: `rcpt_${shortUserId}_${shortTime}`,
       notes: {
         userId: req.user._id.toString(),
         email: req.user.email,

@@ -24,7 +24,12 @@ export const protect = async (req, res, next) => {
     const authHeader = req.headers.authorization;
 
     if (authHeader && authHeader.startsWith("Bearer ")) {
-      const token = authHeader.split(" ")[1];
+      let token = authHeader.split(" ")[1];
+
+      // Strip quotes if present (common localStorage serialization bug)
+      if (token?.startsWith('"') && token?.endsWith('"')) {
+        token = token.slice(1, -1);
+      }
 
       if (!process.env.JWT_SECRET) {
         console.error("Auth error: JWT_SECRET missing in environment");
