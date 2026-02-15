@@ -153,7 +153,7 @@ app.use("/api/likes", likeRoutes);
 app.use("/api/leetcode", leetcodeRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/resume", resumeRoutes);
-app.use("/api/debug", debugRoutes);
+app.use("/api", debugRoutes);
 
 // Google OAuth routes
 app.get(
