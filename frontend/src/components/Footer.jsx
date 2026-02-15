@@ -52,7 +52,7 @@ const Footer7 = ({
     title: "Leet-prep",
   },
   sections = defaultSections,
-  description = "The best platform for  students/professionals to prepare for coding interviews. Built with ❤️ by students, for students.",
+  description = "The best platform for  students/professionals to prepare for coding interviews. Built with love by students, for students.",
   socialLinks = defaultSocialLinks,
   copyright = "© 2025 -2026 Leet-Prep. All rights reserved.",
   legalLinks = defaultLegalLinks,

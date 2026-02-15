@@ -46,7 +46,7 @@ const LikeButton = () => {
                 }`}
             title={hasLiked ? "Thanks for liking!" : "Like this site"}
         >
-            ❤️
+            <span className="text-red-500">❤</span>
             <span className="font-semibold">{likes}</span>
             {hasLiked ? 'Thanks!' : 'Like'}
         </button>

@@ -2,47 +2,43 @@
 
 > RESTful API backend for Leet.IO - A company-wise DSA coding problem platform
 
-## 📋 Overview
+## Overview
 
 Leet.IO Backend is a Node.js/Express API server that powers the Leet.IO platform, providing access to 1800+ Data Structures and Algorithms problems organized by top tech companies. The platform helps students prepare for technical interviews with company-specific problem sets from Google, Amazon, Microsoft, Meta, and 50+ other companies.
 
 ### Key Features
 
-- 🔐 **Authentication & Authorization**
-
+- **Authentication & Authorization**
   - JWT-based authentication
   - Google OAuth 2.0 integration
   - Secure session management with Passport.js
   - Protected routes with middleware
 
-- 📊 **Problem Management**
-
+- **Problem Management**
   - RESTful API for 1800+ coding problems
   - Company-wise problem filtering
   - Difficulty-based categorization
   - Tag-based problem search
   - Pagination and sorting support
 
-- 👤 **User Profiles**
-
+- **User Profiles**
   - User profile management
   - Problem progress tracking
   - Premium membership support
 
-- 🛡️ **Security**
-
+- **Security**
   - CORS configuration for cross-origin requests
   - Helmet.js for HTTP header security
   - Input sanitization
   - Rate limiting ready
   - Secure cookie handling
 
-- 📦 **Database**
+- **Database**
   - MongoDB with Mongoose ODM
   - Optimized queries and indexing
   - Data validation and schema enforcement
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 backend/
@@ -82,7 +78,7 @@ backend/
 └── .env.example           # Environment variables template
 ```
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -138,7 +134,7 @@ backend/
    npm start
    ```
 
-## 📡 API Endpoints
+## API Endpoints
 
 ### Authentication
 
@@ -181,7 +177,7 @@ backend/
 | PUT    | `/admin/problems/:id` | Update problem  | Yes (Admin)   |
 | DELETE | `/admin/problems/:id` | Delete problem  | Yes (Admin)   |
 
-## 🔑 Authentication
+## Authentication
 
 ### JWT Authentication
 
@@ -200,7 +196,7 @@ Authorization: Bearer <your-jwt-token>
 5. Generates JWT token
 6. Redirects to frontend with token
 
-## 📦 Database Schema
+## Database Schema
 
 ### User Model
 
@@ -232,7 +228,7 @@ Authorization: Bearer <your-jwt-token>
 }
 ```
 
-## 🛠️ Technologies Used
+## Technologies Used
 
 - **Runtime:** Node.js
 - **Framework:** Express.js
@@ -249,7 +245,7 @@ Authorization: Bearer <your-jwt-token>
 - **Payment:** Razorpay integration
 - **Dev Tools:** Nodemon
 
-## 🔒 Security Features
+## Security Features
 
 - Password hashing with bcrypt
 - JWT token-based authentication
@@ -260,7 +256,7 @@ Authorization: Bearer <your-jwt-token>
 - Environment variable configuration
 - Error handling without sensitive data exposure
 
-## 🌐 CORS Configuration
+## CORS Configuration
 
 The API accepts requests from:
 
@@ -268,7 +264,7 @@ The API accepts requests from:
 - Local development: `http://localhost:5173`, `http://localhost:3000`
 - Configurable via `CLIENT_URL` environment variable
 
-## 📝 Environment Variables
+## Environment Variables
 
 | Variable               | Description                | Required           |
 | ---------------------- | -------------------------- | ------------------ |

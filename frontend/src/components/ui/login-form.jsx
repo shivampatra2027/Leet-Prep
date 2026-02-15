@@ -79,7 +79,7 @@ export function LoginForm({
             Sign in with Google
           </Button>
           <FieldDescription className="px-6 text-center">
-            Don&apos;t have an account? Click⬆️, to create your account with google automatically{" "}
+            Don&apos;t have an account? Click the button above to create your account with google automatically{" "}
             {/* <a href="/signup" className="text-primary hover:underline">
               Sign up
             </a> */}

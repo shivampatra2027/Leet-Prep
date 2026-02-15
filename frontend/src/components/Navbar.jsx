@@ -244,8 +244,8 @@ export default function Navbar() {
             >
               <p className="font-semibold text-foreground">Notifications</p>
               <ul className="mt-2 space-y-1 text-muted-foreground list-disc list-inside">
-                <li>LeetCode Buddy – Profile compare chrome extension rolling out soon 🚀</li>
-                <li>AI-based Code Editor with debug features coming soon 🤖</li>
+                <li>LeetCode Buddy – Profile compare chrome extension rolling out soon</li>
+                <li>AI-based Code Editor with debug features coming soon</li>
               </ul>
             </div>
           </div>

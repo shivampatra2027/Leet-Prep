@@ -43,7 +43,7 @@ if (process.env.NODE_ENV !== "production") {
   });
 }
 
-console.log("🌐 Allowed CORS origins:", allowedOrigins);
+console.log("Allowed CORS origins:", allowedOrigins);
 
 app.use(
   cors({
@@ -54,7 +54,7 @@ app.use(
       if (allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        console.error("❌ Blocked by CORS:", origin);
+        console.error("Blocked by CORS:", origin);
         console.error("   Allowed origins:", allowedOrigins);
         callback(new Error("Not allowed by CORS"));
       }
@@ -176,7 +176,7 @@ app.get(
 );
 
 app.get("/", (req, res) => {
-  res.send("Backend is running 🚀");
+  res.send("Backend is running");
 });
 
 app.use(errorHandler);

@@ -82,7 +82,7 @@ function PaymentButton({ amount, duration, planName }) {
                         window.location.href = `/payment-processing?order=${response.razorpay_order_id}`;
                     } catch (error) {
                         console.error('Verification error:', error);
-                        alert("⚠️ Payment verification failed. Please contact support with your payment ID: " + response.razorpay_payment_id);
+                        alert("Payment verification failed. Please contact support with your payment ID: " + response.razorpay_payment_id);
                         setLoading(false);
                     }
                 },
@@ -114,7 +114,7 @@ function PaymentButton({ amount, duration, planName }) {
             // Payment failure handler (Section 1.3)
             rzp.on('payment.failed', function (response) {
                 console.error('Payment failed:', response.error);
-                alert(`❌ Payment failed: ${response.error.description}\n\nReason: ${response.error.reason}\n\nPlease try again or use a different payment method.`);
+                alert(`Payment failed: ${response.error.description}\n\nReason: ${response.error.reason}\n\nPlease try again or use a different payment method.`);
                 setLoading(false);
             });
 
@@ -122,7 +122,7 @@ function PaymentButton({ amount, duration, planName }) {
             rzp.open();
             
         } catch (error) {
-            console.error('💥 Payment error:', error);
+            console.error('Payment error:', error);
             console.error('Error response:', error.response?.data);
             
             // Better error messages with backend details
@@ -134,7 +134,7 @@ function PaymentButton({ amount, duration, planName }) {
                 const data = error.response.data;
                 errorMessage = data?.message || "Server error while creating payment";
                 if (data?.hint) {
-                    errorDetails = `\n\nℹ️ ${data.hint}`;
+                    errorDetails = `\n\n${data.hint}`;
                 }
                 if (data?.errorType) {
                     errorDetails += `\n\nError type: ${data.errorType}`;
@@ -142,7 +142,7 @@ function PaymentButton({ amount, duration, planName }) {
                 
                 // Show specific guidance for common issues
                 if (errorMessage.includes("not configured") || errorMessage.includes("invalid")) {
-                    errorDetails += "\n\n⚙️ This is a configuration issue on the server. Contact admin or check Vercel environment variables.";
+                    errorDetails += "\n\nThis is a configuration issue on the server. Contact admin or check Vercel environment variables.";
                 }
             } else if (error.response?.status === 401) {
                 errorMessage = "Authentication failed. Please login again.";
@@ -156,7 +156,7 @@ function PaymentButton({ amount, duration, planName }) {
                 errorMessage = error.message;
             }
             
-            alert("⚠️ " + errorMessage + errorDetails);
+            alert(errorMessage + errorDetails);
             setLoading(false);
             
             // Redirect to login if unauthorized

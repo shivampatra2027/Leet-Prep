@@ -122,7 +122,7 @@ export default function PaymentProcessing() {
               {status === "success" && (
                 <>
                   <CardTitle className="text-xl sm:text-2xl lg:text-3xl font-bold text-green-500 mb-2">
-                    🎉 Premium Activated!
+                    Premium Activated!
                   </CardTitle>
                   <CardDescription className="text-sm sm:text-base text-muted-foreground">
                     Redirecting to your dashboard...

@@ -78,16 +78,16 @@ const Profile = () => {
     }
   };
 
-  // ---------------- 🔥 SYNC SOLVED + HEATMAP ----------------
+  // ---------------- SYNC SOLVED + HEATMAP ----------------
   const handleSyncLeetcode = async () => {
     try {
       setIsSyncing(true);
       setSyncMessage("");
 
-      // 1️⃣ Sync solved problems
+      // 1. Sync solved problems
       const response = await profileAPI.syncLeetcode();
 
-      // 2️⃣ 🔥 Sync heatmap calendar
+      // 2. Sync heatmap calendar
       await api.post(
         "/api/leetcode/sync-calendar",
         {},
@@ -229,7 +229,7 @@ const Profile = () => {
                           className="h-8 w-8 p-0"
                           title="Edit username"
                         >
-                          <span className="text-lg">✏️</span>
+                          <span className="text-lg">Edit</span>
                         </Button>
                       </div>
 
@@ -266,7 +266,7 @@ const Profile = () => {
               )}
             </div>
 
-            {/* ---------- 🔥 HEATMAP ---------- */}
+            {/* ---------- HEATMAP ---------- */}
             {user.leetcodeUsername && (
               <div className="border-t pt-6">
                 <h3 className="text-lg font-semibold mb-3">

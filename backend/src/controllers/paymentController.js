@@ -62,7 +62,7 @@ export const createOrder = async (req, res) => {
     const keyId = process.env.RAZORPAY_KEY_ID;
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
 
-    console.log("🔍 Checking Razorpay configuration...");
+    console.log("Checking Razorpay configuration...");
     console.log("Key ID present:", !!keyId);
     console.log("Key Secret present:", !!keySecret);
 
@@ -91,16 +91,16 @@ export const createOrder = async (req, res) => {
     };
 
     console.log(
-      `📦 Creating Razorpay order for user ${req.user._id}, amount: ₹${amount / 100} (${amount} paise)`,
+      `Creating Razorpay order for user ${req.user._id}, amount: ₹${amount / 100} (${amount} paise)`,
     );
 
     // Step 5: Create order on Razorpay (get fresh instance per request)
     const razorpay = getRazorpay();
     const order = await razorpay.orders.create(options);
 
-    console.log(`✅ Razorpay order created: ${order.id}`);
+    console.log(`Razorpay order created: ${order.id}`);
     console.log(
-      `📌 No DB write - webhook will create record on successful payment`,
+      `No DB write - webhook will create record on successful payment`,
     );
 
     // Step 6: Return success response (no DB write - webhook handles it)
@@ -119,7 +119,7 @@ export const createOrder = async (req, res) => {
       },
     });
   } catch (err) {
-    console.error("❌ Error creating Razorpay order:", {
+    console.error("Error creating Razorpay order:", {
       message: err?.message,
       statusCode: err?.statusCode,
       errorCode: err?.error?.code,
@@ -191,7 +191,7 @@ export const verifyPayment = async (req, res) => {
 
     if (generated_signature !== razorpay_signature) {
       console.log(
-        `❌ Signature verification failed for order ${razorpay_order_id}`,
+        `Signature verification failed for order ${razorpay_order_id}`,
       );
       return res.status(400).json({
         success: false,
@@ -201,7 +201,7 @@ export const verifyPayment = async (req, res) => {
 
     // Signature verified! Webhook will handle DB operations and premium activation
     console.log(
-      `✅ Payment signature verified for order ${razorpay_order_id}. Webhook will handle DB and activation.`,
+      `Payment signature verified for order ${razorpay_order_id}. Webhook will handle DB and activation.`,
     );
 
     return res.json({
@@ -537,33 +537,33 @@ async function handlePaymentSuccess(paymentEntity) {
       return;
     }
 
-    // 1️⃣ Prevent duplicate entries (webhooks retry many times)
+    // 1. Prevent duplicate entries (webhooks retry many times)
     const existing = await Payment.findOne({
       paymentId: paymentEntity.id,
     });
 
     if (existing) {
       console.log(
-        "⚠️ Webhook retry ignored - payment already processed:",
+        "Webhook retry ignored - payment already processed:",
         paymentEntity.id,
       );
       return;
     }
 
-    // 2️⃣ Extract plan metadata from payment notes
+    // 2. Extract plan metadata from payment notes
     const notes = paymentEntity.notes || {};
     const durationMonths = parseInt(notes.duration || 1);
     const userId = notes.userId;
 
     if (!userId) {
       console.error(
-        "❌ No userId in payment notes - cannot process:",
+        "No userId in payment notes - cannot process:",
         paymentEntity.id,
       );
       return;
     }
 
-    // 3️⃣ Store ONLY successful payments (first DB write happens here)
+    // 3. Store ONLY successful payments (first DB write happens here)
     const payment = await Payment.create({
       user: userId,
       orderId: paymentEntity.order_id,
@@ -577,9 +577,9 @@ async function handlePaymentSuccess(paymentEntity) {
       capturedAt: new Date(),
     });
 
-    console.log(`✅ Payment record created in DB: ${paymentEntity.id}`);
+    console.log(`Payment record created in DB: ${paymentEntity.id}`);
 
-    // 4️⃣ Upgrade user to premium
+    // 4. Upgrade user to premium
     const premiumExpiresAt = new Date();
     premiumExpiresAt.setMonth(premiumExpiresAt.getMonth() + durationMonths);
 
@@ -589,11 +589,11 @@ async function handlePaymentSuccess(paymentEntity) {
     });
 
     console.log(
-      `🎉 [WEBHOOK] User ${userId} upgraded to premium until ${premiumExpiresAt.toISOString()} (${durationMonths} month${durationMonths > 1 ? "s" : ""})`,
+      `[WEBHOOK] User ${userId} upgraded to premium until ${premiumExpiresAt.toISOString()} (${durationMonths} month${durationMonths > 1 ? "s" : ""})`,
     );
-    console.log(`💰 Revenue recorded: ₹${paymentEntity.amount / 100}`);
+    console.log(`Revenue recorded: ₹${paymentEntity.amount / 100}`);
   } catch (error) {
-    console.error("❌ Error handling payment success:", error);
+    console.error("Error handling payment success:", error);
     // Don't throw - webhook will retry automatically
   }
 }
@@ -612,7 +612,7 @@ async function handlePaymentFailed(paymentEntity) {
 
     if (existing) {
       console.log(
-        "⚠️ Webhook retry ignored - failed payment already recorded:",
+        "Webhook retry ignored - failed payment already recorded:",
         paymentEntity.id,
       );
       return;
@@ -632,7 +632,7 @@ async function handlePaymentFailed(paymentEntity) {
       notes: JSON.stringify(notes),
     });
 
-    console.log(`❌ Payment ${paymentEntity.id} marked as failed`);
+    console.log(`Payment ${paymentEntity.id} marked as failed`);
   } catch (error) {
     console.error("Error handling payment failure:", error);
   }
