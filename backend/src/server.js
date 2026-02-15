@@ -16,7 +16,6 @@ import { errorHandler } from "./middlewares/errorHandler.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
 import resumeRoutes from "./routes/resumeRoutes.js";
-import debugRoutes from "./routes/debugRoutes.js";
 dotenv.config();
 configureGoogleStrategy();
 
@@ -153,7 +152,6 @@ app.use("/api/likes", likeRoutes);
 app.use("/api/leetcode", leetcodeRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/resume", resumeRoutes);
-app.use("/api", debugRoutes);
 
 // Google OAuth routes
 app.get(
