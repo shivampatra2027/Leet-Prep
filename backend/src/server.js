@@ -67,8 +67,8 @@ app.use(
   }),
 );
 
-// Handle preflight requests for all routes
-app.options("*", cors());
+// Handle preflight requests for all routes (Express 5 syntax)
+app.options("/*", cors());
 
 // app.use(session({
 //     secret: process.env.JWT_SECRET || "supersecret",
