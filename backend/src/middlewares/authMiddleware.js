@@ -30,7 +30,7 @@ export const protect = async (req, res, next) => {
     if (authHeader && authHeader.startsWith("Bearer ")) {
       const token = authHeader.split(" ")[1];
 
-      if (!token) {
+      if (!token || token.trim() === "") {
         return res.status(401).json({ error: "Token missing" });
       }
 
@@ -39,6 +39,7 @@ export const protect = async (req, res, next) => {
       req.user = await User.findById(decoded.id).select("-passwordHash");
 
       if (!req.user) {
+        console.log(`JWT valid but user ${decoded.id} not found in database`);
         return res.status(401).json({ error: "User not found" });
       }
 
@@ -61,7 +62,18 @@ export const protect = async (req, res, next) => {
     // 3️⃣ No auth at all
     return res.status(401).json({ error: "Not authenticated" });
   } catch (err) {
-    console.error("Auth error:", err.message);
-    return res.status(401).json({ error: "Invalid or malformed token" });
+    console.error("Auth error:", err);
+
+    // JWT-specific errors
+    if (err.name === "JsonWebTokenError") {
+      return res.status(401).json({ error: "Invalid token" });
+    }
+    if (err.name === "TokenExpiredError") {
+      return res.status(401).json({ error: "Token expired" });
+    }
+
+    // Database or other errors should be 500
+    console.error("Unexpected auth error:", err.message);
+    return res.status(500).json({ error: "Authentication service error" });
   }
 };
