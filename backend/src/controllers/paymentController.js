@@ -3,15 +3,25 @@ import crypto from "crypto";
 import User from "../models/User.js";
 import Payment from "../models/Payment.js";
 
-// Trim environment variables to avoid hidden whitespace (common on Windows CRLF)
-const RZP_KEY_ID = process.env.RAZORPAY_KEY_ID?.trim();
-const RZP_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET?.trim();
-const RZP_WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET?.trim();
+/**
+ * Create Razorpay client per request (CRITICAL for serverless)
+ * Never create in module scope - env vars may not be loaded at import time
+ */
+function getRazorpay() {
+  const keyId = process.env.RAZORPAY_KEY_ID?.trim();
+  const keySecret = process.env.RAZORPAY_KEY_SECRET?.trim();
 
-const razorpay = new Razorpay({
-  key_id: RZP_KEY_ID,
-  key_secret: RZP_KEY_SECRET,
-});
+  if (!keyId || !keySecret) {
+    throw new Error("Razorpay keys missing in environment");
+  }
+
+  return new Razorpay({
+    key_id: keyId,
+    key_secret: keySecret,
+  });
+}
+
+const RZP_WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET?.trim();
 
 /**
  * Create a new Razorpay order
@@ -94,7 +104,8 @@ export const createOrder = async (req, res) => {
       `📦 Creating Razorpay order for user ${req.user._id}, amount: ₹${amount / 100} (${amount} paise)`,
     );
 
-    // Step 5: Create order on Razorpay
+    // Step 5: Create order on Razorpay (get fresh instance per request)
+    const razorpay = getRazorpay();
     const order = await razorpay.orders.create(options);
 
     console.log(`✅ Razorpay order created: ${order.id}`);
@@ -217,7 +228,8 @@ export const verifyPayment = async (req, res) => {
       });
     }
 
-    // Fetch payment details from Razorpay
+    // Fetch payment details from Razorpay (get fresh instance per request)
+    const razorpay = getRazorpay();
     const payment = await razorpay.payments.fetch(razorpay_payment_id);
 
     // Update payment record
@@ -309,6 +321,7 @@ export const getPaymentStatus = async (req, res) => {
     // Optionally fetch latest status from Razorpay if payment ID exists
     if (payment.paymentId) {
       try {
+        const razorpay = getRazorpay();
         const razorpayPayment = await razorpay.payments.fetch(
           payment.paymentId,
         );
@@ -385,7 +398,8 @@ export const processRefund = async (req, res) => {
       });
     }
 
-    // Process refund with Razorpay
+    // Process refund with Razorpay (get fresh instance per request)
+    const razorpay = getRazorpay();
     const refundOptions = {
       payment_id: paymentId,
       ...(amount && { amount }), // Partial refund if amount specified
