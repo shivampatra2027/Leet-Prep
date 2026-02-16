@@ -28,10 +28,10 @@ function App() {
   //   }, 100);
   //   return () => clearInterval(checkDevTools);
   // }, []);
-  useEffect(() => {
-    const disableRightClick = (e) => e.preventDefault(); document.addEventListener("contextmenu", disableRightClick);
-    return () => { document.removeEventListener("contextmenu", disableRightClick); };
-  }, []);
+  // useEffect(() => {
+  //   const disableRightClick = (e) => e.preventDefault(); document.addEventListener("contextmenu", disableRightClick);
+  //   return () => { document.removeEventListener("contextmenu", disableRightClick); };
+  // }, []);
 
 
   return (

@@ -41,7 +41,7 @@ function PaymentButton({ amount, duration, planName }) {
 
             // Step 2: Configure Razorpay Checkout (as per official docs Section 1.2)
             const options = {
-                key: import.meta.env.VITE_RAZORPAY_KEY_ID, // Your API Key ID
+                key: data.key || import.meta.env.VITE_RAZORPAY_KEY_ID,
                 amount: data.order.amount, // Amount from order
                 currency: data.order.currency,
                 name: "Leet-Prep", // Your business name
@@ -107,6 +107,9 @@ function PaymentButton({ amount, duration, planName }) {
             // Step 3: Initialize Razorpay Checkout
             if (!window.Razorpay) {
                 throw new Error('Razorpay SDK not loaded. Please refresh the page.');
+            }
+            if (!options.key) {
+                throw new Error('Razorpay key is missing. Set RAZORPAY_KEY_ID on backend and VITE_RAZORPAY_KEY_ID on frontend.');
             }
 
             const rzp = new window.Razorpay(options);

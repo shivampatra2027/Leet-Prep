@@ -45,6 +45,12 @@ if (process.env.NODE_ENV !== "production") {
 
 console.log("Allowed CORS origins:", allowedOrigins);
 
+
+app.use((req, res, next) => {
+  console.log("Request received:", req.method, req.url);
+  next(); // VERY IMPORTANT
+});
+
 app.use(
   cors({
     origin: function (origin, callback) {
@@ -142,6 +148,9 @@ ${urls
   res.type("application/xml").send(xml);
 });
 
+
+// app.get("/health-check",(req, res) => res.send("OK"));
+
 // Routes
 app.use("/api/problems", problemRoutes);
 app.use("/api/profile", profileRoutes);
@@ -152,28 +161,6 @@ app.use("/api/likes", likeRoutes);
 app.use("/api/leetcode", leetcodeRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/resume", resumeRoutes);
-
-// Google OAuth routes
-app.get(
-  "/auth/google",
-  passport.authenticate("google", { scope: ["profile", "email"] }),
-);
-
-app.get(
-  "/auth/google/callback",
-  passport.authenticate("google", { failureRedirect: "/login" }),
-  async (req, res) => {
-    try {
-      const user = req.user;
-      const redirectPath =
-        user.tier === "premium" ? "/dashboard" : "/freedashboard";
-      res.redirect(`${process.env.CLIENT_URL}${redirectPath}`);
-    } catch (error) {
-      console.error("Error in Google callback:", error);
-      res.redirect(`${process.env.CLIENT_URL}/freedashboard`);
-    }
-  },
-);
 
 app.get("/", (req, res) => {
   res.send("Backend is running");

@@ -6,7 +6,7 @@ import passport from "../auth/google.js";
 
 const router = express.Router();
 
-router.post("/signup", async (req, res) => {
+const handleSignup = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
@@ -58,7 +58,10 @@ router.post("/signup", async (req, res) => {
     }
     res.status(500).json({ error: "Server error" });
   }
-});
+};
+
+router.post("/signup", handleSignup);
+router.post("/register", handleSignup);
 
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
@@ -93,7 +96,9 @@ router.get(
       expiresIn: "7d",
     });
     const frontend = (
-      process.env.CORS_ORIGIN || "http://localhost:5173"
+      process.env.CLIENT_URL ||
+      process.env.CORS_ORIGIN ||
+      "http://localhost:5173"
     ).replace(/\/$/, "");
     res.redirect(`${frontend}/login?token=${token}`);
   },

@@ -23,6 +23,55 @@ function getRazorpay() {
 
 const RZP_WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET?.trim();
 
+function addMonthsFromNow(months = 1) {
+  const end = new Date();
+  end.setMonth(end.getMonth() + months);
+  return end;
+}
+
+async function activatePremiumFromPayment({
+  userId,
+  orderId,
+  paymentId,
+  signature,
+  amount,
+  currency = "INR",
+  status = "captured",
+  method,
+  notes = {},
+  receipt = null,
+}) {
+  const durationMonths = Math.max(1, parseInt(notes?.duration || 1, 10));
+  const premiumExpiresAt = addMonthsFromNow(durationMonths);
+
+  await Payment.findOneAndUpdate(
+    { orderId },
+    {
+      $set: {
+        user: userId,
+        orderId,
+        paymentId,
+        signature,
+        amount,
+        currency,
+        status,
+        paymentMethod: method,
+        receipt,
+        notes: JSON.stringify(notes || {}),
+        capturedAt: new Date(),
+      },
+    },
+    { upsert: true, new: true, setDefaultsOnInsert: true },
+  );
+
+  await User.findByIdAndUpdate(userId, {
+    tier: "premium",
+    premiumExpiresAt,
+  });
+
+  return { durationMonths, premiumExpiresAt };
+}
+
 /**
  * Create a new Razorpay order
  * @route POST /api/payment/create-order
@@ -175,6 +224,14 @@ export const verifyPayment = async (req, res) => {
       return res.status(401).json({ error: "User not authenticated" });
     }
 
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Missing payment verification fields (order_id, payment_id, signature)",
+      });
+    }
+
     if (!process.env.RAZORPAY_KEY_SECRET) {
       return res.status(500).json({
         error: "Razorpay secret missing",
@@ -199,16 +256,55 @@ export const verifyPayment = async (req, res) => {
       });
     }
 
-    // Signature verified! Webhook will handle DB operations and premium activation
+    // Signature verified. Do immediate premium activation to avoid webhook-only dependency.
+    const razorpay = getRazorpay();
+    const paymentDetails = await razorpay.payments.fetch(razorpay_payment_id);
+
+    const status = paymentDetails?.status || "captured";
+    if (!["authorized", "captured"].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Payment not successful. Current status: ${status}`,
+      });
+    }
+
+    const notes = paymentDetails?.notes || {};
+    const ownerUserId = notes.userId || req.user._id.toString();
+
+    if (ownerUserId !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "Payment does not belong to authenticated user",
+      });
+    }
+
+    const { durationMonths, premiumExpiresAt } = await activatePremiumFromPayment(
+      {
+        userId: req.user._id,
+        orderId: razorpay_order_id,
+        paymentId: razorpay_payment_id,
+        signature: razorpay_signature,
+        amount: paymentDetails?.amount,
+        currency: paymentDetails?.currency || "INR",
+        status,
+        method: paymentDetails?.method,
+        notes,
+        receipt: paymentDetails?.receipt || null,
+      },
+    );
+
     console.log(
-      `Payment signature verified for order ${razorpay_order_id}. Webhook will handle DB and activation.`,
+      `Payment verified and premium activated for user ${req.user._id} until ${premiumExpiresAt.toISOString()}`,
     );
 
     return res.json({
       success: true,
-      message: "Payment verified. Premium will be activated via webhook...",
+      message: "Payment verified and premium activated",
       orderId: razorpay_order_id,
       paymentId: razorpay_payment_id,
+      tier: "premium",
+      premiumExpiresAt,
+      durationMonths,
     });
   } catch (err) {
     console.error("Error verifying Razorpay payment:", err);
