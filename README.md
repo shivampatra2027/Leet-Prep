@@ -25,7 +25,7 @@ A comprehensive LeetCode problem tracker and management platform. Browse, filter
 [![Leet.io Platform Introduction](https://img.youtube.com/vi/EG__AujR-tQ/maxresdefault.jpg)](https://www.youtube.com/watch?v=EG__AujR-tQ)
 ## Features
 
-- Browse 1800+ LeetCode problems in a responsive data table
+- Browse 2200+ LeetCode problems in a responsive data table
 - Filter problems by difficulty (Easy, Medium, Hard)
 - Filter problems by company tags
 - Search problems by title

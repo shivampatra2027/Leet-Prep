@@ -14,7 +14,6 @@ export default function FreeDashboard() {
   const [problems, setProblems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [pagination, setPagination] = useState(null);
   const [filteredCount, setFilteredCount] = useState(0);
   const [solvedProblems, setSolvedProblems] = useState([]);
   const [userTier, setUserTier] = useState(null);
@@ -72,11 +71,6 @@ export default function FreeDashboard() {
         return accB - accA;
       });
       setSolvedProblems(solvedRes.data.solvedProblems || []);
-      setSummary({
-        solvedCount: summaryRes.data.solvedCount || 0,
-        totalProblems: summaryRes.data.totalProblems || (problemsRes.data.pagination?.totalProblems || 0),
-        progress: summaryRes.data.progress || 0,
-      });
       
       // Limit to 1 problem per company
       const companyProblemCount = new Map();
@@ -105,8 +99,16 @@ export default function FreeDashboard() {
         return false;
       });
       
+      // Update summary to reflect only the limited problems available to free users
+      const limitedTotal = limitedProblems.length;
+      const solvedCount = summaryRes.data.solvedCount || 0;
+      setSummary({
+        solvedCount: solvedCount,
+        totalProblems: limitedTotal,
+        progress: limitedTotal > 0 ? solvedCount / limitedTotal : 0,
+      });
+      
       setProblems(limitedProblems);
-      setPagination(problemsRes.data.pagination);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to fetch problems");
     } finally {
@@ -190,7 +192,7 @@ export default function FreeDashboard() {
                 Problems
               </h1>
               <p className="text-sm sm:text-base text-muted-foreground mt-1">
-                {filteredCount > 0 ? filteredCount : (pagination?.totalProblems || 0)} problems available (Limited to 1 per company)
+                {filteredCount > 0 ? filteredCount : (summary.totalProblems || 0)} problems available (Limited to 1 per company)
               </p>
             </div>
 
@@ -213,7 +215,7 @@ export default function FreeDashboard() {
                   <CardTitle className="text-sm sm:text-base">Total Problems</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-xl sm:text-2xl font-semibold">{summary.totalProblems || pagination?.totalProblems || 0}</div>
+                  <div className="text-xl sm:text-2xl font-semibold">{summary.totalProblems || 0}</div>
                 </CardContent>
               </Card>
               <Card>
@@ -222,7 +224,7 @@ export default function FreeDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-xl sm:text-2xl font-semibold">
-                    {(summary.totalProblems || pagination?.totalProblems || 0) - (summary.solvedCount || 0)}
+                    {(summary.totalProblems || 0) - (summary.solvedCount || 0)}
                   </div>
                 </CardContent>
               </Card>

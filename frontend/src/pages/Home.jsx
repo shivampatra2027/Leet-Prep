@@ -52,8 +52,8 @@ const SectionLoader = () => (
 
 const HeroSection = () => {
   const stats = [
-    { label: "Problems", value: "1,800+", hint: "curated, de-duplicated" },
-    { label: "Companies", value: "50+", hint: "patterns and frequency" },
+    { label: "Problems", value: "2,200+", hint: "curated, de-duplicated" },
+    { label: "Companies", value: "200+", hint: "patterns and frequency" },
     { label: "Avg. uplift", value: "36%", hint: "offers after 4 weeks" },
   ];
 
@@ -84,7 +84,7 @@ const HeroSection = () => {
                 Build sharp, company-ready habits -- not just streaks.
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl">
-                Leet-Prep curates the exact 1,800+ problems and patterns real teams ask for. Guided paths, honest
+                Leet-Prep curates the exact 2,200+ problems and patterns real teams ask for. Guided paths, honest
                 difficulty, and analytics that keep you on signal -- not noise.
               </p>
             </div>
