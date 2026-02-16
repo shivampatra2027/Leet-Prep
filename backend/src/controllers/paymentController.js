@@ -649,7 +649,8 @@ async function handlePaymentSuccess(paymentEntity) {
 
     // 2. Extract plan metadata from payment notes
     const notes = paymentEntity.notes || {};
-    const durationMonths = parseInt(notes.duration || 1);
+    const duration = parseInt(notes.duration || 1);
+    const durationType = notes.durationType || "months"; // "months" or "days"
     const userId = notes.userId;
 
     if (!userId) {
@@ -676,18 +677,26 @@ async function handlePaymentSuccess(paymentEntity) {
 
     console.log(`Payment record created in DB: ${paymentEntity.id}`);
 
-    // 4. Upgrade user to premium
+    // 4. Upgrade user to premium with flexible duration (days or months)
     const premiumExpiresAt = new Date();
-    premiumExpiresAt.setMonth(premiumExpiresAt.getMonth() + durationMonths);
+
+    if (durationType === "days") {
+      premiumExpiresAt.setDate(premiumExpiresAt.getDate() + duration);
+      console.log(
+        `[WEBHOOK] User ${userId} upgraded to premium for ${duration} day${duration > 1 ? "s" : ""} until ${premiumExpiresAt.toISOString()}`,
+      );
+    } else {
+      // Default to months
+      premiumExpiresAt.setMonth(premiumExpiresAt.getMonth() + duration);
+      console.log(
+        `[WEBHOOK] User ${userId} upgraded to premium for ${duration} month${duration > 1 ? "s" : ""} until ${premiumExpiresAt.toISOString()}`,
+      );
+    }
 
     await User.findByIdAndUpdate(userId, {
       tier: "premium",
       premiumExpiresAt,
     });
-
-    console.log(
-      `[WEBHOOK] User ${userId} upgraded to premium until ${premiumExpiresAt.toISOString()} (${durationMonths} month${durationMonths > 1 ? "s" : ""})`,
-    );
     console.log(`Revenue recorded: ₹${paymentEntity.amount / 100}`);
   } catch (error) {
     console.error("Error handling payment success:", error);

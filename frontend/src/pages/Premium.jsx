@@ -39,11 +39,31 @@ const Pricing4 = ({
 
   const plans = [
     {
+      name: "1 Day Trial",
+      badge: "Try It",
+      price: "₹5",
+      amount: 500, // in paise
+      duration: 1,
+      durationType: "days", // NEW: specify duration type
+      displayDuration: "24 Hours",
+      features: [
+        "Access to all 2200+ problems",
+        "All company filters unlocked",
+        "Advanced analytics dashboard",
+        "Progress tracking",
+        "LeetCode sync integration",
+        "Perfect for quick prep",
+      ],
+      buttonText: "Get 1 Day Access",
+    },
+    {
       name: "1 Month Premium",
       badge: "Monthly",
       price: "₹199",
       amount: 19900, // in paise
-      duration: 1, // months
+      duration: 1,
+      durationType: "months",
+      displayDuration: "1 Month",
       features: [
         "Access to all 2200+ problems",
         "All company filters unlocked",
@@ -59,7 +79,9 @@ const Pricing4 = ({
       badge: "Best Deal",
       price: "₹349",
       amount: 34900, // in paise
-      duration: 2, // months
+      duration: 2,
+      durationType: "months",
+      displayDuration: "2 Months",
       features: [
         "All features from 1 Month plan",
         "Save ₹49 (12% off)",
@@ -114,7 +136,7 @@ const Pricing4 = ({
                 </p>
               </div>
               <div
-                className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 max-w-4xl mx-auto"
+                className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 max-w-6xl mx-auto"
                 role="list"
                 aria-label="Pricing plans"
               >
@@ -146,7 +168,7 @@ const Pricing4 = ({
                           {plan.price}
                         </h2>
                         <p className="text-sm text-muted-foreground">
-                          For {plan.duration} {plan.duration === 1 ? "month" : "months"}
+                          {plan.displayDuration || `For ${plan.duration} ${plan.duration === 1 ? "month" : "months"}`}
                         </p>
                       </div>
                     </div>
@@ -166,6 +188,7 @@ const Pricing4 = ({
                       <PaymentButton
                         amount={plan.amount}
                         duration={plan.duration}
+                        durationType={plan.durationType || "months"}
                         planName={plan.name}
                       />
                     </div>

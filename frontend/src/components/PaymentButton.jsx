@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { paymentAPI, profileAPI } from "../lib/api";
 
-function PaymentButton({ amount, duration, planName }) {
+function PaymentButton({ amount, duration, durationType = "months", planName }) {
     const [loading, setLoading] = useState(false);
     const [userProfile, setUserProfile] = useState(null);
 
@@ -28,7 +28,8 @@ function PaymentButton({ amount, duration, planName }) {
                 amount: amount, // Amount in paise
                 currency: "INR",
                 notes: {
-                    duration: duration, // 1 or 2 months
+                    duration: duration, // 1 or 2 (months/days)
+                    durationType: durationType, // "months" or "days"
                     planName: planName
                 }
             });
@@ -58,7 +59,7 @@ function PaymentButton({ amount, duration, planName }) {
                 // Notes for your reference
                 notes: {
                     plan: planName,
-                    duration: `${duration} month${duration > 1 ? 's' : ''}`,
+                    duration: `${duration} ${durationType}`,
                 },
                 
                 // Theme customization
