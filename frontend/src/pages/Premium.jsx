@@ -39,24 +39,6 @@ const Pricing4 = ({
 
   const plans = [
     {
-      name: "1 Day Trial",
-      badge: "Try It",
-      price: "₹5",
-      amount: 500, // in paise
-      duration: 1,
-      durationType: "days", // NEW: specify duration type
-      displayDuration: "24 Hours",
-      features: [
-        "Access to all 2200+ problems",
-        "All company filters unlocked",
-        "Advanced analytics dashboard",
-        "Progress tracking",
-        "LeetCode sync integration",
-        "Perfect for quick prep",
-      ],
-      buttonText: "Get 1 Day Access",
-    },
-    {
       name: "1 Month Premium",
       badge: "Monthly",
       price: "₹199",
@@ -136,7 +118,7 @@ const Pricing4 = ({
                 </p>
               </div>
               <div
-                className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 max-w-6xl mx-auto"
+                className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 max-w-4xl mx-auto"
                 role="list"
                 aria-label="Pricing plans"
               >
