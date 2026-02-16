@@ -1,6 +1,19 @@
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 
+/**
+ * USER MODEL - DUPLICATE PREVENTION
+ *
+ * Key fields for uniqueness:
+ * - email: unique, sparse index (primary identifier)
+ * - googleId: sparse index (for OAuth lookups)
+ *
+ * Sparse indexes allow multiple null values but ensure uniqueness when value exists
+ * This prevents duplicate users while allowing flexibility in auth methods
+ *
+ * Always use findOneAndUpdate with upsert for user creation to prevent race conditions
+ */
+
 const AttemptSchema = new Schema(
   {
     problem: { type: Schema.Types.ObjectId, ref: "Problem", required: false },
@@ -23,6 +36,8 @@ const UserSchema = new Schema(
     email: { type: String, unique: true, sparse: true, index: true },
     name: String,
     passwordHash: String,
+    googleId: { type: String, sparse: true, index: true }, // Google OAuth ID
+    avatar: String, // Profile picture URL
     isAdmin: { type: Boolean, default: false },
     tier: { type: String, enum: ["free", "premium"], default: "free" },
     attempts: [AttemptSchema],

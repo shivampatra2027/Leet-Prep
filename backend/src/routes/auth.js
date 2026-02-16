@@ -7,80 +7,112 @@ import passport from "../auth/google.js";
 const router = express.Router();
 
 router.post("/signup", async (req, res) => {
-    try {
-        const { name, email, password } = req.body;
+  try {
+    const { name, email, password } = req.body;
 
-        if (!email.endsWith("@kiit.ac.in")) {
-            return res.status(403).json({ error: "Only KIIT Mail is allowed.." });
-        }
-
-        // check if user already exists
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            return res.status(400).json({ error: "User already exists" });
-        }
-
-        // hash password
-        const passwordHash = await bcrypt.hash(password, 10);
-
-        // save user
-        const user = new User({ name, email, passwordHash });
-        await user.save();
-
-        // generate JWT
-        const token = jwt.sign(
-            { id: user._id, email: user.email },
-            process.env.JWT_SECRET,
-            { expiresIn: "7d" }
-        );
-
-        res.json({ token });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Server error" });
+    if (!email.endsWith("@kiit.ac.in")) {
+      return res.status(403).json({ error: "Only KIIT Mail is allowed.." });
     }
-});
 
+    // hash password
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    // Use findOneAndUpdate with upsert to prevent race conditions
+    // This is atomic - prevents duplicate users even with simultaneous requests
+    const user = await User.findOneAndUpdate(
+      { email },
+      {
+        $setOnInsert: {
+          name,
+          email,
+          passwordHash,
+          tier: "free",
+        },
+      },
+      {
+        upsert: true,
+        new: true,
+        setDefaultsOnInsert: true,
+        runValidators: true,
+      },
+    );
+
+    // Check if user already existed (has a different password hash)
+    if (user.passwordHash && user.passwordHash !== passwordHash) {
+      return res.status(400).json({ error: "User already exists" });
+    }
+
+    // generate JWT
+    const token = jwt.sign(
+      { id: user._id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" },
+    );
+
+    res.json({ token });
+  } catch (error) {
+    console.error("Signup error:", error);
+    // Handle duplicate key errors
+    if (error.code === 11000) {
+      return res.status(400).json({ error: "User already exists" });
+    }
+    res.status(500).json({ error: "Server error" });
+  }
+});
 
 router.post("/login", async (req, res) => {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
-    if (!user) return res.status(401).json({ error: "Invalid credentials" });
+  const { email, password } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) return res.status(401).json({ error: "Invalid credentials" });
 
-    const valid = await bcrypt.compare(password, user.passwordHash);
-    if (!valid) return res.status(401).json({ error: "Invalid credentials" });
+  const valid = await bcrypt.compare(password, user.passwordHash);
+  if (!valid) return res.status(401).json({ error: "Invalid credentials" });
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
-    res.json({ token });
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    expiresIn: "7d",
+  });
+  res.json({ token });
 });
 
-router.get("/google",
-    passport.authenticate("google", { scope: ["profile", "email"], session: false })
+router.get(
+  "/google",
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+    session: false,
+  }),
 );
 
-router.get("/google/callback",
-    passport.authenticate("google", { failureRedirect: "/auth/fail", session: false }),
-    (req, res) => {
-        const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
-        const frontend = (process.env.CORS_ORIGIN || "http://localhost:5173").replace(/\/$/, "");
-        res.redirect(`${frontend}/login?token=${token}`);
-    }
+router.get(
+  "/google/callback",
+  passport.authenticate("google", {
+    failureRedirect: "/auth/fail",
+    session: false,
+  }),
+  (req, res) => {
+    const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
+    const frontend = (
+      process.env.CORS_ORIGIN || "http://localhost:5173"
+    ).replace(/\/$/, "");
+    res.redirect(`${frontend}/login?token=${token}`);
+  },
 );
 
 router.get("/fail", (req, res) => {
-    res.status(401).json({ error: "Google auth failed or non-KIIT email" });
+  res.status(401).json({ error: "Google auth failed or non-KIIT email" });
 });
 export function authMiddleware(req, res, next) {
-    const token = req.headers.authorization?.split(" ")[1];
-    if (!token) return res.status(401).json({ error: "No token" });
+  const token = req.headers.authorization?.split(" ")[1];
+  if (!token) return res.status(401).json({ error: "No token" });
 
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded;
-        next();
-    } catch {
-        res.status(401).json({ error: "Invalid token" });
-    }
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch {
+    res.status(401).json({ error: "Invalid token" });
+  }
 }
 
 export default router;
