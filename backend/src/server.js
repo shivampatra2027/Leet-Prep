@@ -57,48 +57,75 @@ if (process.env.NODE_ENV !== "production") {
 
 console.log("Allowed CORS origins:", allowedOrigins);
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // Allow requests with no origin (mobile apps, curl, Postman)
-      if (!origin) return callback(null, true);
+// CORS middleware configuration with explicit origin checking
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, Postman, server-to-server)
+    if (!origin) {
+      console.log("[CORS] Request with no origin - allowing");
+      return callback(null, true);
+    }
 
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        console.error("Blocked by CORS:", origin);
-        console.error("   Allowed origins:", allowedOrigins);
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-    exposedHeaders: ["Content-Range", "X-Content-Range"],
-    maxAge: 86400, // 24 hours
-  }),
-);
+    if (allowedOrigins.includes(origin)) {
+      console.log("[CORS] Allowed origin:", origin);
+      callback(null, true);
+    } else {
+      console.error("[CORS] BLOCKED origin:", origin);
+      console.error("[CORS] Allowed origins:", allowedOrigins);
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  exposedHeaders: ["Content-Range", "X-Content-Range"],
+  maxAge: 86400, // 24 hours
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
+};
 
-// Explicit OPTIONS handler for preflight requests (critical for Vercel)
-app.options("*", cors());
+app.use(cors(corsOptions));
 
-// Additional preflight handler
+// Explicit preflight handler for Vercel serverless (must come after cors middleware)
 app.use((req, res, next) => {
+  const origin = req.headers.origin;
+
+  // Only handle OPTIONS requests
   if (req.method === "OPTIONS") {
-    console.log("[CORS] Preflight request from:", req.headers.origin);
-    res.header("Access-Control-Allow-Origin", req.headers.origin);
-    res.header(
-      "Access-Control-Allow-Methods",
-      "GET, POST, PUT, DELETE, OPTIONS, PATCH",
+    console.log(
+      "[CORS] Preflight OPTIONS request from:",
+      origin || "no-origin",
     );
-    res.header(
-      "Access-Control-Allow-Headers",
-      "Content-Type, Authorization, X-Requested-With",
-    );
-    res.header("Access-Control-Allow-Credentials", "true");
-    res.header("Access-Control-Max-Age", "86400");
-    return res.sendStatus(204);
+
+    // Check if origin is allowed
+    if (!origin || allowedOrigins.includes(origin)) {
+      // Set CORS headers explicitly for Vercel
+      if (origin) {
+        res.header("Access-Control-Allow-Origin", origin);
+      }
+      res.header("Access-Control-Allow-Credentials", "true");
+      res.header(
+        "Access-Control-Allow-Methods",
+        "GET, POST, PUT, DELETE, OPTIONS, PATCH",
+      );
+      res.header(
+        "Access-Control-Allow-Headers",
+        "Content-Type, Authorization, X-Requested-With",
+      );
+      res.header("Access-Control-Max-Age", "86400");
+      console.log("[CORS] Preflight handled - returning 204");
+      return res.status(204).end();
+    } else {
+      console.error("[CORS] Preflight BLOCKED for origin:", origin);
+    }
   }
+
+  // For non-OPTIONS requests, ensure CORS headers are set
+  if (origin && allowedOrigins.includes(origin)) {
+    res.header("Access-Control-Allow-Origin", origin);
+    res.header("Access-Control-Allow-Credentials", "true");
+  }
+
   next();
 });
 
@@ -221,10 +248,18 @@ app.get("/", (req, res) => {
 
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 8080;
+// Export the app for Vercel serverless
+export default app;
 
-connectDb().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server running on port: ${PORT}`);
+// Only start the server if not running in Vercel serverless environment
+if (process.env.VERCEL !== "1") {
+  const PORT = process.env.PORT || 8080;
+  connectDb().then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server running on port: ${PORT}`);
+    });
   });
-});
+} else {
+  // In Vercel, connect to DB immediately
+  connectDb();
+}
