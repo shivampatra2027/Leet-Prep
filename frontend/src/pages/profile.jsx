@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle, Crown, Loader2, RefreshCw, Code2, Pencil } from "lucide-react";
+import { CheckCircle, Crown, Loader2, RefreshCw, Code2, Clock } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
@@ -16,6 +16,7 @@ import {
 import Navbar from "@/components/Navbar.jsx";
 import api, { profileAPI } from "@/lib/api.js";
 import LeetCodeHeatmap from "@/components/Heatmap.jsx";
+import { calculatePremiumTimeRemaining, formatPremiumExpiryDate } from "@/utils/premiumTimer.js";
 
 const Profile = () => {
   const [user, setUser] = useState(null);
@@ -24,6 +25,7 @@ const Profile = () => {
   const [isEditingLeetcode, setIsEditingLeetcode] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState("");
+  const [premiumTimer, setPremiumTimer] = useState(null);
 
   const navigate = useNavigate();
 
@@ -46,6 +48,30 @@ const Profile = () => {
 
     fetchProfile();
   }, [navigate]);
+
+  // ---------------- PREMIUM TIMER ----------------
+  useEffect(() => {
+    if (!user?.premiumExpiresAt || user?.tier !== "premium") {
+      setPremiumTimer(null);
+      return;
+    }
+
+    // Update timer immediately
+    const updateTimer = () => {
+      const timeRemaining = calculatePremiumTimeRemaining(user.premiumExpiresAt);
+      setPremiumTimer(timeRemaining);
+    };
+
+    updateTimer();
+
+    // Update every minute if less than 1 day, otherwise every hour
+    const timerData = calculatePremiumTimeRemaining(user.premiumExpiresAt);
+    const interval = timerData.days < 1 ? 60000 : 3600000; // 1 minute or 1 hour
+
+    const intervalId = setInterval(updateTimer, interval);
+
+    return () => clearInterval(intervalId);
+  }, [user?.premiumExpiresAt, user?.tier]);
 
   // ---------------- UPDATE USERNAME ----------------
   const handleUpdateLeetcodeUsername = async () => {
@@ -277,17 +303,32 @@ const Profile = () => {
             )}
 
             {/* ---------- TIER ---------- */}
-            <div className="border-t pt-6 text-center">
-              {user.tier === "premium" ? (
-                <Badge className="bg-green-500/20 text-green-600">
-                  <CheckCircle className="h-4 w-4 mr-1" />
-                  Premium Member
-                </Badge>
-              ) : (
-                <Badge variant="secondary">
-                  <Crown className="h-4 w-4 mr-1" />
-                  Free Plan
-                </Badge>
+            <div className="border-t pt-6">
+              <div className="text-center mb-4">
+                {user.tier === "premium" ? (
+                  <Badge className="bg-green-500/20 text-green-600">
+                    <CheckCircle className="h-4 w-4 mr-1" />
+                    Premium Member
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary">
+                    <Crown className="h-4 w-4 mr-1" />
+                    Free Plan
+                  </Badge>
+                )}
+              </div>
+
+              {/* Premium Timer */}
+              {user.tier === "premium" && user.premiumExpiresAt && premiumTimer && !premiumTimer.isExpired && (
+                <div className="space-y-3 mt-4">
+                  <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                    <Clock className="h-4 w-4" />
+                    <span className="font-medium">{premiumTimer.display}</span>
+                  </div>
+                  <div className="text-xs text-center text-muted-foreground">
+                    Expires: {formatPremiumExpiryDate(user.premiumExpiresAt)}
+                  </div>
+                </div>
               )}
             </div>
 
