@@ -14,14 +14,28 @@ const downgradeExpiredPremium = async (user) => {
 
 export const protect = async (req, res, next) => {
   try {
+    // DEBUG: Log all relevant headers for Vercel debugging
+    console.log("[AUTH] Request to:", req.method, req.path);
+    console.log(
+      "[AUTH] Authorization header:",
+      req.headers.authorization ? "Present" : "MISSING",
+    );
+    console.log("[AUTH] Origin:", req.headers.origin || "none");
+    console.log("[AUTH] All headers:", Object.keys(req.headers).join(", "));
+
     // 1) Passport session (Google OAuth, browser)
     if (typeof req.isAuthenticated === "function" && req.isAuthenticated()) {
+      console.log("[AUTH] Authenticated via Passport session");
       await downgradeExpiredPremium(req.user);
       return next();
     }
 
     // 2) JWT (API / Postman)
     const authHeader = req.headers.authorization;
+    console.log(
+      "[AUTH] Checking JWT - header value:",
+      authHeader ? authHeader.substring(0, 20) + "..." : "UNDEFINED",
+    );
 
     if (authHeader && authHeader.startsWith("Bearer ")) {
       let token = authHeader.split(" ")[1];
@@ -50,15 +64,21 @@ export const protect = async (req, res, next) => {
 
       req.user = await User.findById(decoded.id).select("-passwordHash");
       if (!req.user) {
-        console.log(`JWT valid but user ${decoded.id} not found in database`);
+        console.log(
+          `[AUTH] JWT valid but user ${decoded.id} not found in database`,
+        );
         return res.status(401).json({ error: "User not found" });
       }
 
+      console.log(`[AUTH] Successfully authenticated user: ${req.user.email}`);
       await downgradeExpiredPremium(req.user);
       return next();
     }
 
     // 3) No auth at all
+    console.log(
+      "[AUTH] FAILED - No valid authentication found (no session, no JWT header)",
+    );
     return res.status(401).json({ error: "Not authenticated" });
   } catch (err) {
     console.error("Auth error:", err);

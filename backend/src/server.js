@@ -20,19 +20,31 @@ dotenv.config();
 configureGoogleStrategy();
 
 const app = express();
-const SITE_URL = (
-  process.env.CLIENT_URL || "https://leet-prep.vercel.app"
-).replace(/\/$/, "");
 
-// CORS configuration
+// Handle CLIENT_URL - support both www and non-www versions
+// Vercel frontend is at www.leetcodepremium.xyz but env might have either version
+const CLIENT_URL = (
+  process.env.CLIENT_URL || "https://www.leetcodepremium.xyz"
+).replace(/\/$/, "");
+const SITE_URL = CLIENT_URL;
+
+// CORS configuration - support both Render and Vercel deployments
 const allowedOrigins = [
   process.env.CLIENT_URL,
+  process.env.CORS_ORIGIN,
+  // Frontend URLs
   "https://leet-io-frontend.onrender.com",
   "https://leet-prep.vercel.app",
   "https://www.leetcodepremium.xyz",
   "https://leetcodepremium.xyz",
+  // Backend URLs (for OAuth callbacks)
+  "https://leet-io-backend.onrender.com",
+  "https://leet-io-back.vercel.app",
+  // Local development
   "http://localhost:5173",
   "http://127.0.0.1:5173",
+  "http://localhost:4000",
+  "http://127.0.0.1:4000",
 ].filter(Boolean);
 
 // Allow additional dev ports if not in production
@@ -67,9 +79,24 @@ app.use(
   }),
 );
 
-// Handle preflight requests for all routes
+// Explicit OPTIONS handler for preflight requests (critical for Vercel)
+app.options("*", cors());
+
+// Additional preflight handler
 app.use((req, res, next) => {
   if (req.method === "OPTIONS") {
+    console.log("[CORS] Preflight request from:", req.headers.origin);
+    res.header("Access-Control-Allow-Origin", req.headers.origin);
+    res.header(
+      "Access-Control-Allow-Methods",
+      "GET, POST, PUT, DELETE, OPTIONS, PATCH",
+    );
+    res.header(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization, X-Requested-With",
+    );
+    res.header("Access-Control-Allow-Credentials", "true");
+    res.header("Access-Control-Max-Age", "86400");
     return res.sendStatus(204);
   }
   next();
@@ -103,6 +130,19 @@ app.use(
 
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Request logging middleware (helps debug Vercel/Razorpay issues)
+app.use((req, res, next) => {
+  const timestamp = new Date().toISOString();
+  console.log(`[${timestamp}] ${req.method} ${req.path}`);
+  console.log("  Origin:", req.headers.origin || "none");
+  console.log(
+    "  Auth header:",
+    req.headers.authorization ? "Present (Bearer...)" : "MISSING",
+  );
+  console.log("  Content-Type:", req.headers["content-type"] || "none");
+  next();
+});
 
 /**
  * Razorpay webhooks must receive the exact raw request body for
@@ -167,7 +207,7 @@ app.get(
       const user = req.user;
       const redirectPath =
         user.tier === "premium" ? "/dashboard" : "/freedashboard";
-      res.redirect(`${process.env.CLIENT_URL}${redirectPath}`);
+      res.redirect(`${CLIENT_URL}${redirectPath}`);
     } catch (error) {
       console.error("Error in Google callback:", error);
       res.redirect(`${process.env.CLIENT_URL}/freedashboard`);
