@@ -3,59 +3,9 @@ import crypto from "crypto";
 import User from "../models/User.js";
 import Payment from "../models/Payment.js";
 
-/**
- * Create Razorpay client per request (CRITICAL for serverless)
- * Never create in module scope - env vars may not be loaded at import time
- */
 function getRazorpay() {
   const keyId = process.env.RAZORPAY_KEY_ID?.trim();
   const keySecret = process.env.RAZORPAY_KEY_SECRET?.trim();
-
-  // DEBUG: Check for hidden whitespace/newlines (common Vercel issue)
-  if (process.env.RAZORPAY_KEY_ID) {
-    const rawKeyId = process.env.RAZORPAY_KEY_ID;
-    const rawKeySecret = process.env.RAZORPAY_KEY_SECRET;
-
-    console.log("[RAZORPAY DEBUG] Raw key ID length:", rawKeyId.length);
-    console.log(
-      "[RAZORPAY DEBUG] Raw key SECRET length:",
-      rawKeySecret?.length || 0,
-    );
-    console.log("[RAZORPAY DEBUG] Trimmed key ID length:", keyId?.length || 0);
-    console.log(
-      "[RAZORPAY DEBUG] Trimmed key SECRET length:",
-      keySecret?.length || 0,
-    );
-
-    // Check for newline characters (char code 10 = \n, 13 = \r)
-    if (rawKeySecret) {
-      const lastChar = rawKeySecret.charCodeAt(rawKeySecret.length - 1);
-      const firstChar = rawKeySecret.charCodeAt(0);
-      console.log("[RAZORPAY DEBUG] Secret FIRST char code:", firstChar);
-      console.log("[RAZORPAY DEBUG] Secret LAST char code:", lastChar);
-
-      if (lastChar === 10 || lastChar === 13) {
-        console.error(
-          "[RAZORPAY DEBUG] ⚠️ NEWLINE DETECTED at end of secret! This will cause 401 errors.",
-        );
-      }
-      if (firstChar === 10 || firstChar === 13 || firstChar === 32) {
-        console.error(
-          "[RAZORPAY DEBUG] ⚠️ WHITESPACE DETECTED at start of secret! This will cause 401 errors.",
-        );
-      }
-    }
-
-    // Show prefix of keys (safe to log)
-    console.log(
-      "[RAZORPAY DEBUG] Key ID prefix:",
-      keyId?.substring(0, 8) || "none",
-    );
-    console.log(
-      "[RAZORPAY DEBUG] Secret prefix:",
-      keySecret?.substring(0, 8) || "none",
-    );
-  }
 
   if (!keyId || !keySecret) {
     throw new Error("Razorpay keys missing in environment");
@@ -67,20 +17,7 @@ function getRazorpay() {
   });
 }
 
-// Webhook secret with debug logging
-const rawWebhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
-if (rawWebhookSecret) {
-  const lastChar = rawWebhookSecret.charCodeAt(rawWebhookSecret.length - 1);
-  console.log(
-    "[RAZORPAY DEBUG] Webhook secret length:",
-    rawWebhookSecret.length,
-  );
-  console.log("[RAZORPAY DEBUG] Webhook secret last char code:", lastChar);
-  if (lastChar === 10 || lastChar === 13) {
-    console.error("[RAZORPAY DEBUG] ⚠️ NEWLINE DETECTED in webhook secret!");
-  }
-}
-const RZP_WEBHOOK_SECRET = rawWebhookSecret?.trim();
+const RZP_WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET?.trim();
 
 /**
  * Create a new Razorpay order
@@ -149,30 +86,11 @@ export const createOrder = async (req, res) => {
       },
     };
 
-    console.log(
-      `Creating Razorpay order for user ${req.user._id}, amount: ₹${amount / 100} (${amount} paise)`,
-    );
-
     // Step 5: Create order on Razorpay (get fresh instance per request)
-    console.log("[RAZORPAY] Initializing Razorpay client...");
     const razorpay = getRazorpay();
-
-    console.log(
-      "[RAZORPAY] Calling Razorpay API: POST api.razorpay.com/v1/orders",
-    );
-    console.log("[RAZORPAY] Order options:", {
-      amount,
-      currency,
-      receipt: options.receipt,
-      notes: { userId: req.user._id.toString(), email: req.user.email },
-    });
-
     const order = await razorpay.orders.create(options);
 
-    console.log(`[RAZORPAY] ✅ Order created successfully: ${order.id}`);
-    console.log(
-      `No DB write - webhook will create record on successful payment`,
-    );
+    console.log(`Razorpay order created: ${order.id}`);
 
     // Step 6: Return success response (no DB write - webhook handles it)
     res.json({
@@ -190,55 +108,20 @@ export const createOrder = async (req, res) => {
       },
     });
   } catch (err) {
-    console.error("[RAZORPAY] ❌ API call failed:", {
-      message: err?.message,
-      statusCode: err?.statusCode,
-      errorCode: err?.error?.code,
-      description: err?.error?.description,
-    });
+    console.error("Error creating Razorpay order:", err.message);
 
-    // Special handling for 401 Authentication errors
-    if (err?.statusCode === 401) {
-      console.error("[RAZORPAY] 🔴 401 AUTHENTICATION FAILED");
-      console.error(
-        "[RAZORPAY] This means Razorpay rejected your credentials:",
-      );
-      console.error("[RAZORPAY]   ❌ Key ID or Secret is incorrect");
-      console.error(
-        "[RAZORPAY]   ❌ Extra whitespace/newlines in env variables (see debug above)",
-      );
-      console.error("[RAZORPAY]   ❌ Mixed TEST vs LIVE keys");
-      console.error(
-        "[RAZORPAY]   ❌ Keys rotated but deployment cached old values",
-      );
-      console.error(
-        "[RAZORPAY] Check Vercel environment variables and REDEPLOY after fixing!",
-      );
-    }
-
-    console.error("Error creating Razorpay order:", {
-      message: err?.message,
-      statusCode: err?.statusCode,
-      errorCode: err?.error?.code,
-      description: err?.error?.description,
-      stack: process.env.NODE_ENV === "development" ? err?.stack : undefined,
-    });
-
-    // Determine status code and error message
     const statusCode = err?.statusCode || 500;
     const errorDescription =
       err?.error?.description || err?.message || "Unknown error occurred";
     const errorType = err?.error?.code || err?.name || "OrderCreationError";
 
-    // Provide helpful hints based on error type
     let hint = undefined;
     if (
       statusCode === 401 ||
       statusCode === 403 ||
       errorDescription.includes("authentication")
     ) {
-      hint =
-        "Razorpay authentication failed. Check: 1) Key ID and Secret are correct, 2) No extra whitespace/newlines in env variables, 3) Matching TEST or LIVE mode, 4) Redeploy after updating env vars";
+      hint = "Check Razorpay API keys and ensure correct mode (test vs live)";
     } else if (
       errorDescription.includes("network") ||
       errorDescription.includes("ENOTFOUND")
@@ -682,22 +565,18 @@ async function handlePaymentSuccess(paymentEntity) {
 
     if (durationType === "days") {
       premiumExpiresAt.setDate(premiumExpiresAt.getDate() + duration);
-      console.log(
-        `[WEBHOOK] User ${userId} upgraded to premium for ${duration} day${duration > 1 ? "s" : ""} until ${premiumExpiresAt.toISOString()}`,
-      );
     } else {
-      // Default to months
       premiumExpiresAt.setMonth(premiumExpiresAt.getMonth() + duration);
-      console.log(
-        `[WEBHOOK] User ${userId} upgraded to premium for ${duration} month${duration > 1 ? "s" : ""} until ${premiumExpiresAt.toISOString()}`,
-      );
     }
 
     await User.findByIdAndUpdate(userId, {
       tier: "premium",
       premiumExpiresAt,
     });
-    console.log(`Revenue recorded: ₹${paymentEntity.amount / 100}`);
+
+    console.log(
+      `User ${userId} upgraded to premium (${duration} ${durationType}) until ${premiumExpiresAt.toISOString()}`,
+    );
   } catch (error) {
     console.error("Error handling payment success:", error);
     // Don't throw - webhook will retry automatically

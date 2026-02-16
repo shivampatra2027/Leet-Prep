@@ -55,79 +55,23 @@ if (process.env.NODE_ENV !== "production") {
   });
 }
 
-console.log("Allowed CORS origins:", allowedOrigins);
-
-// CORS middleware configuration with explicit origin checking
-const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow requests with no origin (mobile apps, curl, Postman, server-to-server)
-    if (!origin) {
-      console.log("[CORS] Request with no origin - allowing");
-      return callback(null, true);
-    }
-
-    if (allowedOrigins.includes(origin)) {
-      console.log("[CORS] Allowed origin:", origin);
-      callback(null, true);
-    } else {
-      console.error("[CORS] BLOCKED origin:", origin);
-      console.error("[CORS] Allowed origins:", allowedOrigins);
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-  exposedHeaders: ["Content-Range", "X-Content-Range"],
-  maxAge: 86400, // 24 hours
-  preflightContinue: false,
-  optionsSuccessStatus: 204,
-};
-
-app.use(cors(corsOptions));
-
-// Explicit preflight handler for Vercel serverless (must come after cors middleware)
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-
-  // Only handle OPTIONS requests
-  if (req.method === "OPTIONS") {
-    console.log(
-      "[CORS] Preflight OPTIONS request from:",
-      origin || "no-origin",
-    );
-
-    // Check if origin is allowed
-    if (!origin || allowedOrigins.includes(origin)) {
-      // Set CORS headers explicitly for Vercel
-      if (origin) {
-        res.header("Access-Control-Allow-Origin", origin);
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
       }
-      res.header("Access-Control-Allow-Credentials", "true");
-      res.header(
-        "Access-Control-Allow-Methods",
-        "GET, POST, PUT, DELETE, OPTIONS, PATCH",
-      );
-      res.header(
-        "Access-Control-Allow-Headers",
-        "Content-Type, Authorization, X-Requested-With",
-      );
-      res.header("Access-Control-Max-Age", "86400");
-      console.log("[CORS] Preflight handled - returning 204");
-      return res.status(204).end();
-    } else {
-      console.error("[CORS] Preflight BLOCKED for origin:", origin);
-    }
-  }
-
-  // For non-OPTIONS requests, ensure CORS headers are set
-  if (origin && allowedOrigins.includes(origin)) {
-    res.header("Access-Control-Allow-Origin", origin);
-    res.header("Access-Control-Allow-Credentials", "true");
-  }
-
-  next();
-});
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    exposedHeaders: ["Content-Range", "X-Content-Range"],
+    maxAge: 86400,
+  }),
+);
 
 // app.use(session({
 //     secret: process.env.JWT_SECRET || "supersecret",
@@ -158,24 +102,7 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Request logging middleware (helps debug Vercel/Razorpay issues)
-app.use((req, res, next) => {
-  const timestamp = new Date().toISOString();
-  console.log(`[${timestamp}] ${req.method} ${req.path}`);
-  console.log("  Origin:", req.headers.origin || "none");
-  console.log(
-    "  Auth header:",
-    req.headers.authorization ? "Present (Bearer...)" : "MISSING",
-  );
-  console.log("  Content-Type:", req.headers["content-type"] || "none");
-  next();
-});
-
-/**
- * Razorpay webhooks must receive the exact raw request body for
- * signature verification. We attach a raw body parser for that path
- * first, then fall back to the normal JSON parser for every other route.
- */
+// Razorpay webhooks need raw body for signature verification
 const jsonParser = express.json();
 app.use("/api/payment/webhook", express.raw({ type: "application/json" }));
 app.use((req, res, next) => {
