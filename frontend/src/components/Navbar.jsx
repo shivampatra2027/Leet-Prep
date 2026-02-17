@@ -1,20 +1,12 @@
-// components/Navbar.jsx
 import * as React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ModeToggle } from "./mode-toggle";
 import { Button } from "@/components/ui/button.jsx";
-import { LogOut, Heart, Bell, Menu, X } from "lucide-react";
+import { LogOut, Heart, Menu, X } from "lucide-react";
 import axios from "axios";
 
-import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuList,
-  NavigationMenuLink,
-  navigationMenuTriggerStyle,
-} from "@/components/ui/navigation-menu.jsx";
-
 export default function Navbar() {
+  const sidebarRef = React.useRef(null);
   const navigate = useNavigate();
   const [token, setToken] = React.useState(() => localStorage.getItem("authToken"));
   const isLoggedIn = !!token;
@@ -44,7 +36,6 @@ export default function Navbar() {
     }
   }, [API_URL]);
 
-  // Keep token in sync (login/logout/storage)
   React.useEffect(() => {
     const updateToken = () => setToken(localStorage.getItem("authToken"));
     window.addEventListener("storage", updateToken);
@@ -54,6 +45,29 @@ export default function Navbar() {
       window.removeEventListener("focus", updateToken);
     };
   }, []);
+
+  React.useEffect(() => {
+    document.body.style.overflow = mobileOpen ? "hidden" : "unset";
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [mobileOpen]);
+
+  React.useEffect(() => {
+    if (!mobileOpen) return;
+
+    const handlePointerDown = (event) => {
+      if (!sidebarRef.current) return;
+      if (!sidebarRef.current.contains(event.target)) {
+        setMobileOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+    };
+  }, [mobileOpen]);
 
   const handleLike = async () => {
     if (hasLiked || loading) return;
@@ -81,284 +95,174 @@ export default function Navbar() {
 
   const closeMobile = () => setMobileOpen(false);
 
-  // Prevent body scroll when mobile menu is open
-  React.useEffect(() => {
-    if (mobileOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, [mobileOpen]);
-
-  const mainLinks = [
+  const desktopLinks = [
     { to: "/", label: "Home", auth: "any" },
     { to: "/dashboard", label: "Dashboard", auth: "authed" },
     { to: "/contest", label: "Contest", auth: "authed" },
     { to: "/resume-analyzer", label: "Resume Analyzer", auth: "authed" },
     { to: "/profile", label: "Profile", auth: "authed" },
-    { to: "/premium", label: "Premium", auth: "any" },
-    { to: "/login", label: "Login", auth: "guest" },
   ].filter((link) => {
     if (link.auth === "any") return true;
-    if (link.auth === "authed") return isLoggedIn;
-    return !isLoggedIn;
+    return isLoggedIn;
   });
 
+  const mobileAccountLinks = [
+    { to: "/", label: "Home", auth: "any" },
+    { to: "/dashboard", label: "Dashboard", auth: "authed" },
+    { to: "/contest", label: "Contest", auth: "authed" },
+    { to: "/resume-analyzer", label: "Resume Analyzer", auth: "authed" },
+    { to: "/profile", label: "Profile", auth: "authed" },
+  ].filter((link) => (link.auth === "any" ? true : isLoggedIn));
+
   return (
-    <nav className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-      <div className="container mx-auto flex h-14 sm:h-16 items-center justify-between px-3 sm:px-4 md:px-6">
-        {/* Logo / Brand */}
-        <NavigationMenu>
-          <NavigationMenuList>
-            <NavigationMenuItem>
-              <Link to="/" className="flex items-center">
-                <span className="text-lg sm:text-xl font-bold tracking-tight text-foreground">
-                  Leet-Prep
-                </span>
-              </Link>
-            </NavigationMenuItem>
-          </NavigationMenuList>
-        </NavigationMenu>
-
-        {/* Center Navigation Links */}
-        <NavigationMenu className="hidden md:flex">
-          <NavigationMenuList className="gap-1">
-            <NavigationMenuItem>
-              <NavigationMenuLink asChild>
-                <Link to="/" className={navigationMenuTriggerStyle()}>
-                  Home
-                </Link>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-
-            {isLoggedIn && (
-              <>
-                <NavigationMenuItem>
-                  <NavigationMenuLink asChild>
-                    <Link to="/dashboard" className={navigationMenuTriggerStyle()}>
-                      Dashboard
-                    </Link>
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-
-                <NavigationMenuItem>
-                  <NavigationMenuLink asChild>
-                    <Link to="/contest" className={navigationMenuTriggerStyle()}>
-                      Contests
-                    </Link>
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-
-                <NavigationMenuItem>
-                  <NavigationMenuLink asChild>
-                    <Link to="/resume-analyzer" className={navigationMenuTriggerStyle()}>
-                      Resume Analyzer
-                    </Link>
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-
-                <NavigationMenuItem>
-                  <NavigationMenuLink asChild>
-                    <Link to="/profile" className={navigationMenuTriggerStyle()}>
-                      Profile
-                    </Link>
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-              </>
-            )}
-          </NavigationMenuList>
-        </NavigationMenu>
-
-        {/* Right Side Actions */}
-        <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 relative">
-          <Link to="/premium" className="block">
-            <Button
-              variant="secondary"
-              size="sm"
-              className="border-primary/40 px-2.5 sm:px-3 md:px-4 text-xs sm:text-sm"
-              onClick={closeMobile}
-            >
-              <span className="hidden xs:inline">Premium</span>
-              <span className="xs:hidden">Pro</span>
-            </Button>
+    <>
+      <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-3 sm:h-16 sm:px-4 md:px-6">
+          <Link to="/" className="text-lg font-bold tracking-tight text-foreground sm:text-xl">
+            Leet-Prep
           </Link>
-          {/* Auth Buttons */}
-          {isLoggedIn ? (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleLogout}
-              className="text-muted-foreground hover:text-foreground"
-              aria-label="Logout"
-            >
-              <LogOut className="h-5 w-5" />
-            </Button>
-          ) : (
-            <Link to="/login">
-              <Button variant="default" size="sm" className="sm:inline-flex">
-                Login
+
+          <div className="hidden items-center gap-1 md:flex">
+            {desktopLinks.map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className="rounded-xl px-3 py-2 text-sm text-muted-foreground transition hover:bg-accent hover:text-foreground"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Link to="/premium" className="block">
+              <Button variant="secondary" size="sm" className="min-h-[40px] rounded-xl px-3 text-xs sm:min-h-[48px] sm:px-4 sm:text-sm">
+                Pro
               </Button>
             </Link>
-          )}
 
-          {/* Like Button */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleLike}
-            disabled={hasLiked || loading}
-            className={`
-              relative flex items-center gap-1.5 sm:gap-2 border px-2 sm:px-3
-              transition-all duration-300
-              ${hasLiked
-                ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                : "hover:border-foreground/30"
-              }
-              ${error ? "border-red-500/50 text-red-600 dark:text-red-400" : ""}
-            `}
-            aria-label={hasLiked ? "Thank you for your support!" : "Support this project"}
-          >
-            <Heart
-              className={`
-                h-3.5 w-3.5 sm:h-4 sm:w-4 transition-all duration-300
-                ${hasLiked ? "fill-current scale-110" : ""}
-                ${loading ? "animate-pulse" : ""}
-              `}
-            />
-            <span className="font-semibold tabular-nums text-xs sm:text-sm">
-              {error ? "!" : likes}
-            </span>
-            {hasLiked && (
-              <span className="hidden sm:inline text-xs opacity-80">Thanks!</span>
-            )}
-            {loading && (
-              <span className="absolute inset-0 flex items-center justify-center">
-                <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
-              </span>
-            )}
-          </Button>
-          
-          <div className="relative group hidden sm:block">
-            <button
-              className="flex items-center gap-1 text-muted-foreground hover:text-foreground focus:outline-none"
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleLike}
+              disabled={hasLiked || loading}
+              className={`relative flex min-h-[40px] items-center gap-1.5 rounded-xl border px-2 transition-all duration-300 sm:min-h-[48px] sm:gap-2 sm:px-3 ${
+                hasLiked
+                  ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                  : "hover:border-foreground/30"
+              } ${error ? "border-red-500/50 text-red-600 dark:text-red-400" : ""}`}
+              aria-label={hasLiked ? "Thank you for your support!" : "Support this project"}
             >
-              <Bell className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
-            </button>
+              <Heart
+                className={`h-3.5 w-3.5 transition-all duration-300 sm:h-4 sm:w-4 ${
+                  hasLiked ? "fill-current scale-110" : ""
+                } ${loading ? "animate-pulse" : ""}`}
+              />
+              <span className="font-semibold tabular-nums text-xs sm:text-sm">{error ? "!" : likes}</span>
+              {hasLiked && <span className="hidden text-xs opacity-80 sm:inline">Thanks!</span>}
+              {loading && (
+                <span className="absolute inset-0 flex items-center justify-center">
+                  <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                </span>
+              )}
+            </Button>
 
-            {/* Dropdown box appears on hover */}
-            <div
-              className="absolute right-0 mt-2 w-64 sm:w-72 rounded-md border bg-background shadow-lg p-3 sm:p-4 text-xs sm:text-sm opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transform -translate-y-2 transition-all duration-300 ease-out pointer-events-none group-hover:pointer-events-auto"
-            >
-              <p className="font-semibold text-foreground">Notifications</p>
-              <ul className="mt-2 space-y-1 text-muted-foreground list-disc list-inside">
-                <li>LeetCode Buddy – Profile compare chrome extension rolling out soon</li>
-                <li>AI-based Code Editor with debug features coming soon</li>
-              </ul>
+            <div className="block">
+              <ModeToggle />
             </div>
-          </div>
-          {/* Theme Toggle */}
-          <ModeToggle />
-          
-          {/* Mobile Menu Toggle */}
-          <button
-            className="md:hidden rounded-lg border px-2 py-2 text-muted-foreground hover:text-foreground hover:border-foreground/30 transition"
-            aria-label="Toggle menu"
-            onClick={() => setMobileOpen((o) => !o)}
-          >
-            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
-        </div>
-      </div>
 
-      {/* Mobile Drawer */}
+            {isLoggedIn ? (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleLogout}
+                className="hidden min-h-[48px] rounded-xl text-muted-foreground hover:text-foreground md:inline-flex"
+                aria-label="Logout"
+              >
+                <LogOut className="h-5 w-5" />
+              </Button>
+            ) : (
+              <Link to="/login" className="hidden md:block">
+                <Button variant="default" size="sm" className="min-h-[48px] rounded-xl px-4">
+                  Login
+                </Button>
+              </Link>
+            )}
+
+            <button
+              className="rounded-xl border p-3 text-muted-foreground transition hover:text-foreground hover:border-foreground/30 md:hidden"
+              aria-label="Toggle menu"
+              onClick={() => setMobileOpen((prev) => !prev)}
+            >
+              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
+        </div>
+      </nav>
       {mobileOpen && (
         <>
-          {/* Backdrop with blur */}
-          <div 
-            className="fixed inset-0 bg-black/60 backdrop-blur-md z-[60] md:hidden"
-            onClick={closeMobile}
-          />
-          
-          {/* Slide-in Menu from Right */}
-          <div 
-            className="fixed top-0 right-0 h-screen w-[60vw] bg-background border-l shadow-2xl z-[70] md:hidden overflow-hidden"
-            style={{ animation: 'slideInFromRight 0.3s ease-out' }}
+          <div className="fixed inset-0 z-[90] bg-blue-950/55 backdrop-blur-xl md:hidden" onClick={closeMobile} />
+
+          <aside
+            ref={sidebarRef}
+            className="fixed inset-y-0 right-0 z-[100] h-screen w-[72%] max-w-[280px] overflow-hidden border-l bg-background shadow-2xl md:hidden"
+            aria-label="Mobile sidebar"
           >
-            <style>{`
-              @keyframes slideInFromRight {
-                from {
-                  transform: translateX(100%);
-                }
-                to {
-                  transform: translateX(0);
-                }
-              }
-            `}</style>
-            
-            <div className="flex flex-col h-full">
-              {/* Header */}
-              <div className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur">
-                <div className="flex items-center gap-2">
-                  <span className="text-xl font-bold text-foreground">Leet-Prep</span>
-                </div>
+            <div className="flex h-full flex-col px-4 py-4">
+              <div className="flex items-center justify-between border-b pb-4">
+                <span className="text-base font-semibold text-foreground">Leet-Prep</span>
                 <button
                   onClick={closeMobile}
-                  className="rounded-lg p-2 hover:bg-accent transition-colors"
+                  className="rounded-xl p-2 text-muted-foreground transition hover:bg-accent hover:text-foreground"
                   aria-label="Close menu"
                 >
-                  <X className="h-6 w-6" />
+                  <X className="h-5 w-5" />
                 </button>
               </div>
 
-              {/* Navigation Links */}
-              <div className="flex-1 flex flex-col justify-center p-4 space-y-2.5">
-                {mainLinks.map((link) => (
-                  <Link
-                    key={link.to}
-                    to={link.to}
-                    onClick={closeMobile}
-                    className="flex items-center justify-center rounded-lg border bg-card px-4 py-3 text-base font-medium text-foreground hover:bg-accent hover:border-primary/40 transition-all shadow-sm"
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-              </div>
+              <div className="flex flex-1 flex-col space-y-6 pt-4">
+                <div className="space-y-2">
+                  <p className="px-1 text-sm text-muted-foreground">Account</p>
+                  {mobileAccountLinks.map((link) => (
+                    <Link
+                      key={link.to}
+                      to={link.to}
+                      onClick={closeMobile}
+                      className="flex min-h-[48px] items-center gap-3 rounded-xl px-4 py-3 active:scale-[0.98]"
+                    >
+                      <span className="text-base text-foreground">{link.label}</span>
+                    </Link>
+                  ))}
+                </div>
 
-              {/* Footer Actions */}
-              <div className="p-4 border-t bg-background/95 backdrop-blur space-y-3">
-                {isLoggedIn ? (
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start"
-                    size="default"
-                    onClick={() => {
-                      closeMobile();
-                      handleLogout();
-                    }}
-                  >
-                    <LogOut className="h-5 w-5 mr-2" />
-                    Logout
-                  </Button>
-                ) : (
-                  <Link to="/login" onClick={closeMobile} className="block">
-                    <Button variant="default" size="default" className="w-full">
-                      Login
-                    </Button>
-                  </Link>
-                )}
-
-                <div className="flex items-center justify-between pt-2 border-t">
-                  <span className="text-sm font-medium text-muted-foreground">Theme</span>
-                  <ModeToggle />
+                <div className="mt-auto border-t pt-4">
+                  {isLoggedIn ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        closeMobile();
+                        handleLogout();
+                      }}
+                      className="flex min-h-[48px] w-full items-center gap-3 rounded-xl px-4 py-3 text-red-500 active:scale-[0.98]"
+                    >
+                      <LogOut className="h-5 w-5" />
+                      <span>Logout</span>
+                    </button>
+                  ) : (
+                    <Link
+                      to="/login"
+                      onClick={closeMobile}
+                      className="flex min-h-[48px] items-center gap-3 rounded-xl px-4 py-3 active:scale-[0.98]"
+                    >
+                      <span className="text-base text-foreground">Login</span>
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>
-          </div>
+          </aside>
         </>
       )}
-    </nav>
+    </>
   );
 }
