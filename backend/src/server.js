@@ -16,6 +16,8 @@ import { errorHandler } from "./middlewares/errorHandler.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
 import resumeRoutes from "./routes/resumeRoutes.js";
+import contestRoutes from "./routes/contestRoutes.js";
+import "./jobs/contestJob.js"; // Start contest cron job
 dotenv.config();
 configureGoogleStrategy();
 
@@ -124,6 +126,7 @@ app.use("/api/likes", likeRoutes);
 app.use("/api/leetcode", leetcodeRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/resume", resumeRoutes);
+app.use("/api/contests", contestRoutes);
 
 // Google OAuth routes
 app.get(

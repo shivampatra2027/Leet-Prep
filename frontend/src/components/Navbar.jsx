@@ -87,6 +87,7 @@ export default function Navbar() {
   const mainLinks = [
     { to: "/", label: "Home", auth: "any" },
     { to: "/dashboard", label: "Dashboard", auth: "authed" },
+    { to: "/contests", label: "Contests", auth: "authed" },
     { to: "/resume-analyzer", label: "Resume Analyzer", auth: "authed" },
     { to: "/profile", label: "Profile", auth: "authed" },
     { to: "/premium", label: "Premium", auth: "any" },
@@ -130,6 +131,14 @@ export default function Navbar() {
                   <NavigationMenuLink asChild>
                     <Link to="/dashboard" className={navigationMenuTriggerStyle()}>
                       Dashboard
+                    </Link>
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+
+                <NavigationMenuItem>
+                  <NavigationMenuLink asChild>
+                    <Link to="/contests" className={navigationMenuTriggerStyle()}>
+                      Contests
                     </Link>
                   </NavigationMenuLink>
                 </NavigationMenuItem>

@@ -16,6 +16,7 @@ import PaymentButton from "./components/PaymentButton";
 import { Analytics } from "@vercel/analytics/react";
 import ResumeAnalyzer from "./pages/ResumeAnalyzer";
 import PaymentProcessing from "./pages/PaymentProcessing";
+import Contest from "./pages/Contest";
 
 function App() {
   // useEffect(() => {
@@ -74,6 +75,14 @@ function App() {
             element={
               <PrivateRoute>
                 <ResumeAnalyzer />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/contest"
+            element={
+              <PrivateRoute>
+                <Contest />
               </PrivateRoute>
             }
           />
