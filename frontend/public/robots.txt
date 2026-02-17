@@ -10,4 +10,4 @@ Disallow: /logout
 Disallow: /payment-processing
 Disallow: /freedashboard
 
-Sitemap: https://leet-io-backend.onrender.com/sitemap.xml
+Sitemap: https://www.leetcodepremium.xyz/sitemap.xml

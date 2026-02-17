@@ -16,7 +16,6 @@ import { errorHandler } from "./middlewares/errorHandler.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
 import resumeRoutes from "./routes/resumeRoutes.js";
-import sitemapRoutes from "./routes/sitemapRoutes.js";
 dotenv.config();
 configureGoogleStrategy();
 
@@ -114,9 +113,6 @@ app.use((req, res, next) => {
 });
 
 app.use(helmet());
-
-// Sitemap and robots.txt (must be before other routes)
-app.use("/", sitemapRoutes);
 
 // Routes
 app.use("/api/problems", problemRoutes);
