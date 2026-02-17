@@ -54,10 +54,16 @@ router.get("/sitemap.xml", async (req, res) => {
     // Convert stream to XML
     const sitemap = await streamToPromise(smStream);
 
-    // Send response
-    res.header("Content-Type", "application/xml");
-    res.header("Cache-Control", "public, max-age=3600"); // Cache for 1 hour
-    res.send(sitemap.toString());
+    // Send response with no-cache headers to prevent Cloudflare caching
+    res.set({
+      "Content-Type": "application/xml",
+      "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+      Pragma: "no-cache",
+      Expires: "0",
+      "Surrogate-Control": "no-store",
+    });
+
+    res.status(200).send(sitemap.toString());
   } catch (err) {
     console.error("Error generating sitemap:", err);
     res.status(500).send("Error generating sitemap");
@@ -83,11 +89,18 @@ Disallow: /dashboard
 Disallow: /freedashboard
 Disallow: /payment-processing
 
-# Sitemap location
-Sitemap: ${hostname}/sitemap.xml
+# Sitemap location (served from backend on Render)
+Sitemap: https://leet-io-backend.onrender.com/sitemap.xml
 `;
 
-  res.type("text/plain").send(robotsTxt);
+  res.set({
+    "Content-Type": "text/plain",
+    "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+    Pragma: "no-cache",
+    Expires: "0",
+  });
+
+  res.status(200).send(robotsTxt);
 });
 
 export default router;
