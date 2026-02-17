@@ -48,9 +48,9 @@ function App() {
             </PrivateRoute>
           } />
           <Route path="/payment-processing" element={
-            // <PrivateRoute>
+            <PrivateRoute>
               <PaymentProcessing />
-            // </PrivateRoute>
+            </PrivateRoute>
           } />
           <Route path="/logout" element={<Logout />} />
           <Route
