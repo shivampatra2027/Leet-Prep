@@ -10,9 +10,9 @@ async function getCodeforcesContests() {
     const oneWeekAgo = now - 7 * 24 * 60 * 60 * 1000;
     return res.data.result
       .filter((c) => {
+        if (c.phase === "BEFORE") return true; // Upcoming
         const endTime = (c.startTimeSeconds + c.durationSeconds) * 1000;
-        // Keep upcoming, live, and contests that finished within the last week
-        return endTime > oneWeekAgo;
+        return c.phase === "FINISHED" && endTime > oneWeekAgo; // Finished within last week
       })
       .map((c) => ({
         platform: "Codeforces",

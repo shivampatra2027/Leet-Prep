@@ -8,7 +8,7 @@ router.get("/", (req, res) => {
     const contests = getContests();
     const now = Date.now();
     const oneWeekAgo = now - 7 * 24 * 60 * 60 * 1000; // 1 week ago
-    const type = req.query.type || "upcoming"; // upcoming, live, or expired
+    const type = req.query.type || "upcoming"; // upcoming or expired
 
     let filteredContests;
 
@@ -17,16 +17,9 @@ router.get("/", (req, res) => {
       filteredContests = contests
         .filter((c) => c.endTime < now && c.endTime > oneWeekAgo)
         .sort((a, b) => b.endTime - a.endTime); // Most recent first
-    } else if (type === "live") {
-      // Contests currently running
-      filteredContests = contests
-        .filter((c) => c.startTime <= now && c.endTime > now)
-        .sort((a, b) => a.endTime - b.endTime); // Ending soon first
     } else {
       // Show upcoming contests
-      filteredContests = contests
-        .filter((c) => c.startTime > now)
-        .sort((a, b) => a.startTime - b.startTime);
+      filteredContests = contests.filter((c) => c.startTime > now);
     }
 
     res.json({
