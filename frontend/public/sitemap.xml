@@ -1,11 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- 
-  NOTICE: This is a static fallback sitemap.
-  The full dynamic sitemap with 2200+ problems is served from:
-  https://leet-io-backend.onrender.com/sitemap.xml
-  
-  Search engines should use the robots.txt to find the correct sitemap.
--->
+
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <sitemap>
     <loc>https://leet-io-backend.onrender.com/sitemap.xml</loc>

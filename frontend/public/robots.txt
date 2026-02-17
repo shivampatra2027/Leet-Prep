@@ -10,5 +10,4 @@ Disallow: /logout
 Disallow: /payment-processing
 Disallow: /freedashboard
 
-# Sitemap served from backend on Render (includes all 2200+ dynamic problems)
 Sitemap: https://leet-io-backend.onrender.com/sitemap.xml
