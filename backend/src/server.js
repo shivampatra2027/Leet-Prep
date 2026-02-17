@@ -16,6 +16,7 @@ import { errorHandler } from "./middlewares/errorHandler.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
 import resumeRoutes from "./routes/resumeRoutes.js";
+import sitemapRoutes from "./routes/sitemapRoutes.js";
 dotenv.config();
 configureGoogleStrategy();
 
@@ -114,27 +115,8 @@ app.use((req, res, next) => {
 
 app.use(helmet());
 
-// Robots.txt
-app.get("/robots.txt", (req, res) => {
-  res
-    .type("text/plain")
-    .send(`User-agent: *\nAllow: /\nSitemap: ${SITE_URL}/sitemap.xml\n`);
-});
-
-// Simple sitemap (public pages)
-app.get("/sitemap.xml", (req, res) => {
-  const urls = ["/", "/login", "/premium", "/freedashboard"];
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls
-  .map(
-    (path) =>
-      `<url><loc>${SITE_URL}${path}</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>`,
-  )
-  .join("\n")}
-</urlset>`;
-  res.type("application/xml").send(xml);
-});
+// Sitemap and robots.txt (must be before other routes)
+app.use("/", sitemapRoutes);
 
 // Routes
 app.use("/api/problems", problemRoutes);

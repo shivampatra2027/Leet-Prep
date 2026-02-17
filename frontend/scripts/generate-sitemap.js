@@ -6,7 +6,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Configuration
-const DOMAIN = "https://leet-io-frontend.onrender.com";
+const DOMAIN = "https://www.leetcodepremium.xyz";
 const TODAY = new Date().toISOString().split("T")[0];
 
 // Define your routes with their properties

@@ -7,6 +7,8 @@ Disallow: /auth/
 Disallow: /dashboard
 Disallow: /profile
 Disallow: /logout
+Disallow: /payment-processing
+Disallow: /freedashboard
 
-# Sitemap
-Sitemap: https://leet-io-frontend.onrender.com/sitemap.xml
+# Sitemap (Generated dynamically from backend)
+Sitemap: https://www.leetcodepremium.xyz/sitemap.xml
