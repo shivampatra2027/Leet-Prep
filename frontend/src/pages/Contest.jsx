@@ -7,9 +7,12 @@ import Navbar from "@/components/Navbar";
 
 export default function Contests() {
   const [contests, setContests] = useState([]);
+  const [liveContests, setLiveContests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [liveLoading, setLiveLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [viewType, setViewType] = useState("upcoming"); // "upcoming" or "expired"
+  const [liveError, setLiveError] = useState(null);
+  const [viewType, setViewType] = useState("upcoming"); // "upcoming", "live", or "expired"
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
@@ -28,14 +31,33 @@ export default function Contests() {
     }
   }, [API_URL, viewType]);
 
+  const fetchLiveContests = useCallback(async () => {
+    try {
+      setLiveLoading(true);
+      const res = await fetch(`${API_URL}/api/contests?type=live`);
+      const data = await res.json();
+      setLiveContests(data.contests || []);
+      setLiveError(null);
+    } catch (err) {
+      console.error(err);
+      setLiveError("Failed to load live contests");
+    } finally {
+      setLiveLoading(false);
+    }
+  }, [API_URL]);
+
   useEffect(() => {
     fetchContests();
+    fetchLiveContests();
     // Refresh every 5 minutes
-    const interval = setInterval(fetchContests, 5 * 60 * 1000);
+    const interval = setInterval(() => {
+      fetchContests();
+      fetchLiveContests();
+    }, 5 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [fetchContests]);
+  }, [fetchContests, fetchLiveContests]);
 
-  function getTimeLeft(startTime) {
+  function getTimeUntilStart(startTime) {
     const diff = startTime - Date.now();
     if (diff < 0) return "Started";
     
@@ -58,6 +80,18 @@ export default function Contests() {
     if (days > 0) return `${days}d ago`;
     if (hours > 0) return `${hours}h ago`;
     return `${minutes}m ago`;
+  }
+
+  function getTimeToEnd(endTime) {
+    const diff = endTime - Date.now();
+    if (diff <= 0) return "Ending soon";
+
+    const hours = Math.floor(diff / 3600000);
+    const minutes = Math.floor((diff % 3600000) / 60000);
+    const days = Math.floor(hours / 24);
+    if (days > 0) return `${days}d ${hours % 24}h left`;
+    if (hours > 0) return `${hours}h ${minutes}m left`;
+    return `${minutes}m left`;
   }
 
   function formatDate(timestamp) {
@@ -121,12 +155,64 @@ export default function Contests() {
           <div className="flex items-center gap-3 mb-2">
             <Trophy className="h-8 w-8 text-primary" />
             <h1 className="text-3xl md:text-4xl font-bold">
-              {viewType === "upcoming" ? "Upcoming Contests" : "Past Contests"}
+              {viewType === "upcoming" && "Upcoming Contests"}
+              {viewType === "live" && "Live Contests"}
+              {viewType === "expired" && "Past Contests"}
             </h1>
           </div>
           <p className="text-muted-foreground">
             Track coding contests from LeetCode, Codeforces, CodeChef, and AtCoder
           </p>
+
+          {/* Live contests section */}
+          <div className="mt-6">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                <h2 className="text-xl font-semibold">Live Now</h2>
+              </div>
+              <span className="text-sm text-muted-foreground">
+                Auto-refreshes every 5 minutes
+              </span>
+            </div>
+            {liveLoading ? (
+              <p className="text-muted-foreground">Checking live contests...</p>
+            ) : liveError ? (
+              <p className="text-red-500 text-sm">{liveError}</p>
+            ) : liveContests.length === 0 ? (
+              <p className="text-muted-foreground">No contests live right now.</p>
+            ) : (
+              <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                {liveContests.map((contest, i) => (
+                  <Card key={`live-${i}`} className="border-l-4 border-l-green-500 shadow-sm">
+                    <CardHeader className="pb-2">
+                      <div className="flex items-start justify-between gap-2 mb-1">
+                        <Badge 
+                          variant="outline" 
+                          className={platformColors[contest.platform] || ""}
+                        >
+                          {contest.platform}
+                        </Badge>
+                        <Badge variant="secondary" className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {getTimeToEnd(contest.endTime)}
+                        </Badge>
+                      </div>
+                      <CardTitle className="text-lg leading-tight">
+                        {contest.name}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-sm text-muted-foreground flex items-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      <span>Started: {formatDate(contest.startTime)}</span>
+                      <span className="mx-1">•</span>
+                      <span>Ends: {formatDate(contest.endTime)}</span>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
           
           {/* Toggle Buttons */}
           <div className="flex gap-2 mt-4">
@@ -136,6 +222,13 @@ export default function Contests() {
               onClick={() => setViewType("upcoming")}
             >
               Upcoming
+            </Button>
+            <Button
+              variant={viewType === "live" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewType("live")}
+            >
+              Live
             </Button>
             <Button
               variant={viewType === "expired" ? "default" : "outline"}
@@ -154,7 +247,9 @@ export default function Contests() {
               <p className="text-muted-foreground">
                 {viewType === "upcoming" 
                   ? "No upcoming contests at the moment" 
-                  : "No past contests in the last 7 days"
+                  : viewType === "live"
+                    ? "No live contests right now"
+                    : "No past contests in the last 7 days"
                 }
               </p>
             </CardContent>
@@ -176,10 +271,9 @@ export default function Contests() {
                     </Badge>
                     <Badge variant="secondary" className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
-                      {viewType === "upcoming" 
-                        ? getTimeLeft(contest.startTime)
-                        : getTimeAgo(contest.endTime)
-                      }
+                      {viewType === "upcoming" && getTimeUntilStart(contest.startTime)}
+                      {viewType === "live" && getTimeToEnd(contest.endTime)}
+                      {viewType === "expired" && getTimeAgo(contest.endTime)}
                     </Badge>
                   </div>
                   <CardTitle className="text-lg leading-tight">
