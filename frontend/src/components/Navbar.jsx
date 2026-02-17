@@ -25,9 +25,6 @@ export default function Navbar() {
   const [error, setError] = React.useState(false);
   const [mobileOpen, setMobileOpen] = React.useState(false);
 
-  // 🔔 Bell state
-  const [showBellBox, setShowBellBox] = React.useState(false);
-
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
   React.useEffect(() => {
@@ -83,6 +80,18 @@ export default function Navbar() {
   }, [navigate]);
 
   const closeMobile = () => setMobileOpen(false);
+
+  // Prevent body scroll when mobile menu is open
+  React.useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [mobileOpen]);
 
   const mainLinks = [
     { to: "/", label: "Home", auth: "any" },
@@ -165,14 +174,6 @@ export default function Navbar() {
 
         {/* Right Side Actions */}
         <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 relative">
-          <button
-            className="md:hidden rounded-lg border px-2 py-2 text-muted-foreground hover:text-foreground hover:border-foreground/30 transition"
-            aria-label="Toggle menu"
-            onClick={() => setMobileOpen((o) => !o)}
-          >
-            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
-
           <Link to="/premium" className="block">
             <Button
               variant="secondary"
@@ -260,50 +261,103 @@ export default function Navbar() {
           </div>
           {/* Theme Toggle */}
           <ModeToggle />
+          
+          {/* Mobile Menu Toggle */}
+          <button
+            className="md:hidden rounded-lg border px-2 py-2 text-muted-foreground hover:text-foreground hover:border-foreground/30 transition"
+            aria-label="Toggle menu"
+            onClick={() => setMobileOpen((o) => !o)}
+          >
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </div>
       </div>
 
       {/* Mobile Drawer */}
       {mobileOpen && (
-        <div className="md:hidden border-t bg-background/98 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-          <div className="container mx-auto px-4 py-4 space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              {mainLinks.map((link) => (
-                <Link
-                  key={link.to}
-                  to={link.to}
+        <>
+          {/* Backdrop with blur */}
+          <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-md z-[60] md:hidden"
+            onClick={closeMobile}
+          />
+          
+          {/* Slide-in Menu from Right */}
+          <div 
+            className="fixed top-0 right-0 h-screen w-[60vw] bg-background border-l shadow-2xl z-[70] md:hidden overflow-hidden"
+            style={{ animation: 'slideInFromRight 0.3s ease-out' }}
+          >
+            <style>{`
+              @keyframes slideInFromRight {
+                from {
+                  transform: translateX(100%);
+                }
+                to {
+                  transform: translateX(0);
+                }
+              }
+            `}</style>
+            
+            <div className="flex flex-col h-full">
+              {/* Header */}
+              <div className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl font-bold text-foreground">Leet-Prep</span>
+                </div>
+                <button
                   onClick={closeMobile}
-                  className="rounded-xl border bg-card/70 px-4 py-3 text-sm font-semibold text-foreground flex items-center justify-center hover:border-primary/40 transition"
+                  className="rounded-lg p-2 hover:bg-accent transition-colors"
+                  aria-label="Close menu"
                 >
-                  {link.label}
-                </Link>
-              ))}
-            </div>
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
 
-            <div className="flex items-center justify-between">
-              {isLoggedIn ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    closeMobile();
-                    handleLogout();
-                  }}
-                >
-                  Logout
-                </Button>
-              ) : (
-                <Link to="/login" onClick={closeMobile}>
-                  <Button variant="outline" size="sm">
-                    Login
+              {/* Navigation Links */}
+              <div className="flex-1 flex flex-col justify-center p-4 space-y-2.5">
+                {mainLinks.map((link) => (
+                  <Link
+                    key={link.to}
+                    to={link.to}
+                    onClick={closeMobile}
+                    className="flex items-center justify-center rounded-lg border bg-card px-4 py-3 text-base font-medium text-foreground hover:bg-accent hover:border-primary/40 transition-all shadow-sm"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+
+              {/* Footer Actions */}
+              <div className="p-4 border-t bg-background/95 backdrop-blur space-y-3">
+                {isLoggedIn ? (
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                    size="default"
+                    onClick={() => {
+                      closeMobile();
+                      handleLogout();
+                    }}
+                  >
+                    <LogOut className="h-5 w-5 mr-2" />
+                    Logout
                   </Button>
-                </Link>
-              )}
+                ) : (
+                  <Link to="/login" onClick={closeMobile} className="block">
+                    <Button variant="default" size="default" className="w-full">
+                      Login
+                    </Button>
+                  </Link>
+                )}
 
-              <ModeToggle />
+                <div className="flex items-center justify-between pt-2 border-t">
+                  <span className="text-sm font-medium text-muted-foreground">Theme</span>
+                  <ModeToggle />
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        </>
       )}
     </nav>
   );
