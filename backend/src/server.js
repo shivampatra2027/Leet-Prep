@@ -116,6 +116,10 @@ app.use((req, res, next) => {
 
 app.use(helmet());
 
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
+
 // Routes
 app.use("/api/problems", problemRoutes);
 app.use("/api/profile", profileRoutes);
