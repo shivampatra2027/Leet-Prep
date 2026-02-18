@@ -6,6 +6,8 @@ A comprehensive LeetCode problem tracker and management platform. Browse, filter
 
 - [Google Search Console](https://search.google.com/search-console/about)
 - [Google Analytics](https://analytics.google.com/)
+- [Uptime Robot](https://uptimerobot.com/)
+- [Uptime Robot status page](https://stats.uptimerobot.com/7eMGHnTOdp)
 
 ## Architecture:
  <img width="446" height="428" alt="image" align="" src="https://github.com/user-attachments/assets/e90b4a36-d930-4b50-9da3-eec15f6c8082" />
