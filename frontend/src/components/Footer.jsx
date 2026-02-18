@@ -24,9 +24,9 @@ const defaultSections = [
   {
     title: "Legal",
     links: [
-      { name: "Privacy Policy", href: "/dashboard" },
-      { name: "Terms of Service", href: "/dashboard" },
-      { name: "Cookie Policy", href: "/dashboard" },
+      { name: "Privacy Policy", href: "/privacy" },
+      { name: "Support", href: "/support" },
+      { name: "Cookie Policy", href: "/privacy" },
     ],
   },
 ];
@@ -39,9 +39,9 @@ const defaultSocialLinks = [
 ];
 
 const defaultLegalLinks = [
-  { name: "Privacy", href: "#" },
-  { name: "Terms", href: "#" },
-  { name: "Sitemap", href: "#" },
+  { name: "Privacy", href: "/privacy" },
+  { name: "Support", href: "/support" },
+  { name: "Sitemap", href: "/sitemap.xml" },
 ];
 
 const Footer7 = ({

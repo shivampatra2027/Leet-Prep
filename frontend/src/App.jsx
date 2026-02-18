@@ -17,6 +17,7 @@ import { Analytics } from "@vercel/analytics/react";
 import ResumeAnalyzer from "./pages/ResumeAnalyzer";
 import PaymentProcessing from "./pages/PaymentProcessing";
 import Contest from "./pages/Contest";
+import Support from "./pages/Support";
 
 function App() {
   // useEffect(() => {
@@ -91,6 +92,7 @@ function App() {
               <Profile />
             </PrivateRoute>
           } />
+          <Route path="/support" element={<Support />} />
           <Route path="*" element={<ErrorPage />} />
         </Routes>
         <Analytics />
