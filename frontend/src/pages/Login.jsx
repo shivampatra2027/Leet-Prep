@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { GalleryVerticalEnd } from "lucide-react";
 import { LoginForm } from "@/components/ui/login-form.jsx";
 import CodePreview from "@/components/CodePreview.jsx"; // import here
@@ -6,10 +6,13 @@ import { premiumAPI } from "@/lib/api.js";
 import Seo from "@/components/Seo.jsx";
 
 export default function Login() {
+  const [isRedirecting, setIsRedirecting] = useState(false);
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
     if (token) {
+      setIsRedirecting(true);
       localStorage.setItem("authToken", token);
       // Check user tier and redirect accordingly
       premiumAPI.checkDashboard()
@@ -22,6 +25,22 @@ export default function Login() {
         });
     }
   }, []);
+
+  if (isRedirecting) {
+    return (
+      <div className="min-h-svh flex items-center justify-center bg-background px-6">
+        <Seo
+          title="Login | Leet-Prep"
+          description="Sign in to practice company-wise coding interview problems and track your analytics."
+          canonical={`${import.meta.env.VITE_SITE_URL || "https://leetcodepremium.xyz"}/login`}
+        />
+        <div className="flex flex-col items-center gap-4 text-center">
+          <div className="h-10 w-10 rounded-full border-4 border-primary/25 border-t-primary animate-spin" />
+          <p className="text-sm text-muted-foreground">Signing you in and preparing your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
