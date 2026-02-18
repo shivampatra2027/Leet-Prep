@@ -1,4 +1,6 @@
+import { useNavigate } from "react-router-dom"
 import { cn } from "@/lib/utils"
+import { getTokenTier } from "@/lib/utils"
 import { Button } from "./button"
 import {
   Field,
@@ -8,12 +10,19 @@ import {
   FieldSeparator,
 } from "./field"
 import { Input } from "./input"
-import { authAPI, premiumAPI } from "../../lib/api"
+import { authAPI } from "../../lib/api"
+
+const ALLOWED_REDIRECT_PATHS = ["/dashboard", "/freedashboard"];
+function safeRedirectPath(path) {
+  return ALLOWED_REDIRECT_PATHS.includes(path) ? path : "/freedashboard";
+}
 
 export function LoginForm({
   className,
   ...props
 }) {
+  const navigate = useNavigate();
+
   const handleLogin = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
@@ -23,15 +32,10 @@ export function LoginForm({
     try {
       const res = await authAPI.login({ email, password });
       localStorage.setItem("authToken", res.data.token);
-      
-      // Check user tier and redirect accordingly
-      try {
-        const dashboardRes = await premiumAPI.checkDashboard();
-        window.location.href = dashboardRes.data.redirectPath;
-      } catch {
-        // Fallback to freedashboard on error
-        window.location.href = "/freedashboard";
-      }
+
+      // Decode tier from JWT — zero network calls, instant navigation
+      const tier = getTokenTier();
+      navigate(safeRedirectPath(tier === "premium" ? "/dashboard" : "/freedashboard"), { replace: true });
     } catch (err) {
       alert(err.response?.data?.error || "Login failed");
     }

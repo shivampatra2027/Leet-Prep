@@ -1,27 +1,26 @@
 import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { GalleryVerticalEnd } from "lucide-react";
 import { LoginForm } from "@/components/ui/login-form.jsx";
 import CodePreview from "@/components/CodePreview.jsx"; // import here
-import { premiumAPI } from "@/lib/api.js";
 import Seo from "@/components/Seo.jsx";
+import { getTokenTier } from "@/lib/utils";
 
 export default function Login() {
+  const navigate = useNavigate();
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
     if (token) {
       localStorage.setItem("authToken", token);
-      // Check user tier and redirect accordingly
-      premiumAPI.checkDashboard()
-        .then(response => {
-          window.location.href = response.data.redirectPath;
-        })
-        .catch(() => {
-          // Fallback to freedashboard on error
-          window.location.href = "/freedashboard";
-        });
+      // Clean token from URL immediately (security: never leak JWT in referrer headers)
+      window.history.replaceState({}, "", "/login");
+      // Decode tier from JWT — zero network calls, instant navigation
+      const tier = getTokenTier();
+      navigate(tier === "premium" ? "/dashboard" : "/freedashboard", { replace: true });
     }
-  }, []);
+  }, [navigate]);
 
   return (
     <div className="grid min-h-svh lg:grid-cols-2">

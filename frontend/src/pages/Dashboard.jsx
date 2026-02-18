@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { problemsAPI, profileAPI } from "../lib/api";
+import { getTokenTier } from "@/lib/utils";
 import { DataTable } from "@/components/DataTable.jsx";
 import { columns } from "@/components/columns.jsx";
 import Navbar from "@/components/Navbar.jsx";
@@ -15,29 +16,16 @@ export default function Dashboard() {
   const [pagination, setPagination] = useState(null);
   const [filteredCount, setFilteredCount] = useState(0);
   const [solvedProblems, setSolvedProblems] = useState([]);
-  const [userTier, setUserTier] = useState(null);
-   const [summary, setSummary] = useState({ solvedCount: 0, totalProblems: 0, progress: 0 });
+  // Decode tier from JWT synchronously — no API call needed
+  const [userTier] = useState(() => getTokenTier());
+  const [summary, setSummary] = useState({ solvedCount: 0, totalProblems: 0, progress: 0 });
 
-  // Check user tier on mount
+  // Redirect free users instantly (sync tier means this fires after first paint, not after an API call)
   useEffect(() => {
-    const checkUserTier = async () => {
-      try {
-        const response = await profileAPI.getProfile();
-        const tier = response.data.tier || "free";
-        setUserTier(tier);
-        
-        // Redirect free users to free dashboard
-        if (tier === "free") {
-          navigate("/freedashboard", { replace: true });
-        }
-      } catch (err) {
-        console.error("Error fetching user profile:", err);
-        // On error, redirect to free dashboard as safety measure
-        navigate("/freedashboard", { replace: true });
-      }
-    };
-    checkUserTier();
-  }, [navigate]);
+    if (userTier !== "premium") {
+      navigate("/freedashboard", { replace: true });
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchProblems = useCallback(async () => {
     setLoading(true);

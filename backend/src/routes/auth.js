@@ -1,5 +1,6 @@
 import express from "express";
 import bcrypt from "bcrypt";
+import crypto from "crypto";
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 import passport from "../auth/google.js";
@@ -68,30 +69,55 @@ router.post("/login", async (req, res) => {
   const valid = await bcrypt.compare(password, user.passwordHash);
   if (!valid) return res.status(401).json({ error: "Invalid credentials" });
 
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-    expiresIn: "7d",
-  });
+  const token = jwt.sign(
+    { id: user._id, tier: user.tier },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: "7d",
+    },
+  );
   res.json({ token });
 });
 
-router.get(
-  "/google",
-  passport.authenticate("google", {
-    scope: ["profile", "email"],
-    session: false,
-  }),
-);
+router.get("/google", (req, res, next) => {
+  // Generate a per-request CSRF state token and store it in the session.
+  // The OAuth callback verifies this to prevent CSRF login attacks.
+  const state = crypto.randomBytes(16).toString("hex");
+  req.session.oauthState = state;
+  req.session.save((err) => {
+    if (err) return next(err);
+    passport.authenticate("google", {
+      scope: ["profile", "email"],
+      session: false,
+      state,
+    })(req, res, next);
+  });
+});
 
 router.get(
   "/google/callback",
+  (req, res, next) => {
+    // Verify CSRF state before letting Passport proceed
+    const { state } = req.query;
+    const storedState = req.session?.oauthState;
+    if (!state || !storedState || state !== storedState) {
+      console.warn("OAuth CSRF state mismatch — possible CSRF attack");
+      return res.redirect("/auth/fail");
+    }
+    // Consume the state so it cannot be reused
+    delete req.session.oauthState;
+    next();
+  },
   passport.authenticate("google", {
     failureRedirect: "/auth/fail",
     session: false,
   }),
   (req, res) => {
-    const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
-    });
+    const token = jwt.sign(
+      { id: req.user._id, tier: req.user.tier },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" },
+    );
     const frontend = (
       process.env.CORS_ORIGIN || "http://localhost:5173"
     ).replace(/\/$/, "");
