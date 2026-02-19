@@ -2,6 +2,7 @@ import crypto from "crypto";
 import User from "../models/User.js";
 import ReferralEvent from "../models/Referral.js";
 import logger from "../utils/logger.js";
+import { referralQueue } from "../queues/index.js";
 
 // ─── Points config ──────────────────────────────────────────────────────
 export const POINTS = {
@@ -40,7 +41,7 @@ export const REDEMPTION_TIERS = [
     label: "Apple MacBook Air",
     icon: "💻",
     type: "physical",
-    description: 'MacBook Air 512GB SSD - latest model',
+    description: "MacBook Air 512GB SSD - latest model",
   },
 ];
 
@@ -316,6 +317,37 @@ export const applyReferral = async (req, res) => {
       },
       { upsert: true, new: true },
     );
+
+    // Dispatch signup job — worker will re-check loginCount >= 2 + same-IP guard
+    if (referralQueue) {
+      await referralQueue.add(
+        "referral.signup",
+        {
+          inviterId: inviter._id.toString(),
+          inviteeId: inviteeId.toString(),
+          inviteeIp,
+          inviterIp,
+        },
+        {
+          delay: 10 * 60 * 1000, // 10-minute delay
+          jobId: `signup-${inviter._id}-${inviteeId}`,
+        },
+      );
+    } else {
+      // Fallback (no Redis): process inline after basic eligibility check
+      const freshInvitee = await User.findById(inviteeId).select("loginCount");
+      if (
+        freshInvitee?.loginCount >= 2 &&
+        (!inviteeIp || !inviterIp || inviteeIp !== inviterIp)
+      ) {
+        await processEvent({
+          inviterId: inviter._id,
+          inviteeId,
+          type: "signup",
+          points: POINTS.signup,
+        });
+      }
+    }
 
     res.json({ success: true, message: "Referral applied" });
   } catch (err) {
