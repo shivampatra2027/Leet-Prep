@@ -15,7 +15,6 @@ import {
 
 import Navbar from "@/components/Navbar.jsx";
 import api, { profileAPI } from "@/lib/api.js";
-import LeetCodeHeatmap from "@/components/Heatmap.jsx";
 import { calculatePremiumTimeRemaining, formatPremiumExpiryDate } from "@/utils/premiumTimer.js";
 
 const Profile = () => {
@@ -104,21 +103,13 @@ const Profile = () => {
     }
   };
 
-  // ---------------- SYNC SOLVED + HEATMAP ----------------
+  // ---------------- SYNC SOLVED ----------------
   const handleSyncLeetcode = async () => {
     try {
       setIsSyncing(true);
       setSyncMessage("");
 
-      // 1. Sync solved problems
       const response = await profileAPI.syncLeetcode();
-
-      // 2. Sync heatmap calendar
-      await api.post(
-        "/api/leetcode/sync-calendar",
-        {},
-        { withCredentials: true }
-      );
 
       setUser(prev => ({
         ...prev,
@@ -126,10 +117,10 @@ const Profile = () => {
         lastLeetcodeSync: response.data.lastSync
       }));
 
-      setSyncMessage("LeetCode progress & activity synced successfully!");
+      setSyncMessage("LeetCode progress synced successfully!");
       setTimeout(() => setSyncMessage(""), 5000);
     } catch (err) {
-      setSyncMessage("Failed to sync LeetCode activity");
+      setSyncMessage("Failed to sync LeetCode progress");
     } finally {
       setIsSyncing(false);
     }
@@ -291,16 +282,6 @@ const Profile = () => {
                 </p>
               )}
             </div>
-
-            {/* ---------- HEATMAP ---------- */}
-            {user.leetcodeUsername && (
-              <div className="border-t pt-6">
-                <h3 className="text-lg font-semibold mb-3">
-                  LeetCode Activity
-                </h3>
-                <LeetCodeHeatmap />
-              </div>
-            )}
 
             {/* ---------- TIER ---------- */}
             <div className="border-t pt-6">
