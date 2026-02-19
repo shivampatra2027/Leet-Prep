@@ -8,6 +8,7 @@ A comprehensive LeetCode problem tracker and management platform. Browse, filter
 - [Google Analytics](https://analytics.google.com/)
 - [Uptime Robot](https://uptimerobot.com/)
 - [Uptime Robot status page](https://stats.uptimerobot.com/7eMGHnTOdp)
+- [Upstash Redis](https://console.upstash.com/redis/5c5fd3c1-cfcd-4baf-8236-75b5a48688ae/details?teamid=0)
 
 ## Architecture:
  <img width="446" height="428" alt="image" align="" src="https://github.com/user-attachments/assets/e90b4a36-d930-4b50-9da3-eec15f6c8082" />
@@ -47,6 +48,7 @@ A comprehensive LeetCode problem tracker and management platform. Browse, filter
 - JWT for session management
 - Helmet for security headers
 - CORS enabled
+- Redis + BullMQ for job queues
 
 ### Frontend
 
