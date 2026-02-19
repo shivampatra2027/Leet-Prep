@@ -100,6 +100,7 @@ export default function Navbar() {
     { to: "/dashboard", label: "Dashboard", auth: "authed" },
     { to: "/contest", label: "Contest", auth: "authed" },
     { to: "/resume-analyzer", label: "Resume Analyzer", auth: "authed" },
+    { to: "/referral", label: "Referral", auth: "authed" },
     { to: "/profile", label: "Profile", auth: "authed" },
   ].filter((link) => {
     if (link.auth === "any") return true;
@@ -111,6 +112,7 @@ export default function Navbar() {
     { to: "/dashboard", label: "Dashboard", auth: "authed" },
     { to: "/contest", label: "Contest", auth: "authed" },
     { to: "/resume-analyzer", label: "Resume Analyzer", auth: "authed" },
+    { to: "/referral", label: "Referral", auth: "authed" },
     { to: "/profile", label: "Profile", auth: "authed" },
   ].filter((link) => (link.auth === "any" ? true : isLoggedIn));
 

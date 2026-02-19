@@ -58,6 +58,50 @@ const UserSchema = new Schema(
     subscriptionStartDate: { type: Date },
     subscriptionEndDate: { type: Date },
     premiumExpiresAt: { type: Date },
+
+    // ── Referral system ─────────────────────────────────────────────────────
+    referralCode: { type: String, unique: true, sparse: true, index: true },
+    referredBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
+    referralPoints: { type: Number, default: 0 },
+    weeklyPoints: { type: Number, default: 0 },
+    weeklyPointsResetAt: { type: Date, default: Date.now },
+    // Login tracking for anti-abuse ("2nd login" rule) and active_next_day reward
+    loginCount: { type: Number, default: 0 },
+    loginDates: [{ type: Date }], // last 5 login dates (UTC day)
+    // Last known IP for anti-abuse cross-referral detection
+    lastIp: { type: String },
+    // Milestone badges
+    badges: [
+      {
+        type: {
+          type: String,
+          enum: [
+            "first_referral",
+            "ten_referrals",
+            "hundred_referrals",
+            "first_purchase",
+            "ten_purchases",
+            "points_1000",
+            "points_5000",
+          ],
+        },
+        earnedAt: { type: Date, default: Date.now },
+      },
+    ],
+    // Physical prize claims
+    prizeClaims: [
+      {
+        prize: { type: String },
+        label: { type: String },
+        points: { type: Number },
+        claimedAt: { type: Date, default: Date.now },
+        status: {
+          type: String,
+          enum: ["pending", "shipped", "delivered", "cancelled"],
+          default: "pending",
+        },
+      },
+    ],
   },
   { timestamps: true },
 );

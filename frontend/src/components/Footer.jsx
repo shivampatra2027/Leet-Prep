@@ -24,9 +24,7 @@ const defaultSections = [
   {
     title: "Legal",
     links: [
-      { name: "Privacy Policy", href: "/privacy" },
       { name: "Support", href: "/support" },
-      { name: "Cookie Policy", href: "/privacy" },
     ],
   },
 ];
@@ -39,7 +37,6 @@ const defaultSocialLinks = [
 ];
 
 const defaultLegalLinks = [
-  { name: "Privacy", href: "/privacy" },
   { name: "Support", href: "/support" },
   { name: "Sitemap", href: "/sitemap.xml" },
 ];

@@ -18,6 +18,8 @@ import ResumeAnalyzer from "./pages/ResumeAnalyzer";
 import PaymentProcessing from "./pages/PaymentProcessing";
 import Contest from "./pages/Contest";
 import Support from "./pages/Support";
+import Referral from "./pages/Referral";
+import ReferralRedirect from "./pages/ReferralRedirect";
 
 function App() {
   // useEffect(() => {
@@ -93,6 +95,12 @@ function App() {
             </PrivateRoute>
           } />
           <Route path="/support" element={<Support />} />
+          <Route path="/r/:code" element={<ReferralRedirect />} />
+          <Route path="/referral" element={
+            <PrivateRoute>
+              <Referral />
+            </PrivateRoute>
+          } />
           <Route path="*" element={<ErrorPage />} />
         </Routes>
         <Analytics />

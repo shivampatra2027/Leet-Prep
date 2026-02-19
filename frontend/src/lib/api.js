@@ -89,4 +89,11 @@ export const premiumAPI = {
   checkDashboard: () => api.get("/api/premium/check-dashboard"),
 };
 
+export const referralAPI = {
+  getMe: () => api.get("/api/referral/me"),
+  apply: (code) => api.post("/api/referral/apply", { code }),
+  getLeaderboard: () => api.get("/api/referral/leaderboard"),
+  redeem: (tierId) => api.post("/api/referral/redeem", { tierId }),
+};
+
 export default api;

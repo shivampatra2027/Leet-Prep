@@ -2,8 +2,17 @@ import { useEffect, useState } from "react";
 import { GalleryVerticalEnd } from "lucide-react";
 import { LoginForm } from "@/components/ui/login-form.jsx";
 import CodePreview from "@/components/CodePreview.jsx"; // import here
-import { premiumAPI } from "@/lib/api.js";
+import { premiumAPI, referralAPI } from "@/lib/api.js";
 import Seo from "@/components/Seo.jsx";
+
+// After login, silently apply any referral code the user arrived with
+function applyPendingReferral() {
+  const code = localStorage.getItem("pendingReferral");
+  if (!code) return;
+  referralAPI.apply(code)
+    .then(() => localStorage.removeItem("pendingReferral"))
+    .catch(() => {}); // non-critical, ignore errors
+}
 
 export default function Login() {
   const [isRedirecting, setIsRedirecting] = useState(false);
@@ -14,6 +23,10 @@ export default function Login() {
     if (token) {
       setIsRedirecting(true);
       localStorage.setItem("authToken", token);
+      // Clean token from URL so it never appears in referrer headers
+      window.history.replaceState({}, "", "/login");
+      // Apply any referral code from /r/:code landing (fire-and-forget)
+      applyPendingReferral();
       // Check user tier and redirect accordingly
       premiumAPI.checkDashboard()
         .then(response => {

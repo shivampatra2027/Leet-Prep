@@ -1,5 +1,28 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import { recordActiveDayEvent } from "../controllers/referralController.js";
+
+// Track a login for the user: increment count and record today's date.
+// Also fires active_next_day referral event if eligible.
+// Fire-and-forget — never blocks the request.
+function trackLogin(user, ip) {
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const alreadyLoggedToday = user.loginDates?.some(
+    (d) => new Date(d).toISOString().slice(0, 10) === todayStr,
+  );
+  if (alreadyLoggedToday) return;
+
+  User.findByIdAndUpdate(user._id, {
+    $inc: { loginCount: 1 },
+    $push: { loginDates: { $each: [new Date()], $slice: -5 } },
+    $set: { lastIp: ip },
+  }).catch(() => {});
+
+  // Trigger active_next_day reward if invitee logs in after day-0
+  if (user.referredBy) {
+    recordActiveDayEvent(user._id).catch(() => {});
+  }
+}
 
 const downgradeExpiredPremium = async (user) => {
   if (user?.tier !== "premium" || !user.premiumExpiresAt) return;
@@ -53,6 +76,12 @@ export const protect = async (req, res, next) => {
       }
 
       await downgradeExpiredPremium(req.user);
+
+      // Fire-and-forget login tracking + active_next_day reward
+      const ip =
+        req.ip || req.headers["x-forwarded-for"]?.split(",")[0]?.trim();
+      trackLogin(req.user, ip);
+
       return next();
     }
 

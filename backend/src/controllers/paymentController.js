@@ -2,6 +2,7 @@ import Razorpay from "razorpay";
 import crypto from "crypto";
 import User from "../models/User.js";
 import Payment from "../models/Payment.js";
+import { recordPurchaseEvent } from "./referralController.js";
 
 function getRazorpay() {
   const keyId = process.env.RAZORPAY_KEY_ID?.trim();
@@ -573,6 +574,11 @@ async function handlePaymentSuccess(paymentEntity) {
       tier: "premium",
       premiumExpiresAt,
     });
+
+    // Fire referral purchase event (fire-and-forget)
+    recordPurchaseEvent(userId).catch((e) =>
+      console.error("Referral purchase event error:", e),
+    );
 
     console.log(
       `User ${userId} upgraded to premium (${duration} ${durationType}) until ${premiumExpiresAt.toISOString()}`,
