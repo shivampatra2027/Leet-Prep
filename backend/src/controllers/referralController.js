@@ -37,10 +37,10 @@ export const REDEMPTION_TIERS = [
   {
     id: "macbook_air",
     points: 20000,
-    label: "Apple MacBook Air M2",
+    label: "Apple MacBook Air",
     icon: "💻",
     type: "physical",
-    description: 'MacBook Air 13" M2 chip, 8GB RAM, 256GB SSD',
+    description: 'MacBook Air 512GB SSD - latest model',
   },
 ];
 
