@@ -90,6 +90,7 @@ export function startWorkers() {
   referralWorker = new Worker("referral", handleReferralJob, {
     connection: connectionCfg,
     concurrency: 5,
+    blockingTimeout: 30,
     lockDuration: 120000,
     stalledInterval: 120000,
   });

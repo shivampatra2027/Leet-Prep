@@ -5,6 +5,7 @@
 import { Queue } from "bullmq";
 import IORedis from "ioredis";
 import logger from "../utils/logger.js";
+import { attachRedisOpsLogger } from "../utils/redisOpsLogger.js";
 
 let keepAliveStarted = false;
 
@@ -60,6 +61,11 @@ connectionConfig?.on("ready", () => {
     logger.info("[Redis] keepalive started");
   }
 });
+
+if (connectionConfig && process.env.REDIS_OPS_LOGGING === "true") {
+  attachRedisOpsLogger(connectionConfig, { label: "redis" });
+  logger.info("[Redis] command ops logging enabled (1 minute interval).");
+}
 
 // ── Queue config ─────────────────────────────────────────────────────────
 const DEFAULT_JOB_OPTIONS = {
