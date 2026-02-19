@@ -1,6 +1,6 @@
-import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import { recordActiveDayEvent } from "../controllers/referralController.js";
+import { verifyAccessToken } from "../utils/jwt.js";
 
 // Track a login for the user: increment count and record today's date.
 // Also fires active_next_day referral event if eligible.
@@ -37,55 +37,34 @@ const downgradeExpiredPremium = async (user) => {
 
 export const protect = async (req, res, next) => {
   try {
-    // 1) Passport session (Google OAuth, browser)
-    if (typeof req.isAuthenticated === "function" && req.isAuthenticated()) {
-      await downgradeExpiredPremium(req.user);
-      return next();
-    }
-
-    // 2) JWT (API / Postman)
     const authHeader = req.headers.authorization;
-
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-      let token = authHeader.split(" ")[1];
-
-      // Strip quotes if present (common localStorage serialization bug)
-      if (token?.startsWith('"') && token?.endsWith('"')) {
-        token = token.slice(1, -1);
-      }
-
-      if (!process.env.JWT_SECRET) {
-        console.error("Auth error: JWT_SECRET missing in environment");
-        return res.status(500).json({ error: "Server configuration error" });
-      }
-
-      if (!token || token.trim() === "") {
-        return res.status(401).json({ error: "Token missing" });
-      }
-
-      let decoded;
-      try {
-        decoded = jwt.verify(token, process.env.JWT_SECRET);
-      } catch (err) {
-        return res.status(401).json({ error: "Invalid or expired token" });
-      }
-
-      req.user = await User.findById(decoded.id).select("-passwordHash");
-      if (!req.user) {
-        return res.status(401).json({ error: "User not found" });
-      }
-
-      await downgradeExpiredPremium(req.user);
-
-      // Fire-and-forget login tracking + active_next_day reward
-      const ip =
-        req.ip || req.headers["x-forwarded-for"]?.split(",")[0]?.trim();
-      trackLogin(req.user, ip);
-
-      return next();
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "No token" });
     }
 
-    return res.status(401).json({ error: "Not authenticated" });
+    let token = authHeader.split(" ")[1];
+    if (token?.startsWith('"') && token?.endsWith('"')) {
+      token = token.slice(1, -1);
+    }
+
+    if (!token || token.trim() === "") {
+      return res.status(401).json({ error: "Token missing" });
+    }
+
+    const decoded = verifyAccessToken(token);
+    const user = await User.findById(decoded.id).select("-passwordHash");
+    if (!user) {
+      return res.status(401).json({ error: "User not found" });
+    }
+
+    await downgradeExpiredPremium(user);
+    req.user = user;
+
+    // Fire-and-forget login tracking + active_next_day reward
+    const ip = req.ip || req.headers["x-forwarded-for"]?.split(",")[0]?.trim();
+    trackLogin(user, ip);
+
+    return next();
   } catch (err) {
     if (err.name === "JsonWebTokenError") {
       return res.status(401).json({ error: "Invalid token" });

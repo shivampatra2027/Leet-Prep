@@ -3,7 +3,7 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import helmet from "helmet";
-import session from "express-session";
+import cookieParser from "cookie-parser";
 import { connectDb } from "./config/db.js";
 import problemRoutes from "./routes/problemRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
@@ -87,22 +87,8 @@ app.use(
 //     }
 // }));
 
-app.use(
-  session({
-    secret: process.env.JWT_SECRET || "supersecret",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000,
-    },
-  }),
-);
-
 app.use(passport.initialize());
-app.use(passport.session());
+app.use(cookieParser());
 
 // Razorpay webhooks need raw body for signature verification
 const jsonParser = express.json();
@@ -130,28 +116,6 @@ app.use("/api/likes", likeRoutes);
 app.use("/api/resume", resumeRoutes);
 app.use("/api/contests", contestRoutes);
 app.use("/api/referral", referralRoutes);
-
-// Google OAuth routes
-app.get(
-  "/auth/google",
-  passport.authenticate("google", { scope: ["profile", "email"] }),
-);
-
-app.get(
-  "/auth/google/callback",
-  passport.authenticate("google", { failureRedirect: "/login" }),
-  async (req, res) => {
-    try {
-      const user = req.user;
-      const redirectPath =
-        user.tier === "premium" ? "/dashboard" : "/freedashboard";
-      res.redirect(`${CLIENT_URL}${redirectPath}`);
-    } catch (error) {
-      console.error("Error in Google callback:", error);
-      res.redirect(`${process.env.CLIENT_URL}/freedashboard`);
-    }
-  },
-);
 
 app.get("/", (req, res) => {
   res.send("Backend is running");

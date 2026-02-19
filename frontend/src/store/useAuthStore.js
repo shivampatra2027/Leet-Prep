@@ -1,5 +1,10 @@
 import { create } from "zustand";
-import { profileAPI } from "@/lib/api";
+import {
+  authAPI,
+  clearAccessToken,
+  profileAPI,
+  refreshAccessToken,
+} from "@/lib/api";
 
 export const useAuthStore = create((set, get) => ({
   user: null,
@@ -9,15 +14,10 @@ export const useAuthStore = create((set, get) => ({
 
   init: async () => {
     if (get().initialized || get().initializing) return;
-    set({ initializing: true });
-
-    const token = localStorage.getItem("authToken");
-    if (!token) {
-      set({ user: null, loading: false, initialized: true, initializing: false });
-      return;
-    }
+    set({ initializing: true, loading: true });
 
     try {
+      await refreshAccessToken();
       const res = await profileAPI.getProfile();
       set({
         user: res.data || null,
@@ -26,7 +26,7 @@ export const useAuthStore = create((set, get) => ({
         initializing: false,
       });
     } catch {
-      localStorage.removeItem("authToken");
+      clearAccessToken();
       set({
         user: null,
         loading: false,
@@ -37,12 +37,6 @@ export const useAuthStore = create((set, get) => ({
   },
 
   refreshUser: async () => {
-    const token = localStorage.getItem("authToken");
-    if (!token) {
-      set({ user: null, loading: false, initialized: true });
-      return null;
-    }
-
     set({ loading: true });
     try {
       const res = await profileAPI.getProfile();
@@ -54,20 +48,33 @@ export const useAuthStore = create((set, get) => ({
       });
       return user;
     } catch {
-      localStorage.removeItem("authToken");
-      set({
-        user: null,
-        loading: false,
-        initialized: true,
-      });
-      return null;
+      try {
+        await refreshAccessToken();
+        const res = await profileAPI.getProfile();
+        const user = res.data || null;
+        set({
+          user,
+          loading: false,
+          initialized: true,
+        });
+        return user;
+      } catch {
+        clearAccessToken();
+        set({
+          user: null,
+          loading: false,
+          initialized: true,
+        });
+        return null;
+      }
     }
   },
 
   setUser: (user) => set({ user, loading: false, initialized: true }),
 
   logout: () => {
-    localStorage.removeItem("authToken");
+    authAPI.logout().catch(() => {});
+    clearAccessToken();
     set({
       user: null,
       loading: false,

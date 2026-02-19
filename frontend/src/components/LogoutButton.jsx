@@ -1,8 +1,10 @@
 import Button from "./button";
+import { authAPI, clearAccessToken } from "@/lib/api";
 
 export function LogoutButton({ variant = "ghost", className }){
     const handleLogout=()=>{
-        localStorage.removeItem("authtoken");
+        authAPI.logout().catch(() => {});
+        clearAccessToken();
         window.location.href="/";
     }
 

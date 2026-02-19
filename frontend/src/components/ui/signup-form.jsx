@@ -9,7 +9,8 @@ import {
 } from "./field";
 import { Input } from "./input";
 import { useState } from "react";
-import { authAPI } from "../../lib/api"
+import { useNavigate } from "react-router-dom";
+import { authAPI, setAccessToken } from "../../lib/api"
 import { useAuthStore } from "@/store/useAuthStore";
 import { usePremiumStore } from "@/store/usePremiumStore";
 
@@ -19,6 +20,7 @@ export function SignupForm({ className, ...props }) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const navigate = useNavigate();
   const refreshUser = useAuthStore((s) => s.refreshUser);
   const fetchPremium = usePremiumStore((s) => s.fetchPremium);
 
@@ -36,12 +38,10 @@ export function SignupForm({ className, ...props }) {
       const data = response.data;
       
       alert("Signup successful!");
-      if(data.token){
-        localStorage.setItem("authToken", data.token);
-      }
+      setAccessToken(data?.access);
       await refreshUser();
       const premiumRes = await fetchPremium();
-      window.location.href = premiumRes?.redirectPath || "/freedashboard";
+      navigate(premiumRes?.redirectPath || "/freedashboard", { replace: true });
     } catch (err) {
       setError(err.response?.data?.error || err.message || "Signup failed");
     }

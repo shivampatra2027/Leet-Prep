@@ -20,6 +20,7 @@ import Contest from "./pages/Contest";
 import Support from "./pages/Support";
 import Referral from "./pages/Referral";
 import ReferralRedirect from "./pages/ReferralRedirect";
+import OAuthSuccess from "./pages/OAuthSuccess";
 import useAppInit from "./store/useAppInit";
 
 function App() {
@@ -48,6 +49,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/oauth-success" element={<OAuthSuccess />} />
           {/* <Route path="/signup" element={<Signup />} /> */}
           <Route path="/premium" element={
             <PrivateRoute>

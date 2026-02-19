@@ -5,7 +5,7 @@ import {UIProvider} from './contexts/UIContext';
 import App from './App.jsx'
 
 import axios from 'axios';
-axios.defaults.withCredentials = true;
+axios.defaults.withCredentials = false;
 
 axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL || 'https://leet-io-backend.onrender.com';
 axios.interceptors.response.use(

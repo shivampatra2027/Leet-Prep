@@ -1,10 +1,13 @@
 import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { GalleryVerticalEnd } from "lucide-react";
 import { SignupForm } from "@/components/ui/signup-form.jsx";
+import { setAccessToken } from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
 import { usePremiumStore } from "@/store/usePremiumStore";
 
 export default function Signup() {
+    const navigate = useNavigate();
     const refreshUser = useAuthStore((s) => s.refreshUser);
     const fetchPremium = usePremiumStore((s) => s.fetchPremium);
 
@@ -13,16 +16,18 @@ export default function Signup() {
         const token = params.get("token");
         if (token) {
             const bootstrap = async () => {
-                localStorage.setItem("authToken", token);
+                setAccessToken(token);
                 await refreshUser();
                 const premiumRes = await fetchPremium();
-                window.location.href = premiumRes?.redirectPath || "/freedashboard";
+                navigate(premiumRes?.redirectPath || "/freedashboard", {
+                    replace: true,
+                });
             };
             bootstrap().catch(() => {
-                window.location.href = "/freedashboard";
+                navigate("/freedashboard", { replace: true });
             });
         }
-    }, [fetchPremium, refreshUser]);
+    }, [fetchPremium, navigate, refreshUser]);
 
     return (
         <div className="grid min-h-svh lg:grid-cols-2">

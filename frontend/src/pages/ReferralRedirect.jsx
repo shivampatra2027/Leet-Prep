@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { authAPI, getAccessToken } from "@/lib/api";
 
 /**
  * Handles /r/:code links.
@@ -12,15 +13,25 @@ export default function ReferralRedirect() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (code) {
-      localStorage.setItem("pendingReferral", code.trim());
-    }
-    const token = localStorage.getItem("authToken");
-    if (token) {
-      navigate("/freedashboard", { replace: true });
-    } else {
-      navigate("/login", { replace: true });
-    }
+    const run = async () => {
+      if (code) {
+        localStorage.setItem("pendingReferral", code.trim());
+      }
+
+      if (getAccessToken()) {
+        navigate("/freedashboard", { replace: true });
+        return;
+      }
+
+      try {
+        await authAPI.refresh();
+        navigate("/freedashboard", { replace: true });
+      } catch {
+        navigate("/login", { replace: true });
+      }
+    };
+
+    run();
   }, [code, navigate]);
 
   return null; // renders nothing — instant redirect

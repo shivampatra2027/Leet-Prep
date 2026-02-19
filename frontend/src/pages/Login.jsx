@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { GalleryVerticalEnd } from "lucide-react";
 import { LoginForm } from "@/components/ui/login-form.jsx";
 import CodePreview from "@/components/CodePreview.jsx"; // import here
-import { referralAPI } from "@/lib/api.js";
+import { referralAPI, setAccessToken } from "@/lib/api.js";
 import Seo from "@/components/Seo.jsx";
 import { useAuthStore } from "@/store/useAuthStore";
 import { usePremiumStore } from "@/store/usePremiumStore";
@@ -18,6 +19,7 @@ function applyPendingReferral() {
 
 export default function Login() {
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const navigate = useNavigate();
   const refreshUser = useAuthStore((s) => s.refreshUser);
   const fetchPremium = usePremiumStore((s) => s.fetchPremium);
 
@@ -27,20 +29,22 @@ export default function Login() {
     if (token) {
       const bootstrapLogin = async () => {
         setIsRedirecting(true);
-        localStorage.setItem("authToken", token);
+        setAccessToken(token);
         window.history.replaceState({}, "", "/login");
         applyPendingReferral();
 
         await refreshUser();
         const premiumRes = await fetchPremium();
-        window.location.href = premiumRes?.redirectPath || "/freedashboard";
+        navigate(premiumRes?.redirectPath || "/freedashboard", {
+          replace: true,
+        });
       };
 
       bootstrapLogin().catch(() => {
-        window.location.href = "/freedashboard";
+        navigate("/freedashboard", { replace: true });
       });
     }
-  }, [fetchPremium, refreshUser]);
+  }, [fetchPremium, navigate, refreshUser]);
 
   if (isRedirecting) {
     return (

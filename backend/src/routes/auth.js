@@ -1,10 +1,34 @@
 import express from "express";
 import bcrypt from "bcrypt";
 import User from "../models/User.js";
-import jwt from "jsonwebtoken";
 import passport from "../auth/google.js";
+import {
+  signAccessToken,
+  signRefreshToken,
+  verifyAccessToken,
+  verifyRefreshToken,
+} from "../utils/jwt.js";
 
 const router = express.Router();
+const REFRESH_COOKIE = "refreshToken";
+
+function getRefreshCookieOptions() {
+  const isProd = process.env.NODE_ENV === "production";
+  return {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+    path: "/auth",
+  };
+}
+
+function issueTokens(res, user) {
+  const access = signAccessToken(user);
+  const refresh = signRefreshToken(user);
+  res.cookie(REFRESH_COOKIE, refresh, getRefreshCookieOptions());
+  return access;
+}
 
 router.post("/signup", async (req, res) => {
   try {
@@ -42,14 +66,8 @@ router.post("/signup", async (req, res) => {
       return res.status(400).json({ error: "User already exists" });
     }
 
-    // generate JWT
-    const token = jwt.sign(
-      { id: user._id, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" },
-    );
-
-    res.json({ token });
+    const access = issueTokens(res, user);
+    res.json({ access });
   } catch (error) {
     console.error("Signup error:", error);
     // Handle duplicate key errors
@@ -68,10 +86,8 @@ router.post("/login", async (req, res) => {
   const valid = await bcrypt.compare(password, user.passwordHash);
   if (!valid) return res.status(401).json({ error: "Invalid credentials" });
 
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-    expiresIn: "7d",
-  });
-  res.json({ token });
+  const access = issueTokens(res, user);
+  res.json({ access });
 });
 
 router.get(
@@ -89,15 +105,44 @@ router.get(
     session: false,
   }),
   (req, res) => {
-    const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
-    });
+    const access = issueTokens(res, req.user);
     const frontend = (
-      process.env.CORS_ORIGIN || "http://localhost:5173"
+      process.env.FRONTEND_URL ||
+      process.env.CLIENT_URL ||
+      process.env.CORS_ORIGIN ||
+      "http://localhost:5173"
     ).replace(/\/$/, "");
-    res.redirect(`${frontend}/login?token=${token}`);
+    res.redirect(`${frontend}/oauth-success?token=${access}`);
   },
 );
+
+router.post("/refresh", async (req, res) => {
+  try {
+    const refreshToken = req.cookies?.[REFRESH_COOKIE];
+    if (!refreshToken) {
+      return res.status(401).json({ error: "No refresh token" });
+    }
+
+    const decoded = verifyRefreshToken(refreshToken);
+    const user = await User.findById(decoded.id).select("_id email tier");
+    if (!user) {
+      return res.status(401).json({ error: "User not found" });
+    }
+
+    const access = signAccessToken(user);
+    return res.json({ access });
+  } catch {
+    return res.status(401).json({ error: "Invalid refresh token" });
+  }
+});
+
+router.post("/logout", (req, res) => {
+  res.clearCookie(REFRESH_COOKIE, {
+    ...getRefreshCookieOptions(),
+    expires: new Date(0),
+  });
+  res.json({ success: true });
+});
 
 router.get("/fail", (req, res) => {
   res.status(401).json({ error: "Google auth failed or non-KIIT email" });
@@ -107,7 +152,7 @@ export function authMiddleware(req, res, next) {
   if (!token) return res.status(401).json({ error: "No token" });
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = verifyAccessToken(token);
     req.user = decoded;
     next();
   } catch {

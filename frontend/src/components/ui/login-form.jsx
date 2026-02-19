@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils"
 import { Button } from "./button"
 import {
@@ -9,7 +10,7 @@ import {
   FieldSeparator,
 } from "./field"
 import { Input } from "./input"
-import { authAPI, referralAPI } from "../../lib/api"
+import { authAPI, referralAPI, setAccessToken } from "../../lib/api"
 import { useAuthStore } from "@/store/useAuthStore";
 import { usePremiumStore } from "@/store/usePremiumStore";
 
@@ -18,6 +19,7 @@ export function LoginForm({
   ...props
 }) {
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
   const refreshUser = useAuthStore((s) => s.refreshUser);
   const fetchPremium = usePremiumStore((s) => s.fetchPremium);
 
@@ -30,7 +32,7 @@ export function LoginForm({
 
     try {
       const res = await authAPI.login({ email, password });
-      localStorage.setItem("authToken", res.data.token);
+      setAccessToken(res.data?.access);
       const code = localStorage.getItem("pendingReferral");
       if (code) {
         referralAPI
@@ -43,10 +45,12 @@ export function LoginForm({
       try {
         await refreshUser();
         const dashboardRes = await fetchPremium();
-        window.location.href = dashboardRes?.redirectPath || "/freedashboard";
+        navigate(dashboardRes?.redirectPath || "/freedashboard", {
+          replace: true,
+        });
       } catch {
         // Fallback to freedashboard on error
-        window.location.href = "/freedashboard";
+        navigate("/freedashboard", { replace: true });
       }
     } catch (err) {
       setIsLoading(false);
