@@ -135,66 +135,95 @@ export default function Referral() {
     );
   }
 
-  // User hasn't joined the referral program yet — show opt-in screen
+  // User hasn't joined the referral program yet — show opt-in + public leaderboard
   if (data?.joined === false) {
     return (
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="min-h-screen bg-background text-foreground flex flex-col">
         <Navbar />
-        <main className="flex-1 flex items-center justify-center px-4">
-          <div className="max-w-lg w-full text-center flex flex-col items-center gap-8">
-            {/* Prize preview */}
-            <div className="flex items-end justify-center gap-3">
-              <div className="rounded-2xl border bg-card/60 p-3 shadow-sm rotate-[-4deg] w-28">
+        <main className="flex-1">
+
+          {/* Same hero as joined view */}
+          <section className="relative overflow-hidden border-b">
+            <div className="pointer-events-none absolute -top-20 -right-20 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-10 -left-16 h-56 w-56 rounded-full bg-accent/15 blur-3xl" />
+            <div className="max-w-3xl mx-auto px-4 sm:px-6 py-16 text-center relative">
+              <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-4 py-1.5 text-sm font-medium text-primary mb-5">
+                <Gift className="h-4 w-4" />
+                Referral Program
+              </div>
+              <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-3">
+                Invite friends. Earn rewards.
+              </h1>
+              <p className="text-muted-foreground text-lg leading-relaxed mb-8">
+                Share your link, earn points, unlock free premium days.
+              </p>
+
+              {/* Join button */}
+              <div className="flex flex-col items-center gap-3">
+                <button
+                  onClick={handleJoin}
+                  disabled={joining}
+                  className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-primary text-primary-foreground font-semibold text-base shadow-lg hover:-translate-y-0.5 transition-transform disabled:opacity-60 disabled:cursor-wait"
+                >
+                  {joining ? (
+                    <><span className="h-4 w-4 rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground animate-spin" /> Activating…</>
+                  ) : (
+                    <><Gift className="h-5 w-5" /> Join the Referral Program</>
+                  )}
+                </button>
+                <p className="text-xs text-muted-foreground">Free for everyone · No credit card · Link generated instantly</p>
+              </div>
+            </div>
+          </section>
+
+          {/* Prize preview */}
+          <section className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
+            <p className="text-center text-sm font-medium text-muted-foreground mb-6 uppercase tracking-wide">Win real prizes</p>
+            <div className="flex items-end justify-center gap-4">
+              <div className="rounded-2xl border bg-card/60 p-3 shadow-sm rotate-[-4deg] w-28 flex-shrink-0">
                 <img src="/iphone17.jpg" alt="iPhone 17" className="w-full h-28 object-contain" />
                 <p className="text-xs font-semibold text-center mt-1">iPhone 17</p>
+                <p className="text-[10px] text-muted-foreground text-center">10,000 pts</p>
               </div>
-              <div className="rounded-2xl border-2 border-yellow-500/40 bg-yellow-500/5 p-3 shadow-lg z-10 w-36">
+              <div className="rounded-2xl border-2 border-yellow-500/40 bg-yellow-500/5 p-3 shadow-lg z-10 w-36 flex-shrink-0">
                 <img src="/macbookair.jpg" alt="MacBook Air" className="w-full h-32 object-contain" />
                 <p className="text-xs font-semibold text-center mt-1">MacBook Air M2</p>
+                <p className="text-[10px] text-muted-foreground text-center">20,000 pts</p>
               </div>
-              <div className="rounded-2xl border bg-card/60 p-3 shadow-sm rotate-[4deg] w-28">
+              <div className="rounded-2xl border bg-card/60 p-3 shadow-sm rotate-[4deg] w-28 flex-shrink-0">
                 <img src="/galaxywatch8.jpg" alt="Galaxy Watch 8" className="w-full h-28 object-contain" />
                 <p className="text-xs font-semibold text-center mt-1">Galaxy Watch 8</p>
+                <p className="text-[10px] text-muted-foreground text-center">10,000 pts</p>
               </div>
             </div>
+          </section>
 
-            {/* Headline */}
-            <div className="space-y-3">
-              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
-                Win real prizes.<br />Just by sharing.
-              </h1>
-              <p className="text-muted-foreground leading-relaxed">
-                Invite friends to Leet-Prep. Earn points for every signup and premium conversion.
-                Redeem for iPhone 17, MacBook Air, Galaxy Watch — or premium days.
-              </p>
+          {/* Public Leaderboard */}
+          <section className="max-w-5xl mx-auto px-4 sm:px-6 pb-20">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold flex items-center justify-center gap-2">
+                <Trophy className="h-6 w-6 text-yellow-500" /> Leaderboard
+              </h2>
+              <p className="text-sm text-muted-foreground mt-1">See who's leading — join to compete.</p>
             </div>
-
-            {/* Trust pills */}
-            <div className="flex flex-wrap justify-center gap-2">
-              {["Free for everyone", "No credit card", "One click to share", "Real prizes shipped"].map((p) => (
-                <span key={p} className="inline-flex items-center gap-1.5 rounded-full border bg-card/50 px-3 py-1 text-xs text-muted-foreground">
-                  <Check className="h-3 w-3 text-green-500" /> {p}
-                </span>
-              ))}
+            <div className="grid gap-8 lg:grid-cols-2">
+              <div className="rounded-2xl border bg-card/70 p-6 flex flex-col gap-4">
+                <h3 className="text-sm font-semibold flex items-center gap-2">
+                  <Zap className="h-4 w-4 text-blue-500" /> Weekly Top 20
+                  <span className="ml-auto text-xs text-muted-foreground font-normal">Resets every Monday</span>
+                </h3>
+                <LeaderboardTable rows={leaderboard.weekly} pointsKey="points" />
+              </div>
+              <div className="rounded-2xl border bg-card/70 p-6 flex flex-col gap-4">
+                <h3 className="text-sm font-semibold flex items-center gap-2">
+                  <Trophy className="h-4 w-4 text-yellow-500" /> All-Time Top 20
+                </h3>
+                <LeaderboardTable rows={leaderboard.allTime} pointsKey="points" showBadges />
+              </div>
             </div>
-
-            {/* CTA */}
-            <button
-              onClick={handleJoin}
-              disabled={joining}
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-primary text-primary-foreground font-semibold text-base shadow-lg hover:-translate-y-0.5 transition-transform disabled:opacity-60 disabled:cursor-wait"
-            >
-              {joining ? (
-                <><span className="h-4 w-4 rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground animate-spin" /> Activating…</>
-              ) : (
-                <><Gift className="h-5 w-5" /> Join the Referral Program</>
-              )}
-            </button>
-            <p className="text-xs text-muted-foreground -mt-4">
-              Your unique referral link is generated instantly.
-            </p>
-          </div>
+          </section>
         </main>
+        <Footer7 />
       </div>
     );
   }
