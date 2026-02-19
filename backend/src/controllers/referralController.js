@@ -2,7 +2,6 @@ import crypto from "crypto";
 import User from "../models/User.js";
 import ReferralEvent from "../models/Referral.js";
 import logger from "../utils/logger.js";
-import { referralQueue } from "../queues/index.js";
 
 // ─── Points config ──────────────────────────────────────────────────────
 export const POINTS = {
@@ -150,13 +149,6 @@ async function awardBadges(user) {
       { ordered: false },
     );
   }
-}
-
-function getReferralQueue() {
-  if (!referralQueue) {
-    throw new Error("Referral queue is unavailable");
-  }
-  return referralQueue;
 }
 
 // ─── Controllers ────────────────────────────────────────────────────────
@@ -488,8 +480,7 @@ export const redeemPoints = async (req, res) => {
 };
 
 /**
- * Internal: record purchase event for referral.
- * Called from paymentController.handlePaymentSuccess.
+ * Internal: process purchase event for referral directly in webhook path.
  */
 export async function recordPurchaseEvent(userId) {
   try {
@@ -522,17 +513,12 @@ export async function recordPurchaseEvent(userId) {
       { upsert: true, new: true },
     );
 
-    await getReferralQueue().add(
-      "referral.purchase",
-      {
-        inviterId: inviterId.toString(),
-        inviteeId: userId.toString(),
-        points: POINTS.purchase,
-      },
-      {
-        jobId: `purchase-${inviterId}-${userId}`,
-      },
-    );
+    await processEvent({
+      inviterId,
+      inviteeId: userId,
+      type: "purchase",
+      points: POINTS.purchase,
+    });
   } catch (err) {
     logger.error("recordPurchaseEvent error:", err);
   }

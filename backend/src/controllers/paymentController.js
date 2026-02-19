@@ -575,10 +575,8 @@ async function handlePaymentSuccess(paymentEntity) {
       premiumExpiresAt,
     });
 
-    // Fire referral purchase event (fire-and-forget)
-    recordPurchaseEvent(userId).catch((e) =>
-      console.error("Referral purchase event error:", e),
-    );
+    // Process referral purchase reward immediately (idempotent in DB).
+    await recordPurchaseEvent(userId);
 
     console.log(
       `User ${userId} upgraded to premium (${duration} ${durationType}) until ${premiumExpiresAt.toISOString()}`,

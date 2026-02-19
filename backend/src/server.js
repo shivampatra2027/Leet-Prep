@@ -18,7 +18,6 @@ import contestRoutes from "./routes/contestRoutes.js";
 import referralRoutes from "./routes/referralRoutes.js";
 import "./jobs/contestJob.js"; // Start contest cron job
 import "./jobs/referralJob.js"; // Start referral weekly reset cron job
-import { startWorkers } from "./workers/index.js"; // BullMQ workers
 dotenv.config();
 configureGoogleStrategy();
 
@@ -170,10 +169,8 @@ if (process.env.VERCEL !== "1") {
     app.listen(PORT, () => {
       console.log(`Server running on port: ${PORT}`);
     });
-    startWorkers(); // Start BullMQ workers after DB is ready
   });
 } else {
-  // In Vercel, connect to DB immediately and start workers
+  // In Vercel, connect to DB immediately.
   connectDb();
-  startWorkers();
 }

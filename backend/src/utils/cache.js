@@ -1,6 +1,30 @@
-import { connectionCfg } from "../queues/index.js";
+import IORedis from "ioredis";
 
-const redis = connectionCfg;
+const redisUrl = process.env.REDIS_URL;
+const useRedis = process.env.USE_REDIS === "true" || !!redisUrl;
+
+function createRedisClient() {
+  if (!useRedis) return null;
+
+  const options = {
+    lazyConnect: true,
+    maxRetriesPerRequest: 1,
+    enableReadyCheck: false,
+    tls: redisUrl?.startsWith("rediss://") ? {} : undefined,
+  };
+
+  if (redisUrl) {
+    return new IORedis(redisUrl, options);
+  }
+
+  return new IORedis({
+    host: process.env.REDIS_HOST || "127.0.0.1",
+    port: parseInt(process.env.REDIS_PORT || "6379", 10),
+    ...options,
+  });
+}
+
+const redis = createRedisClient();
 const memoryCache = new Map();
 const isProd = process.env.NODE_ENV === "production";
 
