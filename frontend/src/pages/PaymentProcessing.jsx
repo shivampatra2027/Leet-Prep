@@ -5,12 +5,16 @@ import { CheckCircle2, XCircle, Loader2, AlertCircle, GalleryVerticalEnd } from 
 import Navbar from "../components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { usePremiumStore } from "@/store/usePremiumStore";
+import { useAuthStore } from "@/store/useAuthStore";
 
 export default function PaymentProcessing() {
   const [status, setStatus] = useState("checking");
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const orderId = searchParams.get("order");
+  const activatePremium = usePremiumStore((s) => s.activatePremium);
+  const refreshUser = useAuthStore((s) => s.refreshUser);
 
   useEffect(() => {
     if (!orderId) {
@@ -32,6 +36,8 @@ export default function PaymentProcessing() {
         // Check if webhook has upgraded user
         if (userTier === "premium" || paymentStatus === "captured") {
           clearInterval(interval);
+          activatePremium(res.data.user?.premiumExpiresAt || null);
+          refreshUser().catch(() => {});
           setStatus("success");
           setTimeout(() => {
             window.location.href = "/dashboard";
@@ -62,7 +68,7 @@ export default function PaymentProcessing() {
     }, 2000); // Poll every 2 seconds
 
     return () => clearInterval(interval);
-  }, [orderId, navigate, status]);
+  }, [activatePremium, navigate, orderId, refreshUser, status]);
 
   return (
     <>

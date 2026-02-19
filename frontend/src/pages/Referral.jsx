@@ -1,9 +1,10 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import { Copy, Check, Share2, Gift, Trophy, Star, Zap, Crown, Award } from "lucide-react";
 import { FaWhatsapp, FaTelegram, FaLinkedin, FaTwitter } from "react-icons/fa";
 import Navbar from "@/components/Navbar";
 import { Footer7 } from "@/components/Footer";
 import { referralAPI } from "@/lib/api";
+import { useReferralStore } from "@/store/useReferralStore";
 
 // ─── Badge meta ────────────────────────────────────────────────────────────
 const BADGE_META = {
@@ -56,43 +57,53 @@ function CopyButton({ text, className = "" }) {
 
 // ─── Main page ───────────────────────────────────────────────────────────────
 export default function Referral() {
-  const [data, setData] = useState(null);
+  const data = useReferralStore((s) => s.data);
+  const storeLoading = useReferralStore((s) => s.loading);
+  const storeError = useReferralStore((s) => s.error);
+  const fetchReferral = useReferralStore((s) => s.fetchReferral);
+  const joinReferral = useReferralStore((s) => s.joinReferral);
+
   const [leaderboard, setLeaderboard] = useState({ weekly: [], allTime: [] });
-  const [loading, setLoading] = useState(true);
+  const [loadingLeaderboard, setLoadingLeaderboard] = useState(true);
   const [joining, setJoining] = useState(false);
-  const [error, setError] = useState(null);
+  const [leaderboardError, setLeaderboardError] = useState(null);
   const [activeTab, setActiveTab] = useState("overview"); // overview | leaderboard
   const [redeemStatus, setRedeemStatus] = useState({});
 
-  const fetchData = useCallback(async () => {
-    try {
-      const [meRes, lbRes] = await Promise.all([
-        referralAPI.getMe(),
-        referralAPI.getLeaderboard(),
-      ]);
-      setData(meRes.data);
-      setLeaderboard(lbRes.data);
-    } catch (err) {
-      setError(err.response?.data?.error || "Failed to load referral data");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const loading = storeLoading || loadingLeaderboard;
+  const error = storeError || leaderboardError;
 
   const handleJoin = async () => {
     setJoining(true);
     try {
-      await referralAPI.join();
-      // Re-fetch full data now that code exists
-      setLoading(true);
-      await fetchData();
+      await joinReferral();
+      await fetchReferral();
     } catch (err) {
-      setError(err.response?.data?.error || "Failed to join referral program");
+      setLeaderboardError(
+        err.response?.data?.error || "Failed to join referral program",
+      );
+    } finally {
       setJoining(false);
     }
   };
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    setLoadingLeaderboard(true);
+    referralAPI
+      .getLeaderboard()
+      .then((lbRes) => {
+        setLeaderboard(lbRes.data);
+        setLeaderboardError(null);
+      })
+      .catch((err) => {
+        setLeaderboardError(
+          err.response?.data?.error || "Failed to load referral data",
+        );
+      })
+      .finally(() => {
+        setLoadingLeaderboard(false);
+      });
+  }, []);
 
   const handleRedeem = async (tierId) => {
     if (redeemStatus[tierId] === "loading") return;
@@ -101,7 +112,7 @@ export default function Referral() {
       const res = await referralAPI.redeem(tierId);
       const msg = res.data.physical ? res.data.message : "success";
       setRedeemStatus((s) => ({ ...s, [tierId]: msg }));
-      fetchData();
+      await fetchReferral();
       // Auto-clear non-physical success after 3s
       if (!res.data.physical) {
         setTimeout(() => setRedeemStatus((s) => ({ ...s, [tierId]: null })), 3000);

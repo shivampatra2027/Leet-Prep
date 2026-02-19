@@ -1,23 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "./ui/button";
-import { paymentAPI, profileAPI } from "../lib/api";
+import { paymentAPI } from "../lib/api";
+import { useAuthStore } from "@/store/useAuthStore";
 
 function PaymentButton({ amount, duration, durationType = "months", planName }) {
     const [loading, setLoading] = useState(false);
-    const [userProfile, setUserProfile] = useState(null);
-
-    // Fetch user profile for prefill (best practice for better conversion)
-    useEffect(() => {
-        const fetchProfile = async () => {
-            try {
-                const response = await profileAPI.getProfile();
-                setUserProfile(response.data);
-            } catch (error) {
-                console.error('Error fetching profile:', error);
-            }
-        };
-        fetchProfile();
-    }, []);
+    const userProfile = useAuthStore((s) => s.user);
 
     const handlePayment = async () => {
         try {

@@ -20,8 +20,11 @@ import Contest from "./pages/Contest";
 import Support from "./pages/Support";
 import Referral from "./pages/Referral";
 import ReferralRedirect from "./pages/ReferralRedirect";
+import useAppInit from "./store/useAppInit";
 
 function App() {
+  useAppInit();
+
   // useEffect(() => {
   //   const checkDevTools = setInterval(() => {
   //     const threshold = 160;

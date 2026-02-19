@@ -3,10 +3,11 @@ import { Badge } from "@/components/ui/badge.jsx";
 import { Separator } from "@/components/ui/separator.jsx";
 import PaymentButton from "../components/PaymentButton";
 import Navbar from "../components/Navbar";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { profileAPI } from "../lib/api";
 import Seo from "@/components/Seo.jsx";
+import { usePremiumStore } from "@/store/usePremiumStore";
+import { useAuthStore } from "@/store/useAuthStore";
 
 const Pricing4 = ({
   title = "Upgrade to Premium",
@@ -14,28 +15,16 @@ const Pricing4 = ({
   className = "",
 }) => {
   const navigate = useNavigate();
-  const [userTier, setUserTier] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const premium = usePremiumStore((s) => s.premium);
+  const premiumLoading = usePremiumStore((s) => s.loading);
+  const authLoading = useAuthStore((s) => s.loading);
+  const initialized = useAuthStore((s) => s.initialized);
 
   useEffect(() => {
-    const checkUserTier = async () => {
-      try {
-        const response = await profileAPI.getProfile();
-        const tier = response.data.tier || "free";
-        setUserTier(tier);
-        
-        // Redirect premium users to dashboard
-        if (tier === "premium") {
-          navigate("/dashboard", { replace: true });
-        }
-      } catch (error) {
-        console.error("Error fetching user profile:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    checkUserTier();
-  }, [navigate]);
+    if (premium) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [navigate, premium]);
 
   const plans = [
     {
@@ -96,7 +85,7 @@ const Pricing4 = ({
     },
   ];
 
-  if (loading) {
+  if (authLoading || !initialized || premiumLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-muted border-t-primary"></div>
@@ -105,7 +94,7 @@ const Pricing4 = ({
   }
 
   // Don't show premium page to already premium users (will be redirected)
-  if (userTier === "premium") {
+  if (premium) {
     return null;
   }
 

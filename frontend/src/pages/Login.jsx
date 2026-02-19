@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { GalleryVerticalEnd } from "lucide-react";
 import { LoginForm } from "@/components/ui/login-form.jsx";
 import CodePreview from "@/components/CodePreview.jsx"; // import here
-import { premiumAPI, referralAPI } from "@/lib/api.js";
+import { referralAPI } from "@/lib/api.js";
 import Seo from "@/components/Seo.jsx";
+import { useAuthStore } from "@/store/useAuthStore";
+import { usePremiumStore } from "@/store/usePremiumStore";
 
 // After login, silently apply any referral code the user arrived with
 function applyPendingReferral() {
@@ -16,28 +18,29 @@ function applyPendingReferral() {
 
 export default function Login() {
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const refreshUser = useAuthStore((s) => s.refreshUser);
+  const fetchPremium = usePremiumStore((s) => s.fetchPremium);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
     if (token) {
-      setIsRedirecting(true);
-      localStorage.setItem("authToken", token);
-      // Clean token from URL so it never appears in referrer headers
-      window.history.replaceState({}, "", "/login");
-      // Apply any referral code from /r/:code landing (fire-and-forget)
-      applyPendingReferral();
-      // Check user tier and redirect accordingly
-      premiumAPI.checkDashboard()
-        .then(response => {
-          window.location.href = response.data.redirectPath;
-        })
-        .catch(() => {
-          // Fallback to freedashboard on error
-          window.location.href = "/freedashboard";
-        });
+      const bootstrapLogin = async () => {
+        setIsRedirecting(true);
+        localStorage.setItem("authToken", token);
+        window.history.replaceState({}, "", "/login");
+        applyPendingReferral();
+
+        await refreshUser();
+        const premiumRes = await fetchPremium();
+        window.location.href = premiumRes?.redirectPath || "/freedashboard";
+      };
+
+      bootstrapLogin().catch(() => {
+        window.location.href = "/freedashboard";
+      });
     }
-  }, []);
+  }, [fetchPremium, refreshUser]);
 
   if (isRedirecting) {
     return (

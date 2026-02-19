@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button.jsx";
 import { Crown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card.jsx";
 import { Progress } from "@/components/ui/progress.jsx";
+import { usePremiumStore } from "@/store/usePremiumStore";
 
 export default function FreeDashboard() {
   const navigate = useNavigate();
@@ -16,27 +17,15 @@ export default function FreeDashboard() {
   const [error, setError] = useState(null);
   const [filteredCount, setFilteredCount] = useState(0);
   const [solvedProblems, setSolvedProblems] = useState([]);
-  const [userTier, setUserTier] = useState(null);
+  const premium = usePremiumStore((s) => s.premium);
+  const premiumLoading = usePremiumStore((s) => s.loading);
   const [summary, setSummary] = useState({ solvedCount: 0, totalProblems: 0, progress: 0 });
 
-  // Check user tier on mount
   useEffect(() => {
-    const checkUserTier = async () => {
-      try {
-        const response = await profileAPI.getProfile();
-        const tier = response.data.tier || "free";
-        setUserTier(tier);
-        
-        // Redirect premium users to full dashboard
-        if (tier === "premium") {
-          navigate("/dashboard", { replace: true });
-        }
-      } catch (err) {
-        console.error("Error fetching user profile:", err);
-      }
-    };
-    checkUserTier();
-  }, [navigate]);
+    if (!premiumLoading && premium) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [navigate, premium, premiumLoading]);
 
   const fetchProblems = useCallback(async () => {
     setLoading(true);
@@ -158,7 +147,7 @@ export default function FreeDashboard() {
 
 
   // Don't render for premium users (will be redirected)
-  if (userTier === "premium") {
+  if (premiumLoading || premium) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-muted border-t-primary"></div>

@@ -4,12 +4,14 @@ import { ModeToggle } from "./mode-toggle";
 import { Button } from "@/components/ui/button.jsx";
 import { LogOut, Heart, Menu, X } from "lucide-react";
 import axios from "axios";
+import { useAuthStore } from "@/store/useAuthStore";
 
 export default function Navbar() {
   const sidebarRef = React.useRef(null);
   const navigate = useNavigate();
-  const [token, setToken] = React.useState(() => localStorage.getItem("authToken"));
-  const isLoggedIn = !!token;
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
+  const isLoggedIn = Boolean(user);
 
   const [likes, setLikes] = React.useState(0);
   const [hasLiked, setHasLiked] = React.useState(false);
@@ -35,16 +37,6 @@ export default function Navbar() {
       setHasLiked(true);
     }
   }, [API_URL]);
-
-  React.useEffect(() => {
-    const updateToken = () => setToken(localStorage.getItem("authToken"));
-    window.addEventListener("storage", updateToken);
-    window.addEventListener("focus", updateToken);
-    return () => {
-      window.removeEventListener("storage", updateToken);
-      window.removeEventListener("focus", updateToken);
-    };
-  }, []);
 
   React.useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "unset";
@@ -89,9 +81,9 @@ export default function Navbar() {
   };
 
   const handleLogout = React.useCallback(() => {
-    localStorage.removeItem("authToken");
+    logout();
     navigate("/login");
-  }, [navigate]);
+  }, [logout, navigate]);
 
   const closeMobile = () => setMobileOpen(false);
 

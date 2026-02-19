@@ -6,6 +6,7 @@ import { columns } from "@/components/columns.jsx";
 import Navbar from "@/components/Navbar.jsx";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card.jsx";
 import { Progress } from "@/components/ui/progress.jsx";
+import { usePremiumStore } from "@/store/usePremiumStore";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -15,29 +16,15 @@ export default function Dashboard() {
   const [pagination, setPagination] = useState(null);
   const [filteredCount, setFilteredCount] = useState(0);
   const [solvedProblems, setSolvedProblems] = useState([]);
-  const [userTier, setUserTier] = useState(null);
+  const premium = usePremiumStore((s) => s.premium);
+  const premiumLoading = usePremiumStore((s) => s.loading);
    const [summary, setSummary] = useState({ solvedCount: 0, totalProblems: 0, progress: 0 });
 
-  // Check user tier on mount
   useEffect(() => {
-    const checkUserTier = async () => {
-      try {
-        const response = await profileAPI.getProfile();
-        const tier = response.data.tier || "free";
-        setUserTier(tier);
-        
-        // Redirect free users to free dashboard
-        if (tier === "free") {
-          navigate("/freedashboard", { replace: true });
-        }
-      } catch (err) {
-        console.error("Error fetching user profile:", err);
-        // On error, redirect to free dashboard as safety measure
-        navigate("/freedashboard", { replace: true });
-      }
-    };
-    checkUserTier();
-  }, [navigate]);
+    if (!premiumLoading && !premium) {
+      navigate("/freedashboard", { replace: true });
+    }
+  }, [navigate, premium, premiumLoading]);
 
   const fetchProblems = useCallback(async () => {
     setLoading(true);
@@ -89,10 +76,10 @@ export default function Dashboard() {
 
   useEffect(() => {
     // Only fetch problems if user is premium
-    if (userTier === "premium") {
+    if (!premiumLoading && premium) {
       fetchProblems();
     }
-  }, [fetchProblems, userTier]);
+  }, [fetchProblems, premium, premiumLoading]);
 
   const toggleSolved = useCallback(async (problemId, nextChecked) => {
     setSolvedProblems((prev) => {
@@ -133,7 +120,7 @@ export default function Dashboard() {
 
 
   // Don't render anything for free users (will be redirected)
-  if (userTier !== "premium") {
+  if (premiumLoading || !premium) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-muted border-t-primary"></div>

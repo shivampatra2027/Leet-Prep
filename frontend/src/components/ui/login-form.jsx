@@ -9,13 +9,17 @@ import {
   FieldSeparator,
 } from "./field"
 import { Input } from "./input"
-import { authAPI, premiumAPI } from "../../lib/api"
+import { authAPI, referralAPI } from "../../lib/api"
+import { useAuthStore } from "@/store/useAuthStore";
+import { usePremiumStore } from "@/store/usePremiumStore";
 
 export function LoginForm({
   className,
   ...props
 }) {
   const [isLoading, setIsLoading] = useState(false);
+  const refreshUser = useAuthStore((s) => s.refreshUser);
+  const fetchPremium = usePremiumStore((s) => s.fetchPremium);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -27,11 +31,19 @@ export function LoginForm({
     try {
       const res = await authAPI.login({ email, password });
       localStorage.setItem("authToken", res.data.token);
+      const code = localStorage.getItem("pendingReferral");
+      if (code) {
+        referralAPI
+          .apply(code)
+          .then(() => localStorage.removeItem("pendingReferral"))
+          .catch(() => {});
+      }
 
       // Check user tier and redirect accordingly
       try {
-        const dashboardRes = await premiumAPI.checkDashboard();
-        window.location.href = dashboardRes.data.redirectPath;
+        await refreshUser();
+        const dashboardRes = await fetchPremium();
+        window.location.href = dashboardRes?.redirectPath || "/freedashboard";
       } catch {
         // Fallback to freedashboard on error
         window.location.href = "/freedashboard";
