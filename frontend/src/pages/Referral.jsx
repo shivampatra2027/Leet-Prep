@@ -18,6 +18,13 @@ const BADGE_META = {
 
 const SITE_URL = import.meta.env.VITE_SITE_URL || "https://leetcodepremium.xyz";
 
+// Product images for physical prizes (keyed by prize id)
+const PRIZE_IMAGES = {
+  iphone_17: "/iphone17.jpg",
+  macbook_air: "/macbookair.jpg",
+  galaxy_watch_8: "/galaxywatch8.jpg",
+};
+
 // ─── Share presets ──────────────────────────────────────────────────────────
 function getShareMessages(url) {
   return {
@@ -353,7 +360,23 @@ export default function Referral() {
                             CLAIMED ✓
                           </span>
                         )}
-                        <div className="text-4xl">{prize.icon}</div>
+                        {/* Product image */}
+                        <div className="w-full flex items-center justify-center h-36 rounded-xl overflow-hidden bg-muted/30">
+                          {PRIZE_IMAGES[prize.id] ? (
+                            <img
+                              src={PRIZE_IMAGES[prize.id]}
+                              alt={prize.label}
+                              className="h-full w-full object-contain p-2"
+                              onError={(e) => { e.currentTarget.style.display = "none"; e.currentTarget.nextSibling.style.display = "flex"; }}
+                            />
+                          ) : null}
+                          <div
+                            className="text-5xl items-center justify-center h-full w-full"
+                            style={{ display: PRIZE_IMAGES[prize.id] ? "none" : "flex" }}
+                          >
+                            {prize.icon}
+                          </div>
+                        </div>
                         <div>
                           <p className="font-semibold text-sm">{prize.label}</p>
                           <p className="text-xs text-muted-foreground mt-0.5">{prize.description}</p>
