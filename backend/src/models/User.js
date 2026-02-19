@@ -110,6 +110,8 @@ const UserSchema = new Schema(
 
 // TTL index
 UserSchema.index({ expireAt: 1 }, { expireAfterSeconds: 0 });
+UserSchema.index({ weeklyPoints: -1 });
+UserSchema.index({ referralPoints: -1 });
 
 UserSchema.methods.upsertAttempt = function (attemptObj) {
   const { problemId, status, language, notes } = attemptObj;

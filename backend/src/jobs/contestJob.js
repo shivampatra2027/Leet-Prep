@@ -5,15 +5,30 @@ import getCodeChef from "../services/contestCodechef.js";
 import getAtCoder from "../services/contestAtcoder.js";
 import { setContests } from "../utils/contestStore.js";
 
-async function updateContests() {
-  try {
-    console.log("🔄 Fetching contests from all platforms...");
+let running = false;
 
+async function withTimeout(promise, ms) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("timeout")), ms)
+    ),
+  ]);
+}
+
+async function updateContests() {
+  if (running) return;
+  running = true;
+
+  const start = Date.now();
+  console.log("🔄 Fetching contests from all platforms...");
+
+  try {
     const [lc, cf, cc, ac] = await Promise.allSettled([
-      getLeetCode(),
-      getCodeforces(),
-      getCodeChef(),
-      getAtCoder(),
+      withTimeout(getLeetCode(), 15000),
+      withTimeout(getCodeforces(), 15000),
+      withTimeout(getCodeChef(), 15000),
+      withTimeout(getAtCoder(), 15000),
     ]);
 
     const allContests = [
@@ -24,16 +39,20 @@ async function updateContests() {
     ];
 
     setContests(allContests);
-    console.log(`✅ Contests updated: ${allContests.length} upcoming contests`);
+
+    console.log(
+      `✅ Contests updated: ${allContests.length} upcoming contests (${Date.now() - start}ms)`
+    );
   } catch (e) {
     console.error("❌ Contest fetch error:", e.message);
+  } finally {
+    running = false;
   }
 }
 
-// Run every 4 hours
-cron.schedule("0 */4 * * *", updateContests);
+// runs every 6 hours
+cron.schedule("0 */6 * * *", updateContests);
 
-// Initial fetch
-updateContests();
+setTimeout(updateContests, 20000);
 
 export default updateContests;

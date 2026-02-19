@@ -139,13 +139,16 @@ async function awardBadges(user) {
   }
 
   if (toAdd.length > 0) {
-    await User.findByIdAndUpdate(user._id, {
-      $push: {
-        badges: {
-          $each: toAdd.map((type) => ({ type, earnedAt: new Date() })),
+    const earnedAt = new Date();
+    await User.bulkWrite(
+      toAdd.map((type) => ({
+        updateOne: {
+          filter: { _id: user._id, "badges.type": { $ne: type } },
+          update: { $push: { badges: { type, earnedAt } } },
         },
-      },
-    });
+      })),
+      { ordered: false },
+    );
   }
 }
 
@@ -264,13 +267,6 @@ export const applyReferral = async (req, res) => {
       return res.status(400).json({ error: "Referral code required" });
     }
 
-    // Already referred?
-    const invitee = await User.findById(inviteeId);
-    if (!invitee) return res.status(404).json({ error: "User not found" });
-    if (invitee.referredBy) {
-      return res.json({ success: true, message: "Already applied" });
-    }
-
     // Find inviter
     const inviter = await User.findOne({ referralCode: code.trim() });
     if (!inviter) {
@@ -282,8 +278,20 @@ export const applyReferral = async (req, res) => {
       return res.status(400).json({ error: "Cannot refer yourself" });
     }
 
-    // Record referredBy
-    await User.findByIdAndUpdate(inviteeId, { referredBy: inviter._id });
+    // Record referredBy atomically to avoid race conditions.
+    const invitee = await User.findOneAndUpdate(
+      { _id: inviteeId, referredBy: null },
+      { $set: { referredBy: inviter._id } },
+      { new: true },
+    );
+
+    if (!invitee) {
+      const userExists = await User.exists({ _id: inviteeId });
+      if (!userExists) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      return res.json({ success: true, message: "Already applied" });
+    }
 
     // Queue signup event with 10-min delay
     const inviteeIp =
@@ -388,14 +396,6 @@ export const redeemPoints = async (req, res) => {
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ error: "User not found" });
 
-    if (user.referralPoints < tier.points) {
-      return res.status(400).json({
-        error: "Insufficient points",
-        required: tier.points,
-        current: user.referralPoints,
-      });
-    }
-
     const pointsDeduct = tier.points;
     const weeklyDeduct = Math.min(user.weeklyPoints, pointsDeduct);
 
@@ -412,18 +412,45 @@ export const redeemPoints = async (req, res) => {
         });
       }
 
-      await User.findByIdAndUpdate(userId, {
-        $inc: { referralPoints: -pointsDeduct, weeklyPoints: -weeklyDeduct },
-        $push: {
+      const updated = await User.findOneAndUpdate(
+        {
+          _id: userId,
+          referralPoints: { $gte: tier.points },
           prizeClaims: {
-            prize: tier.id,
-            label: tier.label,
-            points: tier.points,
-            claimedAt: new Date(),
-            status: "pending",
+            $not: { $elemMatch: { prize: tier.id, status: "pending" } },
           },
         },
-      });
+        {
+          $inc: { referralPoints: -pointsDeduct, weeklyPoints: -weeklyDeduct },
+          $push: {
+            prizeClaims: {
+              prize: tier.id,
+              label: tier.label,
+              points: tier.points,
+              claimedAt: new Date(),
+              status: "pending",
+            },
+          },
+        },
+        { new: true },
+      );
+      if (!updated) {
+        const hasPendingClaim = await User.exists({
+          _id: userId,
+          prizeClaims: { $elemMatch: { prize: tier.id, status: "pending" } },
+        });
+        if (hasPendingClaim) {
+          return res.status(400).json({
+            error:
+              "You already have a pending claim for this prize. Contact support.",
+          });
+        }
+        return res.status(400).json({
+          error: "Insufficient points",
+          required: tier.points,
+          current: user.referralPoints,
+        });
+      }
 
       logger.info(`User ${userId} claimed physical prize: ${tier.id}`);
 
@@ -432,7 +459,7 @@ export const redeemPoints = async (req, res) => {
         physical: true,
         prize: tier.id,
         message: `🎉 ${tier.label} claim recorded! Email soulintrovert0@gmail.com with your shipping address and order ID: ${userId}.`,
-        remainingPoints: user.referralPoints - pointsDeduct,
+        remainingPoints: updated.referralPoints,
       });
     }
 
@@ -446,11 +473,22 @@ export const redeemPoints = async (req, res) => {
       currentExpiry.getTime() + tier.days * 24 * 60 * 60 * 1000,
     );
 
-    await User.findByIdAndUpdate(userId, {
-      $inc: { referralPoints: -pointsDeduct, weeklyPoints: -weeklyDeduct },
-      tier: "premium",
-      premiumExpiresAt: newExpiry,
-    });
+    const updated = await User.findOneAndUpdate(
+      { _id: userId, referralPoints: { $gte: tier.points } },
+      {
+        $inc: { referralPoints: -pointsDeduct, weeklyPoints: -weeklyDeduct },
+        tier: "premium",
+        premiumExpiresAt: newExpiry,
+      },
+      { new: true },
+    );
+    if (!updated) {
+      return res.status(400).json({
+        error: "Insufficient points",
+        required: tier.points,
+        current: user.referralPoints,
+      });
+    }
 
     logger.info(
       `User ${userId} redeemed ${tier.points} points for ${tier.days} premium days`,
@@ -460,7 +498,7 @@ export const redeemPoints = async (req, res) => {
       success: true,
       message: `${tier.days} days of premium unlocked!`,
       newExpiry,
-      remainingPoints: user.referralPoints - pointsDeduct,
+      remainingPoints: updated.referralPoints,
     });
   } catch (err) {
     logger.error("redeemPoints error:", err);
@@ -534,8 +572,10 @@ export async function recordActiveDayEvent(userId) {
     const inviter = await User.findById(inviterId).select("lastIp");
 
     // Only award if login is the day AFTER account creation
-    const createdDay = new Date(user.createdAt).setHours(0, 0, 0, 0);
-    const today = new Date().setHours(0, 0, 0, 0);
+    const createdDay = new Date(user.createdAt);
+    createdDay.setUTCHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
     if (today <= createdDay) return; // same day, skip
 
     if (user.lastIp && inviter?.lastIp && user.lastIp === inviter.lastIp)

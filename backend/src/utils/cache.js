@@ -1,40 +1,51 @@
-import Redis from "ioredis";
+import { connectionCfg } from "../queues/index.js";
 
-let redis = null;
+const redis = connectionCfg;
 const memoryCache = new Map();
+const isProd = process.env.NODE_ENV === "production";
 
-if (process.env.USE_REDIS === "true") {
-  redis = new Redis({
-    host: process.env.REDIS_HOST || "127.0.0.1",
-    port: process.env.REDIS_PORT || 6379,
-  });
-
-  redis.on("connect", () => console.log("Redis connected"));
-  redis.on("error", (err) => console.error("Redis error:", err));
+function keyName(key) {
+  return `leetio:cache:${key}`;
 }
 
-// Get from cache
 export const getCache = async (key) => {
-  if (redis) {
-    const val = await redis.get(key);
-    return val ? JSON.parse(val) : null;
-  } else {
+  try {
+    if (redis) {
+      const val = await redis.get(keyName(key));
+      if (!val) return null;
+      try {
+        return JSON.parse(val);
+      } catch {
+        return null;
+      }
+    }
+
+    if (isProd) return null;
+
     const entry = memoryCache.get(key);
     if (!entry) return null;
-    const { value, expires } = entry;
-    if (Date.now() > expires) {
+    if (Date.now() > entry.expires) {
       memoryCache.delete(key);
       return null;
     }
-    return value;
+    return entry.value;
+  } catch {
+    return null;
   }
 };
 
-// Set in cache
 export const setCache = async (key, value, ttl = 300) => {
-  if (redis) {
-    await redis.set(key, JSON.stringify(value), "EX", ttl);
-  } else {
-    memoryCache.set(key, { value, expires: Date.now() + ttl * 1000 });
-  }
+  try {
+    if (redis) {
+      await redis.set(keyName(key), JSON.stringify(value), "EX", ttl);
+      return;
+    }
+
+    if (isProd) return;
+
+    memoryCache.set(key, {
+      value,
+      expires: Date.now() + ttl * 1000,
+    });
+  } catch {}
 };
