@@ -293,7 +293,7 @@ export const applyReferral = async (req, res) => {
       return res.json({ success: true, message: "Already applied" });
     }
 
-    // Queue signup event with 10-min delay
+    // Store signup event for cron-based delayed processing (10 minutes)
     const inviteeIp =
       req.ip || req.headers["x-forwarded-for"]?.split(",")[0]?.trim();
     const inviterIp = inviter.lastIp;
@@ -306,6 +306,7 @@ export const applyReferral = async (req, res) => {
           inviteeId,
           type: "signup",
           points: POINTS.signup,
+          processAfter: new Date(Date.now() + 10 * 60 * 1000),
           inviteeIp,
           inviterIp,
         },
@@ -313,29 +314,9 @@ export const applyReferral = async (req, res) => {
       { upsert: true, new: true },
     );
 
-    // Dispatch signup job — worker will re-check loginCount >= 2 + same-IP guard
-    await getReferralQueue().add(
-      "referral.signup",
-      {
-        inviterId: inviter._id.toString(),
-        inviteeId: inviteeId.toString(),
-        inviteeIp,
-        inviterIp,
-      },
-      {
-        delay: 10 * 60 * 1000, // 10-minute delay
-        jobId: `signup-${inviter._id}-${inviteeId}`,
-        attempts: 24,
-        backoff: { type: "fixed", delay: 5 * 60 * 1000 },
-      },
-    );
-
     res.json({ success: true, message: "Referral applied" });
   } catch (err) {
     logger.error("applyReferral error:", err);
-    if (err.message === "Referral queue is unavailable") {
-      return res.status(503).json({ error: "Referral service unavailable" });
-    }
     res.status(500).json({ error: "Failed to apply referral" });
   }
 };
@@ -589,23 +570,12 @@ export async function recordActiveDayEvent(userId) {
           inviteeId: userId,
           type: "active_next_day",
           points: POINTS.active_next_day,
+          processAfter: new Date(),
           inviteeIp: user.lastIp,
           inviterIp: inviter?.lastIp,
         },
       },
       { upsert: true, new: true },
-    );
-
-    await getReferralQueue().add(
-      "referral.active",
-      {
-        inviterId: inviterId.toString(),
-        inviteeId: userId.toString(),
-        points: POINTS.active_next_day,
-      },
-      {
-        jobId: `active-${inviterId}-${userId}`,
-      },
     );
   } catch (err) {
     logger.error("recordActiveDayEvent error:", err);

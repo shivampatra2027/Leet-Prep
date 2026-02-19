@@ -22,6 +22,7 @@ const ReferralEventSchema = new Schema(
     },
     points: { type: Number, required: true },
     processed: { type: Boolean, default: false, index: true },
+    processAfter: { type: Date, default: Date.now, index: true },
     inviteeIp: { type: String },
     inviterIp: { type: String },
     processedAt: { type: Date },
@@ -44,6 +45,8 @@ ReferralEventSchema.index(
   { inviterId: 1, inviteeId: 1, type: 1, processed: 1 },
   { partialFilterExpression: { processed: false } }
 );
+
+ReferralEventSchema.index({ processed: 1, rejected: 1, processAfter: 1 });
 
 ReferralEventSchema.index(
   { inviterId: 1, inviteeId: 1, type: 1, processed: 1, rejected: 1 }
