@@ -64,6 +64,11 @@ const POINTS_BADGE_MAP = {
   5000: "points_5000",
 };
 
+const REFERRAL_COUNTER_FIELD = {
+  signup: "referralSignupCount",
+  purchase: "referralPurchaseCount",
+};
+
 // ─── Helpers ────────────────────────────────────────────────────────────
 
 /**
@@ -109,29 +114,18 @@ export async function ensureReferralCode(userId) {
  * Award badges to inviter based on current totals.
  * Called after processing any referral event.
  */
-async function awardBadges(inviterId) {
-  const user = await User.findById(inviterId).select("badges referralPoints");
+async function awardBadges(user) {
   if (!user) return;
   const existing = new Set(user.badges.map((b) => b.type));
   const toAdd = [];
 
-  // Signup count badges
-  const signupCount = await ReferralEvent.countDocuments({
-    inviterId,
-    type: "signup",
-    processed: true,
-  });
+  const signupCount = user.referralSignupCount || 0;
   for (const milestone of SIGNUP_BADGE_MILESTONES) {
     const badge = SIGNUP_BADGE_MAP[milestone];
     if (signupCount >= milestone && !existing.has(badge)) toAdd.push(badge);
   }
 
-  // Purchase count badges
-  const purchaseCount = await ReferralEvent.countDocuments({
-    inviterId,
-    type: "purchase",
-    processed: true,
-  });
+  const purchaseCount = user.referralPurchaseCount || 0;
   for (const milestone of PURCHASE_BADGE_MILESTONES) {
     const badge = PURCHASE_BADGE_MAP[milestone];
     if (purchaseCount >= milestone && !existing.has(badge)) toAdd.push(badge);
@@ -145,7 +139,7 @@ async function awardBadges(inviterId) {
   }
 
   if (toAdd.length > 0) {
-    await User.findByIdAndUpdate(inviterId, {
+    await User.findByIdAndUpdate(user._id, {
       $push: {
         badges: {
           $each: toAdd.map((type) => ({ type, earnedAt: new Date() })),
@@ -153,6 +147,13 @@ async function awardBadges(inviterId) {
       },
     });
   }
+}
+
+function getReferralQueue() {
+  if (!referralQueue) {
+    throw new Error("Referral queue is unavailable");
+  }
+  return referralQueue;
 }
 
 // ─── Controllers ────────────────────────────────────────────────────────
@@ -167,7 +168,7 @@ export const getMyReferral = async (req, res) => {
     const userId = req.user._id;
 
     const user = await User.findById(userId).select(
-      "name referralCode referralPoints weeklyPoints badges loginCount prizeClaims",
+      "name referralCode referralPoints referralSignupCount referralPurchaseCount weeklyPoints badges loginCount prizeClaims",
     );
 
     // Not joined yet — return a lightweight response so the frontend shows the join CTA
@@ -181,24 +182,11 @@ export const getMyReferral = async (req, res) => {
     ).replace(/\/$/, "");
     const referralUrl = `${siteUrl}/r/${code}`;
 
-    // Lifetime stats
-    const [totalSignups, totalPurchases, pendingEvents] = await Promise.all([
-      ReferralEvent.countDocuments({
-        inviterId: userId,
-        type: "signup",
-        processed: true,
-      }),
-      ReferralEvent.countDocuments({
-        inviterId: userId,
-        type: "purchase",
-        processed: true,
-      }),
-      ReferralEvent.countDocuments({
-        inviterId: userId,
-        processed: false,
-        rejected: false,
-      }),
-    ]);
+    const pendingEvents = await ReferralEvent.countDocuments({
+      inviterId: userId,
+      processed: false,
+      rejected: false,
+    });
 
     // Recent referees (last 10)
     const recentEvents = await ReferralEvent.find({
@@ -214,8 +202,8 @@ export const getMyReferral = async (req, res) => {
       referralCode: code,
       referralUrl,
       stats: {
-        totalSignups,
-        totalPurchases,
+        totalSignups: user.referralSignupCount || 0,
+        totalPurchases: user.referralPurchaseCount || 0,
         pendingEvents,
         totalPoints: user.referralPoints,
         weeklyPoints: user.weeklyPoints,
@@ -298,7 +286,6 @@ export const applyReferral = async (req, res) => {
     await User.findByIdAndUpdate(inviteeId, { referredBy: inviter._id });
 
     // Queue signup event with 10-min delay
-    const processAfter = new Date(Date.now() + 10 * 60 * 1000);
     const inviteeIp =
       req.ip || req.headers["x-forwarded-for"]?.split(",")[0]?.trim();
     const inviterIp = inviter.lastIp;
@@ -306,52 +293,41 @@ export const applyReferral = async (req, res) => {
     await ReferralEvent.findOneAndUpdate(
       { inviterId: inviter._id, inviteeId, type: "signup" },
       {
-        inviterId: inviter._id,
-        inviteeId,
-        type: "signup",
-        points: POINTS.signup,
-        processed: false,
-        processAfter,
-        inviteeIp,
-        inviterIp,
+        $setOnInsert: {
+          inviterId: inviter._id,
+          inviteeId,
+          type: "signup",
+          points: POINTS.signup,
+          inviteeIp,
+          inviterIp,
+        },
       },
       { upsert: true, new: true },
     );
 
     // Dispatch signup job — worker will re-check loginCount >= 2 + same-IP guard
-    if (referralQueue) {
-      await referralQueue.add(
-        "referral.signup",
-        {
-          inviterId: inviter._id.toString(),
-          inviteeId: inviteeId.toString(),
-          inviteeIp,
-          inviterIp,
-        },
-        {
-          delay: 10 * 60 * 1000, // 10-minute delay
-          jobId: `signup-${inviter._id}-${inviteeId}`,
-        },
-      );
-    } else {
-      // Fallback (no Redis): process inline after basic eligibility check
-      const freshInvitee = await User.findById(inviteeId).select("loginCount");
-      if (
-        freshInvitee?.loginCount >= 2 &&
-        (!inviteeIp || !inviterIp || inviteeIp !== inviterIp)
-      ) {
-        await processEvent({
-          inviterId: inviter._id,
-          inviteeId,
-          type: "signup",
-          points: POINTS.signup,
-        });
-      }
-    }
+    await getReferralQueue().add(
+      "referral.signup",
+      {
+        inviterId: inviter._id.toString(),
+        inviteeId: inviteeId.toString(),
+        inviteeIp,
+        inviterIp,
+      },
+      {
+        delay: 10 * 60 * 1000, // 10-minute delay
+        jobId: `signup-${inviter._id}-${inviteeId}`,
+        attempts: 24,
+        backoff: { type: "fixed", delay: 5 * 60 * 1000 },
+      },
+    );
 
     res.json({ success: true, message: "Referral applied" });
   } catch (err) {
     logger.error("applyReferral error:", err);
+    if (err.message === "Referral queue is unavailable") {
+      return res.status(503).json({ error: "Referral service unavailable" });
+    }
     res.status(500).json({ error: "Failed to apply referral" });
   }
 };
@@ -515,25 +491,29 @@ export async function recordPurchaseEvent(userId) {
     await ReferralEvent.findOneAndUpdate(
       { inviterId, inviteeId: userId, type: "purchase" },
       {
-        inviterId,
-        inviteeId: userId,
-        type: "purchase",
-        points: POINTS.purchase,
-        processed: false,
-        processAfter: new Date(), // purchase events process immediately
-        inviteeIp: user.lastIp,
-        inviterIp: inviter?.lastIp,
+        $setOnInsert: {
+          inviterId,
+          inviteeId: userId,
+          type: "purchase",
+          points: POINTS.purchase,
+          inviteeIp: user.lastIp,
+          inviterIp: inviter?.lastIp,
+        },
       },
       { upsert: true, new: true },
     );
 
-    // Process immediately
-    await processEvent({
-      inviterId,
-      inviteeId: userId,
-      type: "purchase",
-      points: POINTS.purchase,
-    });
+    await getReferralQueue().add(
+      "referral.purchase",
+      {
+        inviterId: inviterId.toString(),
+        inviteeId: userId.toString(),
+        points: POINTS.purchase,
+      },
+      {
+        jobId: `purchase-${inviterId}-${userId}`,
+      },
+    );
   } catch (err) {
     logger.error("recordPurchaseEvent error:", err);
   }
@@ -564,41 +544,74 @@ export async function recordActiveDayEvent(userId) {
     await ReferralEvent.findOneAndUpdate(
       { inviterId, inviteeId: userId, type: "active_next_day" },
       {
-        inviterId,
-        inviteeId: userId,
-        type: "active_next_day",
-        points: POINTS.active_next_day,
-        processed: false,
-        processAfter: new Date(),
-        inviteeIp: user.lastIp,
-        inviterIp: inviter?.lastIp,
+        $setOnInsert: {
+          inviterId,
+          inviteeId: userId,
+          type: "active_next_day",
+          points: POINTS.active_next_day,
+          inviteeIp: user.lastIp,
+          inviterIp: inviter?.lastIp,
+        },
       },
       { upsert: true, new: true },
     );
 
-    await processEvent({
-      inviterId,
-      inviteeId: userId,
-      type: "active_next_day",
-      points: POINTS.active_next_day,
-    });
+    await getReferralQueue().add(
+      "referral.active",
+      {
+        inviterId: inviterId.toString(),
+        inviteeId: userId.toString(),
+        points: POINTS.active_next_day,
+      },
+      {
+        jobId: `active-${inviterId}-${userId}`,
+      },
+    );
   } catch (err) {
     logger.error("recordActiveDayEvent error:", err);
   }
 }
 
 /**
- * Internal: process a single pending event — credit points + badges.
- * Can be called directly or by the cron job.
+ * Internal: process a single pending event in worker context.
  */
 export async function processEvent({ inviterId, inviteeId, type, points }) {
-  await User.findByIdAndUpdate(inviterId, {
-    $inc: { referralPoints: points, weeklyPoints: points },
-  });
-  await ReferralEvent.findOneAndUpdate(
-    { inviterId, inviteeId, type },
+  const event = await ReferralEvent.findOneAndUpdate(
+    {
+      inviterId,
+      inviteeId,
+      type,
+      processed: false,
+      rejected: false,
+    },
     { processed: true, processedAt: new Date() },
+    { new: true },
   );
-  await awardBadges(inviterId);
-  logger.info(`Referral event processed: ${type} +${points}pts → ${inviterId}`);
+
+  if (!event) {
+    logger.info(
+      `Referral event skipped (already handled): ${type} inviter=${inviterId} invitee=${inviteeId}`,
+    );
+    return;
+  }
+
+  const inc = { referralPoints: points, weeklyPoints: points };
+  const counterField = REFERRAL_COUNTER_FIELD[type];
+  if (counterField) {
+    inc[counterField] = 1;
+  }
+
+  const inviter = await User.findByIdAndUpdate(
+    inviterId,
+    { $inc: inc },
+    {
+      new: true,
+      select:
+        "_id badges referralPoints referralSignupCount referralPurchaseCount",
+    },
+  );
+
+  await awardBadges(inviter);
+  logger.info(`Referral event processed: ${type} +${points}pts -> ${inviterId}`);
 }
+

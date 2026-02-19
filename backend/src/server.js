@@ -17,7 +17,7 @@ import resumeRoutes from "./routes/resumeRoutes.js";
 import contestRoutes from "./routes/contestRoutes.js";
 import referralRoutes from "./routes/referralRoutes.js";
 import "./jobs/contestJob.js"; // Start contest cron job
-import "./jobs/referralJob.js"; // Start referral cron job / BullMQ fallback
+import "./jobs/referralJob.js"; // Start referral weekly reset cron job
 import { startWorkers } from "./workers/index.js"; // BullMQ workers
 dotenv.config();
 configureGoogleStrategy();

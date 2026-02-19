@@ -12,7 +12,7 @@
  *
  * Job types handled (referral queue):
  *   - referral.signup     { inviterId, inviteeId, inviteeIp, inviterIp }
- *   - referral.active_day { inviterId, inviteeId }
+ *   - referral.active     { inviterId, inviteeId }
  *   - referral.purchase   { inviterId, inviteeId }
  */
 import { Worker } from "bullmq";
@@ -67,8 +67,8 @@ async function handleReferralJob(job) {
     return;
   }
 
-  // ── referral.active_day ──────────────────────────────────────────────
-  if (name === "referral.active_day") {
+  // ── referral.active ──────────────────────────────────────────────────
+  if (name === "referral.active") {
     const { inviterId, inviteeId } = data;
     await processEvent({
       inviterId,

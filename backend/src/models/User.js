@@ -63,6 +63,8 @@ const UserSchema = new Schema(
     referralCode: { type: String, unique: true, sparse: true, index: true },
     referredBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
     referralPoints: { type: Number, default: 0 },
+    referralSignupCount: { type: Number, default: 0 },
+    referralPurchaseCount: { type: Number, default: 0 },
     weeklyPoints: { type: Number, default: 0 },
     weeklyPointsResetAt: { type: Date, default: Date.now },
     // Login tracking for anti-abuse ("2nd login" rule) and active_next_day reward

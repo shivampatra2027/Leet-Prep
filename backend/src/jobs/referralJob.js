@@ -2,8 +2,7 @@
  * referralJob.js
  *
  * node-cron handles the weekly referral points reset (zero Redis ops).
- * Signup / active_day / purchase events are handled by BullMQ when Redis is
- * available, or inline when it isn't.
+ * Signup / active / purchase events are handled by BullMQ workers.
  *
  * Premium expiry is handled entirely by authMiddleware.js — no cron needed.
  */

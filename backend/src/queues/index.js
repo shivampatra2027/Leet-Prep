@@ -2,8 +2,7 @@
  * BullMQ queue definitions.
  *
  * Queues are only created when Redis is available (REDIS_URL set or USE_REDIS=true).
- * If Redis is absent the exports are null and every caller falls back
- * to direct / inline execution — so the app keeps working without Redis.
+ * If Redis is absent the exports are null and queue-driven features should fail fast.
  */
 import { Queue } from "bullmq";
 import IORedis from "ioredis";
@@ -75,7 +74,5 @@ export const queuesEnabled = !!connectionConfig;
 if (queuesEnabled) {
   logger.info("[queues] BullMQ queues initialised (Redis enabled).");
 } else {
-  logger.info(
-    "[queues] Redis not configured — running jobs inline (no queue).",
-  );
+  logger.warn("[queues] Redis not configured; referral queue is disabled.");
 }

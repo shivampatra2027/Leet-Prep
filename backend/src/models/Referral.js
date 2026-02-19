@@ -3,7 +3,7 @@ const { Schema } = mongoose;
 
 /**
  * ReferralEvent — one row per reward event.
- * Events start as pending and are processed by the cron job after anti-abuse checks pass.
+ * Events are created by API flows and processed by BullMQ workers.
  */
 const ReferralEventSchema = new Schema(
   {
@@ -26,8 +26,6 @@ const ReferralEventSchema = new Schema(
     },
     points: { type: Number, required: true },
     processed: { type: Boolean, default: false, index: true },
-    // Anti-abuse: don't process before this time (10-min signup delay)
-    processAfter: { type: Date, default: Date.now },
     // Anti-abuse: reject if invitee signed up from the same IP as inviter
     inviteeIp: { type: String },
     inviterIp: { type: String },
