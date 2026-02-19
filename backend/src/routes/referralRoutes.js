@@ -2,6 +2,7 @@ import express from "express";
 import { protect } from "../middlewares/authMiddleware.js";
 import {
   getMyReferral,
+  joinReferral,
   applyReferral,
   getLeaderboard,
   redeemPoints,
@@ -14,6 +15,7 @@ router.get("/leaderboard", getLeaderboard);
 
 // Protected
 router.get("/me", protect, getMyReferral);
+router.post("/join", protect, joinReferral); // explicit opt-in
 router.post("/apply", protect, applyReferral);
 router.post("/redeem", protect, redeemPoints);
 

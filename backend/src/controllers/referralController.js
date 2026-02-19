@@ -159,18 +159,22 @@ async function awardBadges(inviterId) {
 /**
  * GET /api/referral/me
  * Return current user's referral stats, code, link, badges.
+ * If user has never joined, return { joined: false } without creating anything.
  */
 export const getMyReferral = async (req, res) => {
   try {
     const userId = req.user._id;
 
-    // Ensure code exists
-    const code = await ensureReferralCode(userId);
-
     const user = await User.findById(userId).select(
       "name referralCode referralPoints weeklyPoints badges loginCount prizeClaims",
     );
 
+    // Not joined yet — return a lightweight response so the frontend shows the join CTA
+    if (!user?.referralCode) {
+      return res.json({ joined: false });
+    }
+
+    const code = user.referralCode;
     const siteUrl = (
       process.env.CORS_ORIGIN || "https://leetcodepremium.xyz"
     ).replace(/\/$/, "");
@@ -225,10 +229,35 @@ export const getMyReferral = async (req, res) => {
       })),
       redemptionTiers: REDEMPTION_TIERS,
       prizeClaims: user.prizeClaims || [],
+      joined: true,
     });
   } catch (err) {
     logger.error("getMyReferral error:", err);
     res.status(500).json({ error: "Failed to fetch referral data" });
+  }
+};
+
+/**
+ * POST /api/referral/join
+ * Explicitly enroll: generates a referral code for the user on demand.
+ * Idempotent — safe to call more than once.
+ */
+export const joinReferral = async (req, res) => {
+  try {
+    const code = await ensureReferralCode(req.user._id);
+    const user = await User.findById(req.user._id).select("name");
+    const siteUrl = (
+      process.env.CORS_ORIGIN || "https://leetcodepremium.xyz"
+    ).replace(/\/$/, "");
+    res.json({
+      success: true,
+      referralCode: code,
+      referralUrl: `${siteUrl}/r/${code}`,
+      name: user?.name,
+    });
+  } catch (err) {
+    logger.error("joinReferral error:", err);
+    res.status(500).json({ error: "Failed to create referral code" });
   }
 };
 

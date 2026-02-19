@@ -404,6 +404,86 @@ export default function Home() {
           </div>
         </section>
 
+        {/* ── Referral / Prizes Section ─────────────────────────────────── */}
+        <section className="py-20 lg:py-28 overflow-hidden">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10">
+            {/* header */}
+            <div className="text-center mb-14 space-y-4">
+              <div className="inline-flex items-center gap-2 rounded-full bg-yellow-500/10 border border-yellow-500/25 px-4 py-1.5 text-sm font-medium text-yellow-600 dark:text-yellow-400">
+                🎁 Referral Program — Free for Everyone
+              </div>
+              <h2 className="text-3xl md:text-5xl font-display leading-tight">
+                Refer friends.<br className="hidden sm:block" /> Win real prizes.
+              </h2>
+              <p className="text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed">
+                Share your link with one click — no credit card, no catch.<br />
+                Earn points every time a friend joins or goes Premium.
+              </p>
+            </div>
+
+            {/* prize cards */}
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-2 max-w-3xl mx-auto mb-14">
+              {/* iPhone 17 */}
+              <div className="relative rounded-3xl border-2 border-yellow-500/30 bg-gradient-to-br from-yellow-500/5 to-background p-6 flex flex-col items-center gap-4 shadow-sm hover:-translate-y-1 transition-transform">
+                <span className="absolute top-4 right-4 text-[10px] font-bold rounded-full bg-yellow-500/20 border border-yellow-500/30 text-yellow-600 dark:text-yellow-400 px-2.5 py-0.5 uppercase tracking-wide">10,000 pts</span>
+                <div className="h-44 w-full flex items-center justify-center rounded-xl overflow-hidden bg-muted/20 p-3">
+                  <img src="/iphone17.jpg" alt="iPhone 17" className="h-full object-contain" onError={(e) => { e.currentTarget.style.display="none"; }} />
+                </div>
+                <div className="text-center">
+                  <p className="font-bold text-lg">Apple iPhone 17</p>
+                  <p className="text-sm text-muted-foreground mt-0.5">128 GB · Latest model</p>
+                </div>
+              </div>
+
+              {/* MacBook Air */}
+              <div className="relative rounded-3xl border-2 border-purple-500/30 bg-gradient-to-br from-purple-500/5 to-background p-6 flex flex-col items-center gap-4 shadow-sm hover:-translate-y-1 transition-transform">
+                <span className="absolute top-4 right-4 text-[10px] font-bold rounded-full bg-purple-500/20 border border-purple-500/30 text-purple-600 dark:text-purple-400 px-2.5 py-0.5 uppercase tracking-wide">20,000 pts</span>
+                <div className="h-44 w-full flex items-center justify-center rounded-xl overflow-hidden bg-muted/20 p-3">
+                  <img src="/macbookair.jpg" alt="MacBook Air M2" className="h-full object-contain" onError={(e) => { e.currentTarget.style.display="none"; }} />
+                </div>
+                <div className="text-center">
+                  <p className="font-bold text-lg">MacBook Air M2</p>
+                  <p className="text-sm text-muted-foreground mt-0.5">8 GB RAM · 256 GB SSD</p>
+                </div>
+              </div>
+            </div>
+
+            {/* how it works — 3 steps */}
+            <div className="grid gap-4 sm:grid-cols-3 max-w-3xl mx-auto mb-12">
+              {[
+                { step: "1", icon: "🔗", title: "Get your link", desc: "Sign up free — your unique referral link is instant." },
+                { step: "2", icon: "📤", title: "Share in one click", desc: "WhatsApp, Telegram, Twitter — one tap, pre-filled message." },
+                { step: "3", icon: "🏆", title: "Win prizes", desc: "Earn points for every signup and premium conversion." },
+              ].map((s) => (
+                <div key={s.step} className="rounded-2xl border bg-card/60 p-5 flex flex-col gap-2 text-center">
+                  <span className="text-3xl">{s.icon}</span>
+                  <p className="font-semibold text-sm">{s.title}</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{s.desc}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* pills */}
+            <div className="flex flex-wrap justify-center gap-3 mb-10">
+              {["No credit card required", "Free for everyone", "Instant link", "Real prizes shipped to you", "Weekly leaderboard"].map((pill) => (
+                <span key={pill} className="inline-flex items-center gap-1.5 rounded-full border bg-card/50 px-4 py-1.5 text-xs font-medium text-muted-foreground">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />
+                  {pill}
+                </span>
+              ))}
+            </div>
+
+            <div className="flex justify-center">
+              <Link
+                to="/login"
+                className="inline-flex items-center gap-2 px-8 py-4 text-base font-semibold text-primary-foreground bg-primary rounded-xl shadow-glow hover:-translate-y-0.5 transition-transform"
+              >
+                Join &amp; start referring <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
+        </section>
+
         {/* CTA Section */}
         <section className="py-16 lg:py-20">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-10">

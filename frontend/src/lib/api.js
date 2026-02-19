@@ -91,6 +91,7 @@ export const premiumAPI = {
 
 export const referralAPI = {
   getMe: () => api.get("/api/referral/me"),
+  join: () => api.post("/api/referral/join"),
   apply: (code) => api.post("/api/referral/apply", { code }),
   getLeaderboard: () => api.get("/api/referral/leaderboard"),
   redeem: (tierId) => api.post("/api/referral/redeem", { tierId }),

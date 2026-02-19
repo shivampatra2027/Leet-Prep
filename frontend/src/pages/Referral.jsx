@@ -59,6 +59,7 @@ export default function Referral() {
   const [data, setData] = useState(null);
   const [leaderboard, setLeaderboard] = useState({ weekly: [], allTime: [] });
   const [loading, setLoading] = useState(true);
+  const [joining, setJoining] = useState(false);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("overview"); // overview | leaderboard
   const [redeemStatus, setRedeemStatus] = useState({});
@@ -77,6 +78,19 @@ export default function Referral() {
       setLoading(false);
     }
   }, []);
+
+  const handleJoin = async () => {
+    setJoining(true);
+    try {
+      await referralAPI.join();
+      // Re-fetch full data now that code exists
+      setLoading(true);
+      await fetchData();
+    } catch (err) {
+      setError(err.response?.data?.error || "Failed to join referral program");
+      setJoining(false);
+    }
+  };
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -117,6 +131,70 @@ export default function Referral() {
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
         <div className="flex-1 flex items-center justify-center text-muted-foreground">{error}</div>
+      </div>
+    );
+  }
+
+  // User hasn't joined the referral program yet — show opt-in screen
+  if (data?.joined === false) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Navbar />
+        <main className="flex-1 flex items-center justify-center px-4">
+          <div className="max-w-lg w-full text-center flex flex-col items-center gap-8">
+            {/* Prize preview */}
+            <div className="flex items-end justify-center gap-3">
+              <div className="rounded-2xl border bg-card/60 p-3 shadow-sm rotate-[-4deg] w-28">
+                <img src="/iphone17.jpg" alt="iPhone 17" className="w-full h-28 object-contain" />
+                <p className="text-xs font-semibold text-center mt-1">iPhone 17</p>
+              </div>
+              <div className="rounded-2xl border-2 border-yellow-500/40 bg-yellow-500/5 p-3 shadow-lg z-10 w-36">
+                <img src="/macbookair.jpg" alt="MacBook Air" className="w-full h-32 object-contain" />
+                <p className="text-xs font-semibold text-center mt-1">MacBook Air M2</p>
+              </div>
+              <div className="rounded-2xl border bg-card/60 p-3 shadow-sm rotate-[4deg] w-28">
+                <img src="/galaxywatch8.jpg" alt="Galaxy Watch 8" className="w-full h-28 object-contain" />
+                <p className="text-xs font-semibold text-center mt-1">Galaxy Watch 8</p>
+              </div>
+            </div>
+
+            {/* Headline */}
+            <div className="space-y-3">
+              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
+                Win real prizes.<br />Just by sharing.
+              </h1>
+              <p className="text-muted-foreground leading-relaxed">
+                Invite friends to Leet-Prep. Earn points for every signup and premium conversion.
+                Redeem for iPhone 17, MacBook Air, Galaxy Watch — or premium days.
+              </p>
+            </div>
+
+            {/* Trust pills */}
+            <div className="flex flex-wrap justify-center gap-2">
+              {["Free for everyone", "No credit card", "One click to share", "Real prizes shipped"].map((p) => (
+                <span key={p} className="inline-flex items-center gap-1.5 rounded-full border bg-card/50 px-3 py-1 text-xs text-muted-foreground">
+                  <Check className="h-3 w-3 text-green-500" /> {p}
+                </span>
+              ))}
+            </div>
+
+            {/* CTA */}
+            <button
+              onClick={handleJoin}
+              disabled={joining}
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-primary text-primary-foreground font-semibold text-base shadow-lg hover:-translate-y-0.5 transition-transform disabled:opacity-60 disabled:cursor-wait"
+            >
+              {joining ? (
+                <><span className="h-4 w-4 rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground animate-spin" /> Activating…</>
+              ) : (
+                <><Gift className="h-5 w-5" /> Join the Referral Program</>
+              )}
+            </button>
+            <p className="text-xs text-muted-foreground -mt-4">
+              Your unique referral link is generated instantly.
+            </p>
+          </div>
+        </main>
       </div>
     );
   }
