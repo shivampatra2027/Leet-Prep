@@ -27,7 +27,8 @@ async function updateContests() {
     const [lc, cf, cc, ac] = await Promise.allSettled([
       withTimeout(getLeetCode(), 15000),
       withTimeout(getCodeforces(), 15000),
-      withTimeout(getCodeChef(), 15000),
+      // CodeChef can be slow; allow a bit more time to survive retries.
+      withTimeout(getCodeChef(), 25000),
       withTimeout(getAtCoder(), 15000),
     ]);
 

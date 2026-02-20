@@ -1,15 +1,41 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
 
+const CODECHEF_URL = "https://www.codechef.com/contests";
+const MAX_RETRIES = 2;
+
+// Retry on timeouts/5xx because CodeChef occasionally stalls behind Cloudflare.
+async function fetchWithRetry() {
+  let lastError;
+
+  for (let attempt = 1; attempt <= MAX_RETRIES + 1; attempt++) {
+    try {
+      return await axios.get(CODECHEF_URL, {
+        timeout: 15000,
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        },
+      });
+    } catch (error) {
+      lastError = error;
+      const isTimeout = error.code === "ECONNABORTED";
+      const is5xx = error.response && error.response.status >= 500;
+
+      if (!isTimeout && !is5xx) break;
+      if (attempt > MAX_RETRIES) break;
+
+      // backoff before retrying
+      await new Promise((resolve) => setTimeout(resolve, attempt * 2000));
+    }
+  }
+
+  throw lastError;
+}
+
 async function getCodeChefContests() {
   try {
-    const res = await axios.get("https://www.codechef.com/contests", {
-      timeout: 10000,
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-      },
-    });
+    const res = await fetchWithRetry();
 
     const $ = cheerio.load(res.data);
     const contests = [];

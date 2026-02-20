@@ -5,10 +5,12 @@ const apiKey = process.env.GOOGLE_GENAI_API_KEY;
 let geminiModel = null;
 let initializing = null;
 
+// Ordered by availability + cost. Use stable aliases that work with v1beta.
 const MODEL_PRIORITY = [
-  "gemini-2.0-flash",
-  "gemini-1.5-flash",
-  "gemini-1.5-pro",
+  "gemini-2.0-flash",          // fastest + cheapest, preferred if quota exists
+  "gemini-1.5-flash-latest",   // legacy alias that maps to latest 1.5 Flash
+  "gemini-1.5-pro-latest",     // higher quality fallback
+  "gemini-1.0-pro",            // last-resort baseline model
 ];
 
 async function initModel() {
@@ -29,7 +31,14 @@ async function initModel() {
       console.log(`Gemini model initialized: ${id}`);
       return model;
     } catch (err) {
-      console.warn(`Model ${id} unavailable:`, err.message);
+      // Reduce noise: brief reason only.
+      const status = err.status ?? err.response?.status ?? err.code ?? "unknown";
+      console.warn(`Model ${id} unavailable (status ${status}): ${err.message}`);
+
+      // If quota is exhausted, no other models will work with this key; stop early.
+      if (String(err.message || "").includes("quota") || status === 429) {
+        break;
+      }
     }
   }
 
