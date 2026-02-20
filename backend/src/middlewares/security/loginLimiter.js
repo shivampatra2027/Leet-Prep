@@ -11,9 +11,9 @@ import {
 const WINDOW_MS = 15 * 60 * 1000;
 const BLOCK_MS = 15 * 60 * 1000;
 
-const DELAY_THRESHOLD = 5;
-const CAPTCHA_THRESHOLD = 10;
-const BLOCK_THRESHOLD = 20;
+const DELAY_THRESHOLD = 15;
+const CAPTCHA_THRESHOLD = 20;
+const BLOCK_THRESHOLD = 30;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -106,3 +106,4 @@ export async function clearLoginFailures(email) {
     logger.error("[security:login] clear failures error:", err.message);
   }
 }
+
