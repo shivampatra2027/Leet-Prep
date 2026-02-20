@@ -59,6 +59,13 @@ const UserSchema = new Schema(
     subscriptionEndDate: { type: Date },
     premiumExpiresAt: { type: Date },
 
+    // AI quota fields
+    aiCredits: { type: Number, default: 100 },
+    aiCreditsResetAt: { type: Date, default: Date.now },
+    aiLastRequestAt: { type: Date },
+    aiHeavyUsedToday: { type: Number, default: 0 },
+    aiRecentHashes: [{ type: String }],
+
     // ── Referral system ─────────────────────────────────────────────────────
     referralCode: { type: String, unique: true, sparse: true, index: true },
     referredBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
@@ -152,3 +159,4 @@ UserSchema.methods.upsertAttempt = function (attemptObj) {
 
 const User = mongoose.models.User || mongoose.model("User", UserSchema);
 export default User;
+

@@ -16,11 +16,14 @@ export default function ResumeAnalyzer() {
   const [fileName, setFileName] = useState("");
   const [fileBlob, setFileBlob] = useState(null);
   const [error, setError] = useState(null);
+  const [quotaInfo, setQuotaInfo] = useState(null);
+  const [cacheHit, setCacheHit] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setError(null);
     setAnalysis(null);
+    setCacheHit(false);
 
     const formData = new FormData();
     if (resumeText.trim()) formData.append("text", resumeText.trim());
@@ -37,12 +40,15 @@ export default function ResumeAnalyzer() {
       .then((res) => {
         if (res.data?.ok) {
           setAnalysis(res.data);
+          setQuotaInfo(res.data?.quota || null);
+          setCacheHit(Boolean(res.data?.cacheHit));
         } else {
           setError(res.data?.message || "Analysis failed");
         }
       })
       .catch((err) => {
         setError(err.response?.data?.message || "Analysis failed");
+        if (err.response?.data?.quota) setQuotaInfo(err.response.data.quota);
       })
       .finally(() => setLoading(false));
   };
@@ -86,7 +92,6 @@ export default function ResumeAnalyzer() {
                     rows={10}
                     placeholder="Paste your resume here (Summary, Experience, Projects, Skills)..."
                     className="bg-background"
-                    required
                   />
                   <div className="flex flex-col sm:flex-row gap-3">
                     <label className="flex-1">
@@ -112,6 +117,13 @@ export default function ResumeAnalyzer() {
                     </Button>
                   </div>
                   {error && <p className="text-sm text-destructive">{error}</p>}
+                  {quotaInfo && (
+                    <p className="text-xs text-muted-foreground">
+                      {quotaInfo.remainingCredits ?? 0} AI credits left today
+                      {quotaInfo.nextResetAt ? ` • resets ${new Date(quotaInfo.nextResetAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : ""}
+                      {cacheHit ? " • cached result (no credits used)" : ""}
+                    </p>
+                  )}
                   <p className="text-xs text-muted-foreground">
                     Tip: Paste text for fastest results; PDF/DOCX parsing is supported server-side.
                   </p>
@@ -182,7 +194,7 @@ export default function ResumeAnalyzer() {
                   </div>
                   <div className="rounded-lg border bg-muted/40 p-3">
                     <p className="text-sm font-semibold text-foreground mb-2">ATS score</p>
-                    <div className="text-3xl font-bold text-primary">{analysis.atsScore}/100</div>
+                    <div className="text-3xl font-bold text-primary">{analysis.score}/100</div>
                     <p className="text-xs text-muted-foreground">Est. alignment with typical JD keywords.</p>
                   </div>
                 </div>
@@ -287,3 +299,5 @@ export default function ResumeAnalyzer() {
     </>
   );
 }
+
+
