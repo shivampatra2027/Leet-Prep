@@ -18,6 +18,8 @@ import contestRoutes from "./routes/contestRoutes.js";
 import referralRoutes from "./routes/referralRoutes.js";
 import "./jobs/contestJob.js"; // Start contest cron job
 import "./jobs/referralJob.js"; // Start referral weekly reset cron job
+import floodLimiter from "./middlewares/security/floodLimiter.js";
+import behaviorDetector from "./middlewares/security/behaviorDetector.js";
 dotenv.config();
 configureGoogleStrategy();
 
@@ -105,6 +107,11 @@ app.use(helmet());
 app.get("/health", (req, res) => {
   res.status(200).send("OK");
 });
+
+// Layered API protection:
+// - behavior detector (burst) + flood limiter
+// - webhook is explicitly bypassed inside both middlewares
+app.use("/api", behaviorDetector(), floodLimiter());
 
 // Routes
 app.use("/api/problems", problemRoutes);

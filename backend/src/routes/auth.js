@@ -8,6 +8,12 @@ import {
   verifyAccessToken,
   verifyRefreshToken,
 } from "../utils/jwt.js";
+import floodLimiter from "../middlewares/security/floodLimiter.js";
+import {
+  clearLoginFailures,
+  preLoginCheck,
+  recordLoginFailure,
+} from "../middlewares/security/loginLimiter.js";
 
 const router = express.Router();
 const REFRESH_COOKIE = "refreshToken";
@@ -29,6 +35,9 @@ function issueTokens(res, user) {
   res.cookie(REFRESH_COOKIE, refresh, getRefreshCookieOptions());
   return access;
 }
+
+// OAuth routes: only relaxed flood protection.
+router.use(["/google", "/google/callback"], floodLimiter());
 
 router.post("/signup", async (req, res) => {
   try {
@@ -78,14 +87,21 @@ router.post("/signup", async (req, res) => {
   }
 });
 
-router.post("/login", async (req, res) => {
+router.post("/login", preLoginCheck, async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
-  if (!user) return res.status(401).json({ error: "Invalid credentials" });
+  if (!user) {
+    await recordLoginFailure(email);
+    return res.status(401).json({ error: "Invalid credentials" });
+  }
 
   const valid = await bcrypt.compare(password, user.passwordHash);
-  if (!valid) return res.status(401).json({ error: "Invalid credentials" });
+  if (!valid) {
+    await recordLoginFailure(email);
+    return res.status(401).json({ error: "Invalid credentials" });
+  }
 
+  await clearLoginFailures(email);
   const access = issueTokens(res, user);
   res.json({ access });
 });
