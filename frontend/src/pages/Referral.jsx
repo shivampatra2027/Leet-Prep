@@ -18,6 +18,8 @@ const BADGE_META = {
 };
 
 const SITE_URL = import.meta.env.VITE_SITE_URL || "https://leetcodepremium.xyz";
+const REFERRAL_REFRESH_NOTE =
+  "Referral rewards are processed in background and can take up to 30 minutes to appear.";
 
 // Product images for physical prizes (keyed by prize id)
 const PRIZE_IMAGES = {
@@ -168,6 +170,9 @@ export default function Referral() {
               <p className="text-muted-foreground text-lg leading-relaxed mb-8">
                 Share your link, earn points, unlock free premium days.
               </p>
+              <div className="mx-auto mb-8 max-w-2xl rounded-xl border border-blue-500/30 bg-blue-500/10 px-4 py-3 text-sm text-blue-700 dark:text-blue-300">
+                {REFERRAL_REFRESH_NOTE}
+              </div>
 
               {/* Join button */}
               <div className="flex flex-col items-center gap-3">
@@ -264,6 +269,9 @@ export default function Referral() {
             <p className="text-muted-foreground text-lg leading-relaxed">
               Share your link, earn points, unlock free premium days.
             </p>
+            <div className="mx-auto mt-5 max-w-2xl rounded-xl border border-blue-500/30 bg-blue-500/10 px-4 py-3 text-sm text-blue-700 dark:text-blue-300">
+              {REFERRAL_REFRESH_NOTE}
+            </div>
           </div>
         </section>
 

@@ -121,5 +121,7 @@ async function processPendingReferralEvents() {
   }
 }
 
-cron.schedule("* * * * *", processPendingReferralEvents, { timezone: "UTC" });
-logger.info("[referralJob] Pending referral cron scheduled (every minute).");
+cron.schedule("*/30 * * * *", processPendingReferralEvents, {
+  timezone: "UTC",
+});
+logger.info("[referralJob] Pending referral cron scheduled (every 30 minutes).");
