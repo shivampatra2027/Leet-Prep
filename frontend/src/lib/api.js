@@ -141,9 +141,8 @@ export const profileAPI = {
 
 export const resumeAPI = {
   analyze: (formData) =>
-    api.post("/api/resume/analyze", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    }),
+    // Let the browser set the multipart boundary; overriding Content-Type breaks file parsing.
+    api.post("/api/resume/analyze", formData),
 };
 
 export const paymentAPI = {
