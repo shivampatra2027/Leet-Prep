@@ -1,7 +1,7 @@
 import axios from "axios";
 
 function resolveApiBaseUrl() {
-  const envUrl = import.meta.env.VITE_API_URL;
+  const envUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL;
 
   if (typeof window !== "undefined") {
     const host = window.location.hostname;
@@ -11,7 +11,7 @@ function resolveApiBaseUrl() {
     }
   }
 
-  return envUrl || "http://localhost:8080";
+  return envUrl || "https://leet-io-backend.onrender.com";
 }
 
 const API_BASE_URL = resolveApiBaseUrl();

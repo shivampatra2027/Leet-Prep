@@ -13,13 +13,14 @@ const router = express.Router();
 const REFRESH_COOKIE = "refreshToken";
 
 function getRefreshCookieOptions() {
-  const isProd = process.env.NODE_ENV === "production";
+  const isLocalEnv = process.env.NODE_ENV === "development";
+  const secure = !isLocalEnv;
   return {
     httpOnly: true,
-    secure: isProd,
-    sameSite: isProd ? "none" : "lax",
+    secure,
+    sameSite: secure ? "none" : "lax",
     maxAge: 30 * 24 * 60 * 60 * 1000,
-    path: "/auth",
+    path: "/",
   };
 }
 

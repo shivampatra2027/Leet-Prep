@@ -38,6 +38,8 @@ const allowedOrigins = [
   process.env.CORS_ORIGIN,
   // Frontend URLs
   "https://leet-io-frontend.onrender.com",
+  "https://leet-io.vercel.app",
+  "https://www.leet-io.vercel.app",
   "https://leet-prep.vercel.app",
   "https://www.leetcodepremium.xyz",
   "https://leetcodepremium.xyz",
@@ -76,6 +78,11 @@ app.use(
     maxAge: 86400,
   }),
 );
+
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Credentials", "true");
+  next();
+});
 
 // app.use(session({
 //     secret: process.env.JWT_SECRET || "supersecret",
