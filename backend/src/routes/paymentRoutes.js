@@ -8,14 +8,14 @@ import {
   getPaymentHistory,
   handleWebhook,
 } from "../controllers/paymentController.js";
-import paymentVerifyLimiter from "../middlewares/security/paymentLimiter.js";
+import { pollingLimiter, strictLimiter } from "../middlewares/rateLimiters.js";
 
 const router = express.Router();
 
 // One-Time Payment Routes (Protected)
 router.post("/create-order", protect, createOrder);
-router.post("/verify", protect, paymentVerifyLimiter(), verifyPayment);
-router.get("/status/:orderId", protect, getPaymentStatus);
+router.post("/verify", protect, strictLimiter, verifyPayment);
+router.get("/status/:orderId", protect, pollingLimiter, getPaymentStatus);
 router.post("/refund", protect, processRefund);
 router.get("/history", protect, getPaymentHistory);
 
