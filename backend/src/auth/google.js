@@ -19,12 +19,20 @@ import User from "../models/User.js";
  */
 
 export function configureGoogleStrategy() {
+  const isProd = process.env.NODE_ENV === "production";
+  const apiPublicUrl = (process.env.API_PUBLIC_URL || "").replace(/\/$/, "");
+  const fallbackCallbackUrl = "http://localhost:8080/auth/google/callback";
+  const callbackURL =
+    isProd && apiPublicUrl
+      ? `${apiPublicUrl}/auth/google/callback`
+      : process.env.GOOGLE_CALLBACK_URL || fallbackCallbackUrl;
+
   passport.use(
     new GoogleStrategy(
       {
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: process.env.GOOGLE_CALLBACK_URL,
+        callbackURL,
       },
       async (accessToken, refreshToken, profile, done) => {
         try {
