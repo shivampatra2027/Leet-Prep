@@ -7,7 +7,10 @@ import App from './App.jsx'
 import axios from 'axios';
 axios.defaults.withCredentials = true;
 
-axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL || 'https://leet-io-backend.onrender.com';
+axios.defaults.baseURL =
+  import.meta.env.VITE_API_URL ||
+  import.meta.env.VITE_BACKEND_URL ||
+  "https://api.leetcodepremium.xyz";
 axios.interceptors.response.use(
   (response) => response,
   (error) => {

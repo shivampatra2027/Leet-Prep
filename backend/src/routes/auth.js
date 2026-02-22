@@ -13,12 +13,11 @@ const router = express.Router();
 const REFRESH_COOKIE = "refreshToken";
 
 function getRefreshCookieOptions() {
-  const isLocalEnv = process.env.NODE_ENV === "development";
-  const secure = !isLocalEnv;
   return {
     httpOnly: true,
-    secure,
-    sameSite: secure ? "none" : "lax",
+    secure: true,
+    sameSite: "lax",
+    domain: ".leetcodepremium.xyz",
     maxAge: 30 * 24 * 60 * 60 * 1000,
     path: "/",
   };

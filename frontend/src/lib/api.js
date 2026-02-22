@@ -11,7 +11,7 @@ function resolveApiBaseUrl() {
     }
   }
 
-  return envUrl || "https://leet-io-backend.onrender.com";
+  return envUrl || "https://api.leetcodepremium.xyz";
 }
 
 const API_BASE_URL = resolveApiBaseUrl();

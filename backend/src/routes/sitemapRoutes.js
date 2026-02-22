@@ -80,8 +80,8 @@ Disallow: /dashboard
 Disallow: /freedashboard
 Disallow: /payment-processing
 
-# Sitemap location (served from backend on Render)
-Sitemap: https://leet-io-backend.onrender.com/sitemap.xml
+# Sitemap location
+Sitemap: https://api.leetcodepremium.xyz/sitemap.xml
 `;
 
   res.set({
