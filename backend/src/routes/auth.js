@@ -63,17 +63,21 @@ function getRefreshCookieOptions(req) {
   const isProd = process.env.NODE_ENV === "production";
   const configuredDomain = normalizeDomain(process.env.COOKIE_DOMAIN || "");
   const requestHost = resolveRequestHost(req);
-  const useConfiguredDomain =
+  const domainMatchesHost =
     Boolean(configuredDomain) &&
     (requestHost === configuredDomain ||
       requestHost.endsWith(`.${configuredDomain}`));
-  const sameSite = resolveSameSite(isProd, useConfiguredDomain, requestHost);
+  const useDomainAttribute =
+    process.env.COOKIE_USE_DOMAIN === "1" && domainMatchesHost;
+  const sameSite = resolveSameSite(isProd, useDomainAttribute, requestHost);
 
   return {
     httpOnly: true,
     secure: isProd,
     sameSite,
-    domain: isProd && useConfiguredDomain ? `.${configuredDomain}` : undefined,
+    // Host-only cookie by default is the most reliable across custom domains/CDNs.
+    // Enable COOKIE_USE_DOMAIN=1 only when you explicitly need parent-domain scope.
+    domain: isProd && useDomainAttribute ? `.${configuredDomain}` : undefined,
     maxAge: 30 * 24 * 60 * 60 * 1000,
     path: "/",
   };
