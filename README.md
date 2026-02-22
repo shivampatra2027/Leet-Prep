@@ -17,6 +17,8 @@ A comprehensive LeetCode problem tracker and management platform. Browse, filter
 <img width="1600" height="900" alt="image" src="/frontend/public/landing2.png" />
 <img alt="image" src="/frontend/public/dashboard.png" />
 
+Note - Works on Chrome, Edge, Brave, Opera 
+
 ## Table of Contents
 
 - [Features](#features)
