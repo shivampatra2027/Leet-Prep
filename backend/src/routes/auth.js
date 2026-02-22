@@ -13,7 +13,23 @@ const router = express.Router();
 const REFRESH_COOKIE = "refreshToken";
 
 function normalizeDomain(value = "") {
-  return value.trim().toLowerCase().replace(/^\./, "");
+  const raw = value.trim().toLowerCase();
+  if (!raw) return "";
+
+  let host = raw;
+  // Accept either plain domain (leetcodepremium.xyz) or full URL.
+  if (raw.includes("://")) {
+    try {
+      host = new URL(raw).hostname.toLowerCase();
+    } catch {
+      host = raw;
+    }
+  }
+
+  return host
+    .replace(/^\./, "")
+    .replace(/\/.*$/, "")
+    .replace(/:\d+$/, "");
 }
 
 function normalizeHost(value = "") {
@@ -63,10 +79,28 @@ function getRefreshCookieOptions(req) {
   };
 }
 
+function emitCookieDebug(req, stage, options) {
+  if (process.env.AUTH_COOKIE_DEBUG !== "1") return;
+
+  const forwardedProto = req.headers["x-forwarded-proto"] || "";
+  const forwardedHost = req.headers["x-forwarded-host"] || "";
+  const requestHost = resolveRequestHost(req);
+  console.log(
+    `[auth-cookie:${stage}] host=${requestHost} proto=${forwardedProto} xfh=${forwardedHost} secure=${req.secure} options=${JSON.stringify(
+      {
+        ...options,
+        maxAge: options.maxAge,
+      },
+    )}`,
+  );
+}
+
 function issueTokens(req, res, user) {
   const access = signAccessToken(user);
   const refresh = signRefreshToken(user);
-  res.cookie(REFRESH_COOKIE, refresh, getRefreshCookieOptions(req));
+  const cookieOptions = getRefreshCookieOptions(req);
+  emitCookieDebug(req, "issue", cookieOptions);
+  res.cookie(REFRESH_COOKIE, refresh, cookieOptions);
   return access;
 }
 
@@ -164,6 +198,7 @@ router.post("/refresh", async (req, res) => {
   try {
     const refreshToken = req.cookies?.[REFRESH_COOKIE];
     if (!refreshToken) {
+      emitCookieDebug(req, "refresh-miss", getRefreshCookieOptions(req));
       return res.status(401).json({ error: "No refresh token" });
     }
 
@@ -181,10 +216,12 @@ router.post("/refresh", async (req, res) => {
 });
 
 router.post("/logout", (req, res) => {
-  res.clearCookie(REFRESH_COOKIE, {
+  const cookieOptions = {
     ...getRefreshCookieOptions(req),
     expires: new Date(0),
-  });
+  };
+  emitCookieDebug(req, "clear", cookieOptions);
+  res.clearCookie(REFRESH_COOKIE, cookieOptions);
   res.json({ success: true });
 });
 
