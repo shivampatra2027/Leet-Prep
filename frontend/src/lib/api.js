@@ -1,7 +1,7 @@
 import axios from "axios";
 
 function resolveApiBaseUrl() {
-  const envUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL;
+  const envUrl = import.meta.env.VITE_API_URL || "https://api.leetcodepremium.xyz";
 
   if (typeof window !== "undefined") {
     const host = window.location.hostname;

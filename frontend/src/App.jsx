@@ -13,7 +13,6 @@ import Profile from "./pages/profile";
 import ErrorPage from "./ErrorPage";
 import FreeDashboard from "./pages/FreeDashboard";
 import PaymentButton from "./components/PaymentButton";
-import { Analytics } from "@vercel/analytics/react";
 import ResumeAnalyzer from "./pages/ResumeAnalyzer";
 import PaymentProcessing from "./pages/PaymentProcessing";
 import Contest from "./pages/Contest";
@@ -108,7 +107,6 @@ function App() {
           } />
           <Route path="*" element={<ErrorPage />} />
         </Routes>
-        <Analytics />
       </Router>
     </ThemeProvider>
   );

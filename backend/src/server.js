@@ -23,7 +23,7 @@ dotenv.config();
 configureGoogleStrategy();
 
 const app = express();
-app.set("trust proxy", 1);
+app.set("trust proxy", true);
 
 // Handle CLIENT_URL - support both www and non-www versions
 // Vercel frontend is at www.leetcodepremium.xyz but env might have either version
