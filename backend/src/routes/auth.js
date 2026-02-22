@@ -45,6 +45,58 @@ function resolveRequestHost(req) {
   );
 }
 
+function resolveRequestProto(req) {
+  const xfProto = (req.headers["x-forwarded-proto"] || "")
+    .toString()
+    .split(",")[0]
+    .trim()
+    .toLowerCase();
+  if (xfProto === "http" || xfProto === "https") return xfProto;
+  return req.secure ? "https" : "http";
+}
+
+function normalizeOrigin(value = "") {
+  const raw = value.trim();
+  if (!raw) return "";
+  try {
+    const url = new URL(raw);
+    return `${url.protocol}//${url.host}`.replace(/\/$/, "");
+  } catch {
+    return "";
+  }
+}
+
+function getCanonicalApiOrigin() {
+  return (
+    normalizeOrigin(process.env.API_PUBLIC_URL || "") ||
+    normalizeOrigin(process.env.BACKEND_URL || "")
+  );
+}
+
+function shouldRedirectToCanonicalApi(req) {
+  const canonical = getCanonicalApiOrigin();
+  if (!canonical) return false;
+  try {
+    const canonicalUrl = new URL(canonical);
+    const reqHost = resolveRequestHost(req);
+    const reqProto = resolveRequestProto(req);
+    return (
+      reqHost &&
+      (reqHost !== canonicalUrl.host.toLowerCase() ||
+        reqProto !== canonicalUrl.protocol.replace(":", ""))
+    );
+  } catch {
+    return false;
+  }
+}
+
+function redirectToCanonicalApi(req, res, next) {
+  if (!shouldRedirectToCanonicalApi(req)) return next();
+  const canonical = getCanonicalApiOrigin();
+  const target = `${canonical}${req.originalUrl}`;
+  return res.redirect(307, target);
+}
+
 function resolveSameSite(isProd, useConfiguredDomain, requestHost) {
   const configured = (process.env.COOKIE_SAME_SITE || "").trim().toLowerCase();
   if (configured === "lax" || configured === "strict" || configured === "none") {
@@ -174,6 +226,7 @@ router.post("/login", async (req, res) => {
 
 router.get(
   "/google",
+  redirectToCanonicalApi,
   passport.authenticate("google", {
     scope: ["profile", "email"],
     session: false,
@@ -182,6 +235,7 @@ router.get(
 
 router.get(
   "/google/callback",
+  redirectToCanonicalApi,
   passport.authenticate("google", {
     failureRedirect: "/auth/fail",
     session: false,

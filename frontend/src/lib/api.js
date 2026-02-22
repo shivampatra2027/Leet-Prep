@@ -9,6 +9,11 @@ function resolveApiBaseUrl() {
     if (isLocal) {
       return `${window.location.protocol}//${host}:8080`;
     }
+
+    // Force canonical API host for production site domain.
+    if (host === "leetcodepremium.xyz" || host === "www.leetcodepremium.xyz") {
+      return "https://api.leetcodepremium.xyz";
+    }
   }
 
   return envUrl || "https://api.leetcodepremium.xyz";
@@ -35,6 +40,9 @@ const isAuthEndpoint = (url = "") =>
   url.includes("/auth/signup") ||
   url.includes("/auth/refresh") ||
   url.includes("/auth/google");
+
+const isAuthPagePath = (path = "") =>
+  path === "/login" || path === "/signup" || path === "/oauth-success";
 
 export function setAccessToken(token) {
   accessToken = token || null;
@@ -99,7 +107,12 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch {
         clearAccessToken();
-        window.location.href = "/login";
+        if (
+          typeof window !== "undefined" &&
+          !isAuthPagePath(window.location.pathname)
+        ) {
+          window.location.replace("/login");
+        }
       }
     }
 
