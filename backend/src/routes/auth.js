@@ -135,27 +135,10 @@ function getRefreshCookieOptions(req) {
   };
 }
 
-function emitCookieDebug(req, stage, options) {
-  if (process.env.AUTH_COOKIE_DEBUG !== "1") return;
-
-  const forwardedProto = req.headers["x-forwarded-proto"] || "";
-  const forwardedHost = req.headers["x-forwarded-host"] || "";
-  const requestHost = resolveRequestHost(req);
-  console.log(
-    `[auth-cookie:${stage}] host=${requestHost} proto=${forwardedProto} xfh=${forwardedHost} secure=${req.secure} options=${JSON.stringify(
-      {
-        ...options,
-        maxAge: options.maxAge,
-      },
-    )}`,
-  );
-}
-
 function issueTokens(req, res, user) {
   const access = signAccessToken(user);
   const refresh = signRefreshToken(user);
   const cookieOptions = getRefreshCookieOptions(req);
-  emitCookieDebug(req, "issue", cookieOptions);
   res.cookie(REFRESH_COOKIE, refresh, cookieOptions);
   return access;
 }
@@ -256,7 +239,6 @@ router.post("/refresh", async (req, res) => {
   try {
     const refreshToken = req.cookies?.[REFRESH_COOKIE];
     if (!refreshToken) {
-      emitCookieDebug(req, "refresh-miss", getRefreshCookieOptions(req));
       return res.status(401).json({ error: "No refresh token" });
     }
 
@@ -278,7 +260,6 @@ router.post("/logout", (req, res) => {
     ...getRefreshCookieOptions(req),
     expires: new Date(0),
   };
-  emitCookieDebug(req, "clear", cookieOptions);
   res.clearCookie(REFRESH_COOKIE, cookieOptions);
   res.json({ success: true });
 });
