@@ -12,23 +12,61 @@ import {
 const router = express.Router();
 const REFRESH_COOKIE = "refreshToken";
 
-function getRefreshCookieOptions() {
+function normalizeDomain(value = "") {
+  return value.trim().toLowerCase().replace(/^\./, "");
+}
+
+function normalizeHost(value = "") {
+  const raw = value.split(",")[0]?.trim().toLowerCase() || "";
+  return raw.replace(/:\d+$/, "");
+}
+
+function resolveRequestHost(req) {
+  return (
+    normalizeHost(req.headers["x-forwarded-host"]) ||
+    normalizeHost(req.headers.host) ||
+    normalizeHost(req.hostname)
+  );
+}
+
+function resolveSameSite(isProd, useConfiguredDomain, requestHost) {
+  const configured = (process.env.COOKIE_SAME_SITE || "").trim().toLowerCase();
+  if (configured === "lax" || configured === "strict" || configured === "none") {
+    return configured;
+  }
+
+  if (!isProd) return "lax";
+  if (useConfiguredDomain) return "lax";
+
+  // Preserve legacy cross-site login behavior for *.onrender.com setups.
+  if (requestHost.endsWith(".onrender.com")) return "none";
+  return "lax";
+}
+
+function getRefreshCookieOptions(req) {
   const isProd = process.env.NODE_ENV === "production";
+  const configuredDomain = normalizeDomain(process.env.COOKIE_DOMAIN || "");
+  const requestHost = resolveRequestHost(req);
+  const useConfiguredDomain =
+    Boolean(configuredDomain) &&
+    (requestHost === configuredDomain ||
+      requestHost.endsWith(`.${configuredDomain}`));
+  const sameSite = resolveSameSite(isProd, useConfiguredDomain, requestHost);
 
   return {
     httpOnly: true,
     secure: isProd,
-    sameSite: "lax",
-    domain: isProd ? ".leetcodepremium.xyz" : undefined,
+    sameSite,
+    domain: isProd && useConfiguredDomain ? `.${configuredDomain}` : undefined,
     maxAge: 30 * 24 * 60 * 60 * 1000,
     path: "/",
   };
 }
 
-function issueTokens(res, user) {
+function issueTokens(req, res, user) {
   const access = signAccessToken(user);
   const refresh = signRefreshToken(user);
-  res.cookie(REFRESH_COOKIE, refresh, getRefreshCookieOptions());
+  res.cookie(REFRESH_COOKIE, refresh, getRefreshCookieOptions(req));
   return access;
 }
 
@@ -68,7 +106,7 @@ router.post("/signup", async (req, res) => {
       return res.status(400).json({ error: "User already exists" });
     }
 
-    const access = issueTokens(res, user);
+    const access = issueTokens(req, res, user);
     res.json({ access });
   } catch (error) {
     console.error("Signup error:", error);
@@ -92,7 +130,7 @@ router.post("/login", async (req, res) => {
     return res.status(401).json({ error: "Invalid credentials" });
   }
 
-  const access = issueTokens(res, user);
+  const access = issueTokens(req, res, user);
   res.json({ access });
 });
 
@@ -111,7 +149,7 @@ router.get(
     session: false,
   }),
   (req, res) => {
-    const access = issueTokens(res, req.user);
+    const access = issueTokens(req, res, req.user);
     const frontend = (
       process.env.FRONTEND_URL ||
       process.env.CLIENT_URL ||
@@ -144,7 +182,7 @@ router.post("/refresh", async (req, res) => {
 
 router.post("/logout", (req, res) => {
   res.clearCookie(REFRESH_COOKIE, {
-    ...getRefreshCookieOptions(),
+    ...getRefreshCookieOptions(req),
     expires: new Date(0),
   });
   res.json({ success: true });
