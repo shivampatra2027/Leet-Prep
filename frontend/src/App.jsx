@@ -78,14 +78,14 @@ function App() {
               </PrivateRoute>
             }
           />
-          <Route
+          {/* <Route
             path="/resume-analyzer"
             element={
               <PrivateRoute>
                 <ResumeAnalyzer />
               </PrivateRoute>
             }
-          />
+          /> */}
           <Route
             path="/contest"
             element={
