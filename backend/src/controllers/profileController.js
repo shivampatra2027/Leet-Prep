@@ -1,5 +1,7 @@
 import User from "../models/User.js";
 import Problem from "../models/Problem.js";
+import DailyActivity from "../models/DailyActivity.js";
+import { syncLeetCodeUser } from "../services/leetcodeSync.js";
 import {
   fetchLeetCodeUserData,
   fetchAllSolvedProblems,
@@ -109,8 +111,8 @@ export const syncLeetcodeProblems = async (req, res) => {
 
     // Update user's solved problems
     user.solvedProblems = solvedProblems;
-    user.lastLeetcodeSync = new Date();
     await user.save();
+    await syncLeetCodeUser(user);
 
     res.json({
       ok: true,
@@ -124,6 +126,56 @@ export const syncLeetcodeProblems = async (req, res) => {
       error: "Failed to sync LeetCode data",
       message: error.message,
     });
+  }
+};
+
+// @desc    Get LeetCode activity for heatmap
+// @route   GET /api/profile/leetcode-activity
+// @access  Private
+export const getLeetcodeActivity = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select(
+      "leetcodeUsername lastLeetcodeSync",
+    );
+    if (!user) return res.status(404).json({ error: "User not found" });
+    if (!user.leetcodeUsername) {
+      return res.json({ ok: true, activity: [], lastSync: user.lastLeetcodeSync });
+    }
+
+    const days = Math.max(30, Math.min(365, Number(req.query.days) || 365));
+    const from = new Date();
+    from.setDate(from.getDate() - days);
+    const fromDate = from.toISOString().slice(0, 10);
+
+    let docs = await DailyActivity.find({
+      user: req.user._id,
+      platform: "leetcode",
+      date: { $gte: fromDate },
+    })
+      .sort({ date: 1 })
+      .select("date count -_id")
+      .lean();
+
+    if (docs.length === 0) {
+      await syncLeetCodeUser(user);
+      docs = await DailyActivity.find({
+        user: req.user._id,
+        platform: "leetcode",
+        date: { $gte: fromDate },
+      })
+        .sort({ date: 1 })
+        .select("date count -_id")
+        .lean();
+    }
+
+    return res.json({
+      ok: true,
+      activity: docs.map((d) => ({ date: d.date, count: d.count || 0 })),
+      lastSync: user.lastLeetcodeSync,
+    });
+  } catch (error) {
+    console.error("Error fetching LeetCode activity:", error);
+    return res.status(500).json({ error: "Server error" });
   }
 };
 

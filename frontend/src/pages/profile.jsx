@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { CheckCircle, Crown, Loader2, RefreshCw, Code2, Clock } from "lucide-react";
+import CalendarHeatmap from "react-calendar-heatmap";
+import "react-calendar-heatmap/dist/styles.css";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
@@ -10,7 +12,6 @@ import {
   Card,
   CardContent,
   CardHeader,
-  CardDescription,
 } from "@/components/ui/card.jsx";
 
 import Navbar from "@/components/Navbar.jsx";
@@ -25,6 +26,8 @@ const Profile = () => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState("");
   const [premiumTimer, setPremiumTimer] = useState(null);
+  const [activityData, setActivityData] = useState([]);
+  const [activityLoading, setActivityLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -38,7 +41,7 @@ const Profile = () => {
 
         setUser(response.data);
         setLeetcodeUsername(response.data.leetcodeUsername || "");
-      } catch (err) {
+      } catch {
         navigate("/login");
       } finally {
         setLoading(false);
@@ -47,6 +50,26 @@ const Profile = () => {
 
     fetchProfile();
   }, [navigate]);
+
+  useEffect(() => {
+    const fetchActivity = async () => {
+      if (!user?.leetcodeUsername) {
+        setActivityData([]);
+        return;
+      }
+      try {
+        setActivityLoading(true);
+        const res = await profileAPI.getLeetcodeActivity(365);
+        setActivityData(res.data?.activity || []);
+      } catch {
+        setActivityData([]);
+      } finally {
+        setActivityLoading(false);
+      }
+    };
+
+    fetchActivity();
+  }, [user?.leetcodeUsername, user?.lastLeetcodeSync]);
 
   // ---------------- PREMIUM TIMER ----------------
   useEffect(() => {
@@ -119,7 +142,7 @@ const Profile = () => {
 
       setSyncMessage("LeetCode progress synced successfully!");
       setTimeout(() => setSyncMessage(""), 5000);
-    } catch (err) {
+    } catch {
       setSyncMessage("Failed to sync LeetCode progress");
     } finally {
       setIsSyncing(false);
@@ -267,6 +290,43 @@ const Profile = () => {
                           </>
                         )}
                       </Button>
+
+                      <div className="mt-4 rounded-md border p-3">
+                        <p className="mb-2 text-sm font-medium text-muted-foreground">
+                          LeetCode Heatmap (Last 365 days)
+                        </p>
+                        {activityLoading ? (
+                          <div className="flex items-center justify-center py-6">
+                            <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                          </div>
+                        ) : (
+                          <>
+                            <CalendarHeatmap
+                              startDate={new Date(new Date().setDate(new Date().getDate() - 364))}
+                              endDate={new Date()}
+                              values={activityData}
+                              classForValue={(value) => {
+                                if (!value || !value.count) return "color-empty";
+                                if (value.count >= 10) return "color-github-4";
+                                if (value.count >= 6) return "color-github-3";
+                                if (value.count >= 3) return "color-github-2";
+                                return "color-github-1";
+                              }}
+                              tooltipDataAttrs={(value) => {
+                                if (!value || !value.date) return null;
+                                return {
+                                  "data-tip": `${value.date}: ${value.count || 0} submissions`,
+                                };
+                              }}
+                            />
+                            <div className="mt-2 text-xs text-muted-foreground">
+                              {activityData.length === 0
+                                ? "No synced activity yet. Click Sync to load calendar data."
+                                : "Data source: LeetCode submission calendar."}
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </>
                   )}
                 </>

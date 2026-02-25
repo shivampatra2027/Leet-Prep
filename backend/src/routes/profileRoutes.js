@@ -3,6 +3,7 @@ import {
   getUserProfile, 
   updateLeetcodeUsername, 
   syncLeetcodeProblems,
+  getLeetcodeActivity,
   getSolvedProblems,
   addSolvedProblem,
   removeSolvedProblem,
@@ -15,6 +16,7 @@ const router = express.Router();
 router.get('/', protect, getUserProfile);
 router.put('/leetcode-username', protect, updateLeetcodeUsername);
 router.post('/sync-leetcode', protect, syncLeetcodeProblems);
+router.get('/leetcode-activity', protect, getLeetcodeActivity);
 router.get('/solved-problems', protect, getSolvedProblems);
 router.post('/solved-problems', protect, addSolvedProblem);
 router.delete('/solved-problems/:problemId', protect, removeSolvedProblem);

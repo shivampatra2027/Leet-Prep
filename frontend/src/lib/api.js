@@ -131,6 +131,8 @@ export const profileAPI = {
   updateLeetcodeUsername: (username) =>
     api.put("/api/profile/leetcode-username", { leetcodeUsername: username }),
   syncLeetcode: () => api.post("/api/profile/sync-leetcode"),
+  getLeetcodeActivity: (days = 365) =>
+    api.get("/api/profile/leetcode-activity", { params: { days } }),
   getSolvedProblems: () => api.get("/api/profile/solved-problems"),
   addSolvedProblem: (problemId) =>
     api.post("/api/profile/solved-problems", { problemId }),
