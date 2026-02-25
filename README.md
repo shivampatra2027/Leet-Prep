@@ -17,6 +17,8 @@ A comprehensive LeetCode problem tracker and management platform. Browse, filter
 <img width="1600" height="900" alt="image" src="/frontend/public/landing2.png" />
 <img alt="image" src="/frontend/public/dashboard.png" />
 
+Note - Works on Chrome, Edge, Brave, Opera, safari
+
 ## Table of Contents
 
 - [Features](#features)
@@ -37,6 +39,7 @@ A comprehensive LeetCode problem tracker and management platform. Browse, filter
 - Google OAuth authentication
 - Clean, modern UI built with shadcn/ui components
 - Responsive design with collapsible sidebar
+- have to fix: working in brave, opera browser
 
 ## Tech Stack
 

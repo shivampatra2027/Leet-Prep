@@ -1,7 +1,7 @@
 import axios from "axios";
 
 function resolveApiBaseUrl() {
-  const envUrl = import.meta.env.VITE_API_URL;
+  const envUrl = import.meta.env.VITE_API_URL || "https://api.leetcodepremium.xyz";
 
   if (typeof window !== "undefined") {
     const host = window.location.hostname;
@@ -9,9 +9,14 @@ function resolveApiBaseUrl() {
     if (isLocal) {
       return `${window.location.protocol}//${host}:8080`;
     }
+
+    // Force canonical API host for production site domain.
+    if (host === "leetcodepremium.xyz" || host === "www.leetcodepremium.xyz") {
+      return "https://api.leetcodepremium.xyz";
+    }
   }
 
-  return envUrl || "http://localhost:8080";
+  return envUrl || "https://api.leetcodepremium.xyz";
 }
 
 const API_BASE_URL = resolveApiBaseUrl();
@@ -35,6 +40,9 @@ const isAuthEndpoint = (url = "") =>
   url.includes("/auth/signup") ||
   url.includes("/auth/refresh") ||
   url.includes("/auth/google");
+
+const isAuthPagePath = (path = "") =>
+  path === "/login" || path === "/signup" || path === "/oauth-success";
 
 export function setAccessToken(token) {
   accessToken = token || null;
@@ -99,7 +107,12 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch {
         clearAccessToken();
-        window.location.href = "/login";
+        if (
+          typeof window !== "undefined" &&
+          !isAuthPagePath(window.location.pathname)
+        ) {
+          window.location.replace("/login");
+        }
       }
     }
 

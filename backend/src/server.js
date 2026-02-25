@@ -18,12 +18,12 @@ import contestRoutes from "./routes/contestRoutes.js";
 import referralRoutes from "./routes/referralRoutes.js";
 import "./jobs/contestJob.js"; // Start contest cron job
 import "./jobs/referralJob.js"; // Start referral weekly reset cron job
-import floodLimiter from "./middlewares/security/floodLimiter.js";
-import behaviorDetector from "./middlewares/security/behaviorDetector.js";
+import { apiLimiter } from "./middlewares/rateLimiters.js";
 dotenv.config();
 configureGoogleStrategy();
 
 const app = express();
+app.set("trust proxy", true);
 
 // Handle CLIENT_URL - support both www and non-www versions
 // Vercel frontend is at www.leetcodepremium.xyz but env might have either version
@@ -38,6 +38,8 @@ const allowedOrigins = [
   process.env.CORS_ORIGIN,
   // Frontend URLs
   "https://leet-io-frontend.onrender.com",
+  "https://leet-io.vercel.app",
+  "https://www.leet-io.vercel.app",
   "https://leet-prep.vercel.app",
   "https://www.leetcodepremium.xyz",
   "https://leetcodepremium.xyz",
@@ -77,6 +79,11 @@ app.use(
   }),
 );
 
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Credentials", "true");
+  next();
+});
+
 // app.use(session({
 //     secret: process.env.JWT_SECRET || "supersecret",
 //     resave: false,
@@ -108,10 +115,8 @@ app.get("/health", (req, res) => {
   res.status(200).send("OK");
 });
 
-// Layered API protection:
-// - behavior detector (burst) + flood limiter
-// - webhook is explicitly bypassed inside both middlewares
-app.use("/api", behaviorDetector(), floodLimiter());
+// Baseline API throttling (proxy-aware + OPTIONS/webhook-safe).
+app.use("/api", apiLimiter);
 
 // Routes
 app.use("/api/problems", problemRoutes);

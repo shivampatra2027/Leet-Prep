@@ -8,36 +8,140 @@ import {
   verifyAccessToken,
   verifyRefreshToken,
 } from "../utils/jwt.js";
-import floodLimiter from "../middlewares/security/floodLimiter.js";
-import {
-  clearLoginFailures,
-  preLoginCheck,
-  recordLoginFailure,
-} from "../middlewares/security/loginLimiter.js";
 
 const router = express.Router();
 const REFRESH_COOKIE = "refreshToken";
 
-function getRefreshCookieOptions() {
+function normalizeDomain(value = "") {
+  const raw = value.trim().toLowerCase();
+  if (!raw) return "";
+
+  let host = raw;
+  // Accept either plain domain (leetcodepremium.xyz) or full URL.
+  if (raw.includes("://")) {
+    try {
+      host = new URL(raw).hostname.toLowerCase();
+    } catch {
+      host = raw;
+    }
+  }
+
+  return host
+    .replace(/^\./, "")
+    .replace(/\/.*$/, "")
+    .replace(/:\d+$/, "");
+}
+
+function normalizeHost(value = "") {
+  const raw = value.split(",")[0]?.trim().toLowerCase() || "";
+  return raw.replace(/:\d+$/, "");
+}
+
+function resolveRequestHost(req) {
+  return (
+    normalizeHost(req.headers["x-forwarded-host"]) ||
+    normalizeHost(req.headers.host) ||
+    normalizeHost(req.hostname)
+  );
+}
+
+function resolveRequestProto(req) {
+  const xfProto = (req.headers["x-forwarded-proto"] || "")
+    .toString()
+    .split(",")[0]
+    .trim()
+    .toLowerCase();
+  if (xfProto === "http" || xfProto === "https") return xfProto;
+  return req.secure ? "https" : "http";
+}
+
+function normalizeOrigin(value = "") {
+  const raw = value.trim();
+  if (!raw) return "";
+  try {
+    const url = new URL(raw);
+    return `${url.protocol}//${url.host}`.replace(/\/$/, "");
+  } catch {
+    return "";
+  }
+}
+
+function getCanonicalApiOrigin() {
+  return (
+    normalizeOrigin(process.env.API_PUBLIC_URL || "") ||
+    normalizeOrigin(process.env.BACKEND_URL || "")
+  );
+}
+
+function shouldRedirectToCanonicalApi(req) {
+  const canonical = getCanonicalApiOrigin();
+  if (!canonical) return false;
+  try {
+    const canonicalUrl = new URL(canonical);
+    const reqHost = resolveRequestHost(req);
+    const reqProto = resolveRequestProto(req);
+    return (
+      reqHost &&
+      (reqHost !== canonicalUrl.host.toLowerCase() ||
+        reqProto !== canonicalUrl.protocol.replace(":", ""))
+    );
+  } catch {
+    return false;
+  }
+}
+
+function redirectToCanonicalApi(req, res, next) {
+  if (!shouldRedirectToCanonicalApi(req)) return next();
+  const canonical = getCanonicalApiOrigin();
+  const target = `${canonical}${req.originalUrl}`;
+  return res.redirect(307, target);
+}
+
+function resolveSameSite(isProd, useConfiguredDomain, requestHost) {
+  const configured = (process.env.COOKIE_SAME_SITE || "").trim().toLowerCase();
+  if (configured === "lax" || configured === "strict" || configured === "none") {
+    return configured;
+  }
+
+  if (!isProd) return "lax";
+  if (useConfiguredDomain) return "lax";
+
+  // Preserve legacy cross-site login behavior for *.onrender.com setups.
+  if (requestHost.endsWith(".onrender.com")) return "none";
+  return "lax";
+}
+
+function getRefreshCookieOptions(req) {
   const isProd = process.env.NODE_ENV === "production";
+  const configuredDomain = normalizeDomain(process.env.COOKIE_DOMAIN || "");
+  const requestHost = resolveRequestHost(req);
+  const domainMatchesHost =
+    Boolean(configuredDomain) &&
+    (requestHost === configuredDomain ||
+      requestHost.endsWith(`.${configuredDomain}`));
+  const useDomainAttribute =
+    process.env.COOKIE_USE_DOMAIN === "1" && domainMatchesHost;
+  const sameSite = resolveSameSite(isProd, useDomainAttribute, requestHost);
+
   return {
     httpOnly: true,
     secure: isProd,
-    sameSite: isProd ? "none" : "lax",
+    sameSite,
+    // Host-only cookie by default is the most reliable across custom domains/CDNs.
+    // Enable COOKIE_USE_DOMAIN=1 only when you explicitly need parent-domain scope.
+    domain: isProd && useDomainAttribute ? `.${configuredDomain}` : undefined,
     maxAge: 30 * 24 * 60 * 60 * 1000,
-    path: "/auth",
+    path: "/",
   };
 }
 
-function issueTokens(res, user) {
+function issueTokens(req, res, user) {
   const access = signAccessToken(user);
   const refresh = signRefreshToken(user);
-  res.cookie(REFRESH_COOKIE, refresh, getRefreshCookieOptions());
+  const cookieOptions = getRefreshCookieOptions(req);
+  res.cookie(REFRESH_COOKIE, refresh, cookieOptions);
   return access;
 }
-
-// OAuth routes: only relaxed flood protection.
-router.use(["/google", "/google/callback"], floodLimiter());
 
 router.post("/signup", async (req, res) => {
   try {
@@ -75,7 +179,7 @@ router.post("/signup", async (req, res) => {
       return res.status(400).json({ error: "User already exists" });
     }
 
-    const access = issueTokens(res, user);
+    const access = issueTokens(req, res, user);
     res.json({ access });
   } catch (error) {
     console.error("Signup error:", error);
@@ -87,27 +191,25 @@ router.post("/signup", async (req, res) => {
   }
 });
 
-router.post("/login", preLoginCheck, async (req, res) => {
+router.post("/login", async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
   if (!user) {
-    await recordLoginFailure(email);
     return res.status(401).json({ error: "Invalid credentials" });
   }
 
   const valid = await bcrypt.compare(password, user.passwordHash);
   if (!valid) {
-    await recordLoginFailure(email);
     return res.status(401).json({ error: "Invalid credentials" });
   }
 
-  await clearLoginFailures(email);
-  const access = issueTokens(res, user);
+  const access = issueTokens(req, res, user);
   res.json({ access });
 });
 
 router.get(
   "/google",
+  redirectToCanonicalApi,
   passport.authenticate("google", {
     scope: ["profile", "email"],
     session: false,
@@ -116,12 +218,13 @@ router.get(
 
 router.get(
   "/google/callback",
+  redirectToCanonicalApi,
   passport.authenticate("google", {
     failureRedirect: "/auth/fail",
     session: false,
   }),
   (req, res) => {
-    const access = issueTokens(res, req.user);
+    const access = issueTokens(req, res, req.user);
     const frontend = (
       process.env.FRONTEND_URL ||
       process.env.CLIENT_URL ||
@@ -153,10 +256,11 @@ router.post("/refresh", async (req, res) => {
 });
 
 router.post("/logout", (req, res) => {
-  res.clearCookie(REFRESH_COOKIE, {
-    ...getRefreshCookieOptions(),
+  const cookieOptions = {
+    ...getRefreshCookieOptions(req),
     expires: new Date(0),
-  });
+  };
+  res.clearCookie(REFRESH_COOKIE, cookieOptions);
   res.json({ success: true });
 });
 
