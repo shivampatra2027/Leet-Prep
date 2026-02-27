@@ -27,7 +27,7 @@ Note - Works on Chrome, Edge, Brave, Opera, safari
 - [Prerequisites](#prerequisites)
 
 ## A video Glimps: https://youtu.be/pjmTMAH-M3I
-[![Leet.io Platform Introduction](https://img.youtube.com/vi/EG__AujR-tQ/maxresdefault.jpg)](https://www.youtube.com/watch?v=EG__AujR-tQ)
+[![Leet-Prep Platform Introduction](https://img.youtube.com/vi/EG__AujR-tQ/maxresdefault.jpg)](https://www.youtube.com/watch?v=EG__AujR-tQ)
 ## Features
 
 - Browse 2200+ LeetCode problems in a responsive data table
@@ -36,6 +36,7 @@ Note - Works on Chrome, Edge, Brave, Opera, safari
 - Search problems by title
 - Sort and organize columns
 - Client-side pagination (30 problems per page)
+- Razorpay integration using webhooks
 - Google OAuth authentication
 - Clean, modern UI built with shadcn/ui components
 - Responsive design with collapsible sidebar
