@@ -1,29 +1,22 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle, Crown, Loader2, RefreshCw, Code2, Clock } from "lucide-react";
+import { CheckCircle, Crown, Loader2, Clock } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
-import { Button } from "@/components/ui/button.jsx";
-import { Input } from "@/components/ui/input.jsx";
 import {
   Card,
   CardContent,
   CardHeader,
-  CardDescription,
 } from "@/components/ui/card.jsx";
 
 import Navbar from "@/components/Navbar.jsx";
-import api, { profileAPI } from "@/lib/api.js";
+import api from "@/lib/api.js";
 import { calculatePremiumTimeRemaining, formatPremiumExpiryDate } from "@/utils/premiumTimer.js";
 
 const Profile = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [leetcodeUsername, setLeetcodeUsername] = useState("");
-  const [isEditingLeetcode, setIsEditingLeetcode] = useState(false);
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [syncMessage, setSyncMessage] = useState("");
   const [premiumTimer, setPremiumTimer] = useState(null);
 
   const navigate = useNavigate();
@@ -37,7 +30,6 @@ const Profile = () => {
         });
 
         setUser(response.data);
-        setLeetcodeUsername(response.data.leetcodeUsername || "");
       } catch (err) {
         navigate("/login");
       } finally {
@@ -71,60 +63,6 @@ const Profile = () => {
 
     return () => clearInterval(intervalId);
   }, [user?.premiumExpiresAt, user?.tier]);
-
-  // ---------------- UPDATE USERNAME ----------------
-  const handleUpdateLeetcodeUsername = async () => {
-    if (!leetcodeUsername.trim()) {
-      setSyncMessage("Please enter a valid username");
-      setTimeout(() => setSyncMessage(""), 3000);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setSyncMessage("");
-
-      await profileAPI.updateLeetcodeUsername(leetcodeUsername);
-
-      setUser(prev => ({
-        ...prev,
-        leetcodeUsername
-      }));
-
-      setIsEditingLeetcode(false);
-      setSyncMessage("LeetCode username updated successfully!");
-      setTimeout(() => setSyncMessage(""), 3000);
-    } catch (err) {
-      const errorMsg = err.response?.data?.error || "Failed to update username";
-      setSyncMessage(errorMsg);
-      setTimeout(() => setSyncMessage(""), 5000);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ---------------- SYNC SOLVED ----------------
-  const handleSyncLeetcode = async () => {
-    try {
-      setIsSyncing(true);
-      setSyncMessage("");
-
-      const response = await profileAPI.syncLeetcode();
-
-      setUser(prev => ({
-        ...prev,
-        solvedProblemsCount: response.data.solvedCount,
-        lastLeetcodeSync: response.data.lastSync
-      }));
-
-      setSyncMessage("LeetCode progress synced successfully!");
-      setTimeout(() => setSyncMessage(""), 5000);
-    } catch (err) {
-      setSyncMessage("Failed to sync LeetCode progress");
-    } finally {
-      setIsSyncing(false);
-    }
-  };
 
   // ---------------- LOADING ----------------
   if (loading) {
@@ -164,124 +102,6 @@ const Profile = () => {
           </CardHeader>
 
           <CardContent className="space-y-6">
-
-            {/* ---------- LeetCode Integration ---------- */}
-            <div className="border-t pt-6">
-              <div className="flex items-center gap-2 mb-3">
-                <Code2 className="h-5 w-5 text-primary" />
-                <h3 className="text-lg font-semibold">LeetCode Integration</h3>
-              </div>
-
-              {!user.leetcodeUsername && !isEditingLeetcode ? (
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => setIsEditingLeetcode(true)}
-                >
-                  Add LeetCode Username
-                </Button>
-              ) : (
-                <>
-                  {isEditingLeetcode ? (
-                    <div className="space-y-3">
-                      <div>
-                        <label className="text-sm font-medium text-muted-foreground mb-1 block">
-                          LeetCode Username
-                        </label>
-                        <Input
-                          value={leetcodeUsername}
-                          onChange={e => setLeetcodeUsername(e.target.value)}
-                          placeholder="Enter LeetCode username"
-                          className="w-full"
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              handleUpdateLeetcodeUsername();
-                            }
-                          }}
-                        />
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          className="flex-1"
-                          onClick={handleUpdateLeetcodeUsername}
-                          disabled={loading}
-                        >
-                          {loading ? (
-                            <>
-                              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                              Saving...
-                            </>
-                          ) : (
-                            'Save'
-                          )}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          onClick={() => {
-                            setIsEditingLeetcode(false);
-                            setLeetcodeUsername(user.leetcodeUsername || "");
-                            setSyncMessage("");
-                          }}
-                          disabled={loading}
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="flex items-center justify-between mb-2">
-                        <div>
-                          <p className="font-medium">
-                            Username: {user.leetcodeUsername}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            Solved: {user.solvedProblemsCount || 0}
-                          </p>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setIsEditingLeetcode(true)}
-                          className="h-8 w-8 p-0"
-                          title="Edit username"
-                        >
-                          <span className="text-lg">Edit</span>
-                        </Button>
-                      </div>
-
-                      <Button
-                        className="w-full mt-2 gap-2"
-                        onClick={handleSyncLeetcode}
-                        disabled={isSyncing}
-                      >
-                        {isSyncing ? (
-                          <>
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            Syncing...
-                          </>
-                        ) : (
-                          <>
-                            <RefreshCw className="h-4 w-4" />
-                            Sync LeetCode Progress
-                          </>
-                        )}
-                      </Button>
-                    </>
-                  )}
-                </>
-              )}
-
-              {syncMessage && (
-                <p className={`text-sm text-center mt-2 ${
-                  syncMessage.includes('Failed') || syncMessage.includes('error') || syncMessage.includes('Invalid') || syncMessage.includes('Please')
-                    ? 'text-red-600'
-                    : 'text-green-600'
-                }`}>
-                  {syncMessage}
-                </p>
-              )}
-            </div>
 
             {/* ---------- TIER ---------- */}
             <div className="border-t pt-6">

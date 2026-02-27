@@ -1,7 +1,8 @@
 import axios from "axios";
 
 function resolveApiBaseUrl() {
-  const envUrl = import.meta.env.VITE_API_URL || "https://api.leetcodepremium.xyz";
+  const envUrl =
+    import.meta.env.VITE_API_URL || "https://api.leetcodepremium.xyz";
 
   if (typeof window !== "undefined") {
     const host = window.location.hostname;
@@ -141,9 +142,6 @@ export const problemsAPI = {
 
 export const profileAPI = {
   getProfile: () => api.get("/api/profile"),
-  updateLeetcodeUsername: (username) =>
-    api.put("/api/profile/leetcode-username", { leetcodeUsername: username }),
-  syncLeetcode: () => api.post("/api/profile/sync-leetcode"),
   getSolvedProblems: () => api.get("/api/profile/solved-problems"),
   addSolvedProblem: (problemId) =>
     api.post("/api/profile/solved-problems", { problemId }),
