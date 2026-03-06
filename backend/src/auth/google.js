@@ -2,22 +2,6 @@ import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import User from "../models/User.js";
 
-/**
- * DUPLICATE USER PREVENTION
- *
- * Problem: Race condition when multiple OAuth requests happen simultaneously
- * - Request 1: findOne({ email }) → null
- * - Request 2: findOne({ email }) → null (before Request 1 creates user)
- * - Request 1: User.create() → succeeds
- * - Request 2: User.create() → fails with duplicate key error
- *
- * Solution: Use findOneAndUpdate with upsert option
- * - Atomic operation at database level
- * - Only creates user if email doesn't exist
- * - Updates existing user's Google data if they exist
- * - Gracefully handles duplicate key errors
- */
-
 export function configureGoogleStrategy() {
   passport.use(
     new GoogleStrategy(
