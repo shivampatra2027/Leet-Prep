@@ -90,6 +90,7 @@ export default function Navbar() {
   const desktopLinks = [
     { to: "/", label: "Home", auth: "any" },
     { to: "/dashboard", label: "Dashboard", auth: "authed" },
+    { to: "/sheet", label: "Sheet", auth: "authed" },
     { to: "/contest", label: "Contest", auth: "authed" },
     // { to: "/resume-analyzer", label: "Resume Analyzer", auth: "authed" },
     { to: "/referral", label: "Referral", auth: "authed" },
@@ -102,6 +103,7 @@ export default function Navbar() {
   const mobileAccountLinks = [
     { to: "/", label: "Home", auth: "any" },
     { to: "/dashboard", label: "Dashboard", auth: "authed" },
+    { to: "/sheet", label: "Sheet", auth: "authed" },
     { to: "/contest", label: "Contest", auth: "authed" },
     // { to: "/resume-analyzer", label: "Resume Analyzer", auth: "authed" },
     { to: "/referral", label: "Referral", auth: "authed" },

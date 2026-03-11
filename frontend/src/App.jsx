@@ -20,6 +20,7 @@ import Support from "./pages/Support";
 import Referral from "./pages/Referral";
 import ReferralRedirect from "./pages/ReferralRedirect";
 import OAuthSuccess from "./pages/OAuthSuccess";
+import Sheet from "./pages/Sheet";
 import useAppInit from "./store/useAppInit";
 
 function App() {
@@ -105,6 +106,14 @@ function App() {
               <Referral />
             </PrivateRoute>
           } />
+          <Route
+            path="/sheet"
+            element={
+              <PrivateRoute>
+                <Sheet />
+              </PrivateRoute>
+            }
+          />
           <Route path="*" element={<ErrorPage />} />
         </Routes>
       </Router>
