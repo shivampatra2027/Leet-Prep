@@ -612,7 +612,7 @@ export default function Sheet() {
               <CardContent>
                 <div className="text-xl sm:text-2xl font-semibold">Free</div>
                 <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                  No signup required
+                  Curated for interview preparation
                 </p>
               </CardContent>
             </Card>
