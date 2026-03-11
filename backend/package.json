@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "redis:monitor": "node src/utils/monitorRedis.js"
+    "redis:monitor": "node src/utils/monitorRedis.js",
+    "seed:sheet": "node src/scripts/import_sheet_from_frontend.js"
   },
   "keywords": [],
   "author": "",

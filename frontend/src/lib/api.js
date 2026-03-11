@@ -176,4 +176,9 @@ export const referralAPI = {
   redeem: (tierId) => api.post("/api/referral/redeem", { tierId }),
 };
 
+export const sheetsAPI = {
+  getBySlug: (slug) => api.get(`/api/sheets/${slug}`),
+  getLoveBabbar: () => api.get("/api/sheets/love-babbar"),
+};
+
 export default api;
