@@ -106,14 +106,14 @@ function App() {
               <Referral />
             </PrivateRoute>
           } />
-          <Route
+          {/* <Route
             path="/sheet"
             element={
-              // <PrivateRoute>
+              <PrivateRoute>
                 <Sheet />
-              // </PrivateRoute>
+              </PrivateRoute>
             }
-          />
+          /> */}
           <Route path="*" element={<ErrorPage />} />
         </Routes>
       </Router>
