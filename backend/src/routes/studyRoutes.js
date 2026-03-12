@@ -2,6 +2,8 @@ import express from "express";
 import { protect } from "../middlewares/authMiddleware.js";
 import {
   askStudyQuestion,
+  deleteAllStudyMaterials,
+  deleteStudyMaterial,
   generateStudyQuiz,
   listMaterials,
   summarizeStudyTopic,
@@ -12,6 +14,8 @@ import {
 const router = express.Router();
 
 router.get("/materials", protect, listMaterials);
+router.delete("/materials", protect, deleteAllStudyMaterials);
+router.delete("/materials/:id", protect, deleteStudyMaterial);
 router.post(
   "/upload",
   protect,

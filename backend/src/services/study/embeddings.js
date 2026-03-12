@@ -15,7 +15,7 @@ function getEmbeddingModel() {
 }
 
 function getModelPath(model) {
-  return model.startsWith("models/") ? model : models/;
+  return model.startsWith("models/") ? model : `models/${model}`;
 }
 
 function chunkArray(items, size) {
@@ -28,7 +28,7 @@ function chunkArray(items, size) {
 
 export function getUserCollectionName(userId) {
   const safeId = String(userId).replace(/[^a-zA-Z0-9_-]/g, "_");
-  return leetprep_study_;
+  return `leetprep_study_${safeId}`;
 }
 
 export function splitTextIntoChunks(text, chunkSize = 1000, overlap = 200) {
@@ -62,17 +62,14 @@ export async function embedTexts(texts) {
 
   const apiKey = getGeminiApiKey();
   const modelPath = getModelPath(getEmbeddingModel());
-  const batchSize = Math.max(
-    1,
-    Number(process.env.GEMINI_EMBED_BATCH_SIZE) || 30,
-  );
+  const batchSize = Math.max(1, Number(process.env.GEMINI_EMBED_BATCH_SIZE) || 30);
 
   const batches = chunkArray(filtered, batchSize);
   const embeddings = [];
 
   for (const batch of batches) {
     const response = await axios.post(
-      https://generativelanguage.googleapis.com/v1beta/:batchEmbedContents,
+      `https://generativelanguage.googleapis.com/v1beta/${modelPath}:batchEmbedContents`,
       {
         requests: batch.map((text) => ({
           model: modelPath,
@@ -107,6 +104,75 @@ export async function embedTexts(texts) {
   return embeddings;
 }
 
+export async function deleteMaterialEmbeddings({ userId, materialId }) {
+  const safeUserId = String(userId);
+  const safeMaterialId = String(materialId);
+
+  try {
+    const client = getChromaClient();
+    const collectionName = getUserCollectionName(userId);
+    const collection = await client.getCollection({ name: collectionName });
+    await collection.delete({
+      where: {
+        userId: safeUserId,
+        materialId: safeMaterialId,
+      },
+    });
+  } catch (error) {
+    const message = String(error?.message || "").toLowerCase();
+    if (
+      message.includes("does not exist") ||
+      message.includes("not found") ||
+      message.includes("requested resource")
+    ) {
+      return;
+    }
+    if (
+      message.includes("fetch failed") ||
+      message.includes("econnrefused") ||
+      message.includes("failed to connect to chromadb")
+    ) {
+      throw new Error(
+        `Unable to reach ${getChromaConnectionLabel()}. Configure Chroma Cloud env vars or start a local ChromaDB instance before deleting study material embeddings.`,
+      );
+    }
+    throw error;
+  }
+}
+
+export async function deleteUserEmbeddings({ userId }) {
+  const safeUserId = String(userId);
+
+  try {
+    const client = getChromaClient();
+    const collectionName = getUserCollectionName(userId);
+    const collection = await client.getCollection({ name: collectionName });
+    await collection.delete({
+      where: {
+        userId: safeUserId,
+      },
+    });
+  } catch (error) {
+    const message = String(error?.message || "").toLowerCase();
+    if (
+      message.includes("does not exist") ||
+      message.includes("not found") ||
+      message.includes("requested resource")
+    ) {
+      return;
+    }
+    if (
+      message.includes("fetch failed") ||
+      message.includes("econnrefused") ||
+      message.includes("failed to connect to chromadb")
+    ) {
+      throw new Error(
+        `Unable to reach ${getChromaConnectionLabel()}. Configure Chroma Cloud env vars or start a local ChromaDB instance before deleting study material embeddings.`,
+      );
+    }
+    throw error;
+  }
+}
 export async function storeDocumentEmbeddings({
   userId,
   materialId,
@@ -127,7 +193,7 @@ export async function storeDocumentEmbeddings({
 
     await collection.add({
       ids: chunks.map(
-        (_, index) => ${materialId}---,
+        (_, index) => `${materialId}-${now}-${index}-${crypto.randomUUID()}`,
       ),
       documents: chunks,
       embeddings,
@@ -153,7 +219,7 @@ export async function storeDocumentEmbeddings({
       message.includes("failed to connect to chromadb")
     ) {
       throw new Error(
-        Unable to reach . Configure Chroma Cloud env vars or start a local ChromaDB instance before indexing study material.,
+        `Unable to reach ${getChromaConnectionLabel()}. Configure Chroma Cloud env vars or start a local ChromaDB instance before indexing study material.`,
       );
     }
     throw error;

@@ -11,7 +11,7 @@ import {
   quizPrompt,
   summaryPrompt,
 } from "../services/study/prompts.js";
-import { storeDocumentEmbeddings } from "../services/study/embeddings.js";
+import { storeDocumentEmbeddings, deleteMaterialEmbeddings, deleteUserEmbeddings } from "../services/study/embeddings.js";
 import { retrieveStudyContext } from "../services/study/retriever.js";
 
 export const uploadStudyMaterial = multer({
@@ -29,6 +29,38 @@ const ACCEPTED_UPLOAD_FIELD_NAMES = new Set([
   "notes",
 ]);
 
+const MAX_CONTEXT_CHARS = Math.max(
+  500,
+  Number(process.env.GEMINI_MAX_CONTEXT_CHARS) || 4000,
+);
+
+function buildContextFromMatches(matches, maxChars = MAX_CONTEXT_CHARS) {
+  const safeMax = Math.max(1, Number(maxChars) || 0);
+  let remaining = safeMax;
+  const selected = [];
+  const parts = [];
+
+  for (const match of matches) {
+    const doc = String(match?.document || "");
+    if (!doc) continue;
+    if (remaining <= 0) break;
+
+    if (doc.length <= remaining) {
+      parts.push(doc);
+      selected.push(match);
+      remaining -= doc.length;
+    } else {
+      parts.push(doc.slice(0, remaining));
+      selected.push({
+        ...match,
+        document: doc.slice(0, remaining),
+      });
+      remaining = 0;
+    }
+  }
+
+  return { context: parts.join("\n\n"), matches: selected };
+}
 function parseJsonResponse(raw, fallbackMessage) {
   const cleaned = String(raw || "")
     .trim()
@@ -311,7 +343,45 @@ export async function listMaterials(req, res, next) {
   }
 }
 
-export async function askStudyQuestion(req, res, next) {
+export async function deleteStudyMaterial(req, res, next) {
+  try {
+    const materialId = String(req.params?.id || "").trim();
+    if (!materialId) {
+      return res.status(400).json({ ok: false, message: "material id is required" });
+    }
+
+    const material = await StudyMaterial.findOne({
+      _id: materialId,
+      user: req.user._id,
+    });
+
+    if (!material) {
+      return res.status(404).json({ ok: false, message: "Study material not found" });
+    }
+
+    await deleteMaterialEmbeddings({
+      userId: req.user._id,
+      materialId: material._id,
+    });
+
+    await StudyMaterial.deleteOne({ _id: material._id, user: req.user._id });
+
+    return res.json({ ok: true, message: "Study material deleted" });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function deleteAllStudyMaterials(req, res, next) {
+  try {
+    await deleteUserEmbeddings({ userId: req.user._id });
+    await StudyMaterial.deleteMany({ user: req.user._id });
+
+    return res.json({ ok: true, message: "All study materials deleted" });
+  } catch (error) {
+    next(error);
+  }
+}export async function askStudyQuestion(req, res, next) {
   try {
     const question = String(req.body?.question || "").trim();
     if (!question) {
@@ -326,7 +396,14 @@ export async function askStudyQuestion(req, res, next) {
       });
     }
 
-    const context = matches.map((item) => item.document).join("\n\n");
+    const { context, matches: contextMatches } = buildContextFromMatches(matches);
+    if (!context) {
+      return res.status(404).json({
+        ok: false,
+        message: "No indexed study material found for this account",
+      });
+    }
+
     let quota = null;
     let answer = "";
     let fallback = false;
@@ -343,13 +420,13 @@ export async function askStudyQuestion(req, res, next) {
       if (!isQuotaLikeError(error)) throw error;
       fallback = true;
       quota = error?.extra?.quota || null;
-      answer = buildFallbackAnswer(matches, question);
+      answer = buildFallbackAnswer(contextMatches, question);
     }
 
     return res.json({
       ok: true,
       answer,
-      sources: buildSourceList(matches),
+      sources: buildSourceList(contextMatches),
       quota,
       fallback,
     });
@@ -357,7 +434,6 @@ export async function askStudyQuestion(req, res, next) {
     next(error);
   }
 }
-
 export async function summarizeStudyTopic(req, res, next) {
   try {
     const topic = String(req.body?.topic || "").trim();
@@ -367,6 +443,14 @@ export async function summarizeStudyTopic(req, res, next) {
 
     const matches = await retrieveStudyContext(req.user._id, topic, 6);
     if (!matches.length) {
+      return res.status(404).json({
+        ok: false,
+        message: "No indexed study material found for this account",
+      });
+    }
+
+    const { context, matches: contextMatches } = buildContextFromMatches(matches);
+    if (!context) {
       return res.status(404).json({
         ok: false,
         message: "No indexed study material found for this account",
@@ -384,20 +468,18 @@ export async function summarizeStudyTopic(req, res, next) {
         true,
         crypto.createHash("sha256").update(`summary:${topic}`).digest("hex"),
       );
-      summary = await generateGroundedContent(
-        summaryPrompt(matches.map((item) => item.document).join("\n\n"), topic),
-      );
+      summary = await generateGroundedContent(summaryPrompt(context, topic));
     } catch (error) {
       if (!isQuotaLikeError(error)) throw error;
       fallback = true;
       quota = error?.extra?.quota || null;
-      summary = buildFallbackSummary(matches, topic);
+      summary = buildFallbackSummary(contextMatches, topic);
     }
 
     return res.json({
       ok: true,
       summary,
-      sources: buildSourceList(matches),
+      sources: buildSourceList(contextMatches),
       quota,
       fallback,
     });
@@ -405,7 +487,6 @@ export async function summarizeStudyTopic(req, res, next) {
     next(error);
   }
 }
-
 export async function generateStudyQuiz(req, res, next) {
   try {
     const topic = String(req.body?.topic || "").trim();
@@ -423,6 +504,14 @@ export async function generateStudyQuiz(req, res, next) {
       });
     }
 
+    const { context, matches: contextMatches } = buildContextFromMatches(matches);
+    if (!context) {
+      return res.status(404).json({
+        ok: false,
+        message: "No indexed study material found for this account",
+      });
+    }
+
     let quota = null;
     let quiz = null;
     let fallback = false;
@@ -434,21 +523,19 @@ export async function generateStudyQuiz(req, res, next) {
         true,
         crypto.createHash("sha256").update(`quiz:${topic}:${count}`).digest("hex"),
       );
-      const raw = await generateGroundedContent(
-        quizPrompt(matches.map((item) => item.document).join("\n\n"), topic, count),
-      );
+      const raw = await generateGroundedContent(quizPrompt(context, topic, count));
       quiz = parseJsonResponse(raw, "Gemini returned non-JSON quiz output");
     } catch (error) {
       if (!isQuotaLikeError(error)) throw error;
       fallback = true;
       quota = error?.extra?.quota || null;
-      quiz = buildFallbackQuiz(matches, count);
+      quiz = buildFallbackQuiz(contextMatches, count);
     }
 
     return res.json({
       ok: true,
       quiz,
-      sources: buildSourceList(matches),
+      sources: buildSourceList(contextMatches),
       quota,
       fallback,
     });

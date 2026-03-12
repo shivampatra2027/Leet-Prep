@@ -25,6 +25,8 @@ const MODES = [
 export default function StudyAssistant() {
   const [materials, setMaterials] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+  const [deletingAll, setDeletingAll] = useState(false);
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState("ask");
   const [file, setFile] = useState(null);
@@ -33,7 +35,6 @@ export default function StudyAssistant() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
   const [quota, setQuota] = useState(null);
-
   async function loadMaterials() {
     try {
       const res = await studyAPI.listMaterials();
@@ -67,11 +68,55 @@ export default function StudyAssistant() {
       setFile(null);
       setRawText("");
       await loadMaterials();
-    } catch (err) {\n      const status = err.response?.status;\n      if (status === 413) {\n        setError("Upload failed: file is too large (max 5MB). Please upload a smaller file or paste text.");\n      } else {\n        setError(err.response?.data?.message || "Upload failed");\n      }\n    } finally {
+    } catch (err) {
+      const status = err.response?.status;
+      if (status === 413) {
+        setError("Upload failed: file is too large (max 5MB). Please upload a smaller file or paste text.");
+      } else {
+        setError(err.response?.data?.message || "Upload failed");
+      }
+    } finally {
       setUploading(false);
     }
   };
 
+  const handleDelete = async (id) => {
+    if (!id) return;
+    const confirmed = window.confirm(
+      "Delete this material and its embeddings? This cannot be undone.",
+    );
+    if (!confirmed) return;
+
+    setDeletingId(id);
+    setError("");
+    try {
+      await studyAPI.deleteMaterial(id);
+      await loadMaterials();
+    } catch (err) {
+      setError(err.response?.data?.message || "Delete failed");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    if (!materials.length) return;
+    const confirmed = window.confirm(
+      "Delete all study materials and embeddings? This cannot be undone.",
+    );
+    if (!confirmed) return;
+
+    setDeletingAll(true);
+    setError("");
+    try {
+      await studyAPI.deleteAllMaterials();
+      await loadMaterials();
+    } catch (err) {
+      setError(err.response?.data?.message || "Delete failed");
+    } finally {
+      setDeletingAll(false);
+    }
+  };
   const handleAction = async (e) => {
     e.preventDefault();
     setError("");
@@ -151,9 +196,20 @@ export default function StudyAssistant() {
                 </form>
 
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-2">
                     <p className="text-sm font-medium text-foreground">Indexed materials</p>
-                    <Badge variant="outline">{materials.length}</Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">{materials.length}</Badge>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={deletingAll || materials.length === 0}
+                        onClick={handleDeleteAll}
+                      >
+                        {deletingAll ? "Clearing..." : "Clear all"}
+                      </Button>
+                    </div>
                   </div>
                   <div className="space-y-2">
                     {materials.length === 0 && (
@@ -168,7 +224,18 @@ export default function StudyAssistant() {
                       >
                         <div className="flex items-center justify-between gap-3">
                           <span className="font-medium text-foreground">{item.filename}</span>
-                          <Badge variant="secondary">{item.chunkCount || 0} chunks</Badge>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="secondary">{item.chunkCount || 0} chunks</Badge>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              disabled={deletingId === item._id}
+                              onClick={() => handleDelete(item._id)}
+                            >
+                              {deletingId === item._id ? "Deleting..." : "Delete"}
+                            </Button>
+                          </div>
                         </div>
                         <p className="mt-1 text-xs text-muted-foreground">
                           {(item.charCount || 0).toLocaleString()} chars •{" "}

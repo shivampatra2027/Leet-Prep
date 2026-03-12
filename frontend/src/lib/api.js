@@ -183,6 +183,8 @@ export const sheetsAPI = {
 
 export const studyAPI = {
   listMaterials: () => api.get("/api/study/materials"),
+  deleteAllMaterials: () => api.delete("/api/study/materials"),
+  deleteMaterial: (id) => api.delete(`/api/study/materials/${id}`),
   upload: (formData) =>
     api.post("/api/study/upload", formData, {
       // Let the browser set the multipart boundary; forcing JSON breaks multer parsing.
