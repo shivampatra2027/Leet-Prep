@@ -8,17 +8,20 @@
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "redis:monitor": "node src/utils/monitorRedis.js",
-    "seed:sheet": "node src/scripts/import_sheet_from_frontend.js"
+    "seed:sheet": "node src/scripts/import_sheet_from_frontend.js",
+    "chroma:docker": "docker run -p 8000:8000 chromadb/chroma:latest"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@chroma-core/default-embed": "^0.1.9",
     "@google/generative-ai": "^0.18.0",
     "axios": "^1.7.9",
     "bcrypt": "^6.0.0",
     "bullmq": "^5.69.3",
     "cheerio": "^1.2.0",
+    "chromadb": "^3.3.3",
     "compression": "^1.8.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",

@@ -225,6 +225,22 @@ Response includes:
 - cache hit status
 - remaining AI quota
 
+### Study Assistant (RAG)
+
+Base path: `/api/study`
+
+- `GET /materials` - protected; list indexed study materials for the user
+- `POST /upload` - protected; upload `file` (`pdf`, `docx`, `txt`) or send body `text`
+- `POST /ask` - protected; grounded Q&A against indexed material
+- `POST /summarize` - protected; topic summary from indexed material
+- `POST /quiz` - protected; generate MCQ quiz JSON from indexed material
+
+Notes:
+
+- Requires `CHROMA_URL` and a running ChromaDB instance
+- Uses `GOOGLE_GENAI_API_KEY` for embeddings and grounded response generation
+- Data is isolated per user in a dedicated Chroma collection
+
 ### Referral
 
 Base path: `/api/referral`
@@ -369,6 +385,7 @@ Top-level npm scripts:
 - `npm run dev` - run with nodemon
 - `npm run redis:monitor` - monitor Redis behavior
 - `npm run seed:sheet` - import sheet data
+- `npm run chroma:docker` - run a local ChromaDB container for study assistant features
 
 Additional import/update utilities exist in `src/scripts/` and `scripts/` for seeding problems, sheets, hints, and sort-order updates.
 

@@ -181,4 +181,18 @@ export const sheetsAPI = {
   getLoveBabbar: () => api.get("/api/sheets/love-babbar"),
 };
 
+export const studyAPI = {
+  listMaterials: () => api.get("/api/study/materials"),
+  upload: (formData) =>
+    api.post("/api/study/upload", formData, {
+      // Let the browser set the multipart boundary; forcing JSON breaks multer parsing.
+      headers: {
+        "Content-Type": undefined,
+      },
+    }),
+  ask: (question) => api.post("/api/study/ask", { question }),
+  summarize: (topic) => api.post("/api/study/summarize", { topic }),
+  quiz: (topic, count = 5) => api.post("/api/study/quiz", { topic, count }),
+};
+
 export default api;

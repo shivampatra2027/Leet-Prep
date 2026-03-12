@@ -5,13 +5,10 @@ const apiKey = process.env.GOOGLE_GENAI_API_KEY?.trim();
 let gemini = null;
 let geminiFacade = null;
 
-const configuredPrimaryModel =
-  process.env.GEMINI_MODEL?.trim() || "gemini-2.0-flash";
-
 const MODEL_PRIORITY = [
-  configuredPrimaryModel,
+  "gemini-1.5-flash",
+  "gemini-1.5-pro",
 ];
-
 
 function getClient() {
   if (!apiKey) return null;
@@ -30,7 +27,6 @@ function extractRetryAfterSeconds(err) {
     "";
 
   const seconds = parseInt(String(retryDelay).replace(/[^\d.]/g, ""), 10);
-
   if (Number.isFinite(seconds) && seconds > 0) return seconds;
 
   const message = String(err?.message || "");
@@ -57,13 +53,12 @@ function isModelError(err) {
   return status === 404 || message.includes("not found") || message.includes("model");
 }
 
-
 function normalizeGeminiError(err) {
   if (isQuotaError(err)) {
     const retryAfter = extractRetryAfterSeconds(err);
     const error = new Error(
       retryAfter
-        ? `Gemini quota exceeded (free tier). Retry in ${retryAfter}s or upgrade key.`
+        ? `Gemini quota exceeded (free tier). Retry in ${retryAfter}s or upgrade to paid key.`
         : "Gemini free quota exceeded. Upgrade API key.",
     );
     error.statusCode = 429;
@@ -87,7 +82,6 @@ function normalizeGeminiError(err) {
   return error;
 }
 
-
 async function generateWithFallback(prompt) {
   const client = getClient();
   if (!client) {
@@ -108,7 +102,7 @@ async function generateWithFallback(prompt) {
     } catch (err) {
       const status = err?.status ?? err?.response?.status ?? err?.code ?? "unknown";
       const message = String(err?.message || "");
-      console.warn(`Gemini model ${id} failed (${status}): ${message}`);
+      console.warn(`Gemini model ${id} failed (status ${status}): ${message}`);
 
       if (isQuotaError(err)) {
         lastQuotaError = err;
@@ -127,24 +121,24 @@ async function generateWithFallback(prompt) {
     throw normalizeGeminiError(lastQuotaError);
   }
   if (hasModelError) {
-    // Offline mock compatible with controllers
-    console.warn("Gemini offline - mock response");
-    return {
+    // Offline mock response compatible with controllers
+    const mockResult = {
       response: {
-        text: () => `{"offline":true,"summary":"Free tier quota exceeded. Using heuristic analysis. Paid API key enables full Gemini AI.","strengths":[],"redFlags":[],"roleFit":{"sde1":"med","sde2":"low"}}`,
+        text: () => `{"offline":true,"message":"Gemini temporarily unavailable (free quota or model issue). Using enhanced heuristic analysis. Get paid API key for full AI."}`,
       },
     };
+    console.warn("Gemini offline - returning mock for compatibility.");
+    return mockResult;
   }
 
   throw normalizeGeminiError(new Error("No Gemini model available."));
 }
 
-
 export async function getGeminiModel() {
   if (!apiKey) {
     return {
       generateContent: async (prompt) => {
-        throw normalizeGeminiError(new Error("No API key - offline mode"));
+        throw normalizeGeminiError(new Error("No API key"));
       }
     };
   }

@@ -32,11 +32,14 @@ function toRetryAfterSeconds(ms) {
 
 export async function resetAIQuotaIfNeeded(userId, tier, now = new Date()) {
   const user = await User.findById(userId).select(
-    "aiCredits aiCreditsResetAt aiHeavyUsedToday aiLastRequestAt tier",
+    "aiCredits aiCreditsResetAt aiHeavyUsedToday aiLastRequestAt aiRecentHashes tier",
   );
   if (!user) return null;
 
-  if (!isNewUtcDay(user.aiCreditsResetAt, now)) {
+  const needsInitialization =
+    !Number.isFinite(user.aiCredits) || !Number.isFinite(user.aiHeavyUsedToday);
+
+  if (!needsInitialization && !isNewUtcDay(user.aiCreditsResetAt, now)) {
     return user;
   }
 
@@ -50,6 +53,7 @@ export async function resetAIQuotaIfNeeded(userId, tier, now = new Date()) {
         aiCredits: dailyCredits,
         aiCreditsResetAt: resetAt,
         aiHeavyUsedToday: 0,
+        aiRecentHashes: [],
       },
       $unset: {
         aiLastRequestAt: "",
@@ -60,6 +64,7 @@ export async function resetAIQuotaIfNeeded(userId, tier, now = new Date()) {
   user.aiCredits = dailyCredits;
   user.aiCreditsResetAt = resetAt;
   user.aiHeavyUsedToday = 0;
+  user.aiRecentHashes = [];
   user.aiLastRequestAt = undefined;
   return user;
 }
@@ -134,59 +139,7 @@ export async function consumeAICredits({
     }
   }
 
-  const query = {
-    _id: userId,
-    aiCredits: { $gte: cost },
-  };
-
-  if (tier !== "premium" && heavy) {
-    query.aiHeavyUsedToday = { $lt: FREE_HEAVY_DAILY_CAP };
-  }
-
-  const update = {
-    $inc: {
-      aiCredits: -cost,
-      ...(tier !== "premium" && heavy ? { aiHeavyUsedToday: 1 } : {}),
-    },
-    $set: {
-      aiLastRequestAt: now,
-      aiCreditsResetAt: startOfUtcDay(now),
-    },
-  };
-
-  if (requestHash) {
-    update.$push = {
-      aiRecentHashes: {
-        $each: [requestHash],
-        $slice: -5,
-      },
-    };
-  }
-
-  const updated = await User.findOneAndUpdate(query, update, {
-    new: true,
-    select: "tier aiCredits aiCreditsResetAt aiHeavyUsedToday",
-  });
-
-  if (!updated) {
-    const latest = await User.findById(userId).select("aiCredits aiHeavyUsedToday");
-
-    if (latest && tier !== "premium" && heavy && latest.aiHeavyUsedToday >= FREE_HEAVY_DAILY_CAP) {
-      return {
-        ok: false,
-        code: "AI_HEAVY_CAP_REACHED",
-        status: 429,
-        message: "You reached today's free AI analysis cap. Premium gives 20x more usage.",
-        quota: {
-          tier,
-          remainingCredits: latest.aiCredits,
-          heavyUsedToday: latest.aiHeavyUsedToday,
-          heavyCap: FREE_HEAVY_DAILY_CAP,
-          nextResetAt: nextResetAt(now),
-        },
-      };
-    }
-
+  if ((current.aiCredits ?? 0) < cost) {
     return {
       ok: false,
       code: "AI_CREDITS_EXHAUSTED",
@@ -194,21 +147,52 @@ export async function consumeAICredits({
       message: "You've reached today's free AI limit. Premium gives much higher daily credits.",
       quota: {
         tier,
-        remainingCredits: latest?.aiCredits ?? 0,
-        heavyUsedToday: latest?.aiHeavyUsedToday ?? 0,
+        remainingCredits: current.aiCredits ?? 0,
+        heavyUsedToday: current.aiHeavyUsedToday ?? 0,
         heavyCap: tier === "premium" ? null : FREE_HEAVY_DAILY_CAP,
         nextResetAt: nextResetAt(now),
       },
     };
   }
 
+  if (tier !== "premium" && heavy && current.aiHeavyUsedToday >= FREE_HEAVY_DAILY_CAP) {
+    return {
+      ok: false,
+      code: "AI_HEAVY_CAP_REACHED",
+      status: 429,
+      message: "You reached today's free AI analysis cap. Premium gives 20x more usage.",
+      quota: {
+        tier,
+        remainingCredits: current.aiCredits ?? 0,
+        heavyUsedToday: current.aiHeavyUsedToday ?? 0,
+        heavyCap: FREE_HEAVY_DAILY_CAP,
+        nextResetAt: nextResetAt(now),
+      },
+    };
+  }
+
+  current.aiCredits = (current.aiCredits ?? 0) - cost;
+  current.aiLastRequestAt = now;
+  current.aiCreditsResetAt = startOfUtcDay(now);
+
+  if (tier !== "premium" && heavy) {
+    current.aiHeavyUsedToday = (current.aiHeavyUsedToday ?? 0) + 1;
+  }
+
+  if (requestHash) {
+    const recent = Array.isArray(current.aiRecentHashes) ? current.aiRecentHashes : [];
+    current.aiRecentHashes = [...recent, requestHash].slice(-5);
+  }
+
+  await current.save();
+
   return {
     ok: true,
     quota: {
-      tier: updated.tier,
-      remainingCredits: updated.aiCredits,
-      heavyUsedToday: updated.aiHeavyUsedToday,
-      heavyCap: updated.tier === "premium" ? null : FREE_HEAVY_DAILY_CAP,
+      tier: current.tier,
+      remainingCredits: current.aiCredits,
+      heavyUsedToday: current.aiHeavyUsedToday,
+      heavyCap: current.tier === "premium" ? null : FREE_HEAVY_DAILY_CAP,
       nextResetAt: nextResetAt(now),
     },
   };
