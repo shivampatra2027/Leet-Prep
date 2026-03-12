@@ -26,7 +26,44 @@ function chunkArray(items, size) {
   return batches;
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isRetryableEmbeddingError(error) {
+  const status = error?.response?.status;
+  if ([429, 500, 502, 503, 504].includes(status)) return true;
+  const code = String(error?.code || "");
+  if (code === "ECONNABORTED" || code === "ETIMEDOUT") return true;
+  const message = String(error?.message || "").toLowerCase();
+  if (message.includes("timeout") || message.includes("network")) return true;
+  return !status;
+}
+
+async function postWithRetry(url, data, config, options = {}) {
+  const maxAttempts = Math.max(1, Number(options.maxAttempts) || 3);
+  const baseDelayMs = Math.max(100, Number(options.baseDelayMs) || 500);
+
+  let attempt = 0;
+  while (true) {
+    try {
+      return await axios.post(url, data, config);
+    } catch (error) {
+      attempt += 1;
+      if (attempt >= maxAttempts || !isRetryableEmbeddingError(error)) {
+        throw error;
+      }
+      const jitter = Math.floor(Math.random() * 100);
+      const delay = baseDelayMs * 2 ** (attempt - 1) + jitter;
+      await sleep(delay);
+    }
+  }
+}
+
 export function getUserCollectionName(userId) {
+  const safeId = String(userId).replace(/[^a-zA-Z0-9_-]/g, "_");
+  return `leetprep_study_${safeId}`;
+}(userId) {
   const safeId = String(userId).replace(/[^a-zA-Z0-9_-]/g, "_");
   return `leetprep_study_${safeId}`;
 }
@@ -68,7 +105,7 @@ export async function embedTexts(texts) {
   const embeddings = [];
 
   for (const batch of batches) {
-    const response = await axios.post(
+    const response = await postWithRetry(
       `https://generativelanguage.googleapis.com/v1beta/${modelPath}:batchEmbedContents`,
       {
         requests: batch.map((text) => ({
@@ -84,6 +121,10 @@ export async function embedTexts(texts) {
           "Content-Type": "application/json",
         },
         timeout: 60000,
+      },
+      {
+        maxAttempts: Number(process.env.GEMINI_EMBED_MAX_RETRIES) || 3,
+        baseDelayMs: Number(process.env.GEMINI_EMBED_RETRY_BASE_MS) || 500,
       },
     );
 
