@@ -46,10 +46,7 @@ export default function ResumeAnalyzer() {
           setError(res.data?.message || "Analysis failed");
         }
       })
-      .catch((err) => {
-        setError(err.response?.data?.message || "Analysis failed");
-        if (err.response?.data?.quota) setQuotaInfo(err.response.data.quota);
-      })
+      .catch((err) => {\n        const status = err.response?.status;\n        if (status === 413) {\n          setError("Upload failed: file is too large (max 5MB). Please upload a smaller file or paste text.");\n        } else {\n          setError(err.response?.data?.message || "Analysis failed");\n        }\n        if (err.response?.data?.quota) setQuotaInfo(err.response.data.quota);\n      })
       .finally(() => setLoading(false));
   };
 

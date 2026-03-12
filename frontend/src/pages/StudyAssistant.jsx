@@ -67,9 +67,7 @@ export default function StudyAssistant() {
       setFile(null);
       setRawText("");
       await loadMaterials();
-    } catch (err) {
-      setError(err.response?.data?.message || "Upload failed");
-    } finally {
+    } catch (err) {\n      const status = err.response?.status;\n      if (status === 413) {\n        setError("Upload failed: file is too large (max 5MB). Please upload a smaller file or paste text.");\n      } else {\n        setError(err.response?.data?.message || "Upload failed");\n      }\n    } finally {
       setUploading(false);
     }
   };

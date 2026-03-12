@@ -15,12 +15,20 @@ function getEmbeddingModel() {
 }
 
 function getModelPath(model) {
-  return model.startsWith("models/") ? model : `models/${model}`;
+  return model.startsWith("models/") ? model : models/;
+}
+
+function chunkArray(items, size) {
+  const batches = [];
+  for (let i = 0; i < items.length; i += size) {
+    batches.push(items.slice(i, i + size));
+  }
+  return batches;
 }
 
 export function getUserCollectionName(userId) {
   const safeId = String(userId).replace(/[^a-zA-Z0-9_-]/g, "_");
-  return `leetprep_study_${safeId}`;
+  return leetprep_study_;
 }
 
 export function splitTextIntoChunks(text, chunkSize = 1000, overlap = 200) {
@@ -54,32 +62,49 @@ export async function embedTexts(texts) {
 
   const apiKey = getGeminiApiKey();
   const modelPath = getModelPath(getEmbeddingModel());
+  const batchSize = Math.max(
+    1,
+    Number(process.env.GEMINI_EMBED_BATCH_SIZE) || 30,
+  );
 
-  return Promise.all(
-    filtered.map(async (text) => {
-      const response = await axios.post(
-        `https://generativelanguage.googleapis.com/v1beta/${modelPath}:embedContent`,
-        {
+  const batches = chunkArray(filtered, batchSize);
+  const embeddings = [];
+
+  for (const batch of batches) {
+    const response = await axios.post(
+      https://generativelanguage.googleapis.com/v1beta/:batchEmbedContents,
+      {
+        requests: batch.map((text) => ({
+          model: modelPath,
           content: {
             parts: [{ text }],
           },
+        })),
+      },
+      {
+        headers: {
+          "x-goog-api-key": apiKey,
+          "Content-Type": "application/json",
         },
-        {
-          headers: {
-            "x-goog-api-key": apiKey,
-            "Content-Type": "application/json",
-          },
-          timeout: 60000,
-        },
-      );
+        timeout: 60000,
+      },
+    );
 
-      const values = response.data?.embedding?.values;
+    const batchEmbeddings = response.data?.embeddings;
+    if (!Array.isArray(batchEmbeddings) || batchEmbeddings.length !== batch.length) {
+      throw new Error("Gemini returned an unexpected embeddings payload");
+    }
+
+    batchEmbeddings.forEach((embedding) => {
+      const values = embedding?.values;
       if (!Array.isArray(values) || values.length === 0) {
         throw new Error("Gemini returned an empty embedding vector");
       }
-      return values;
-    }),
-  );
+      embeddings.push(values);
+    });
+  }
+
+  return embeddings;
 }
 
 export async function storeDocumentEmbeddings({
@@ -102,7 +127,7 @@ export async function storeDocumentEmbeddings({
 
     await collection.add({
       ids: chunks.map(
-        (_, index) => `${materialId}-${now}-${index}-${crypto.randomUUID()}`,
+        (_, index) => ${materialId}---,
       ),
       documents: chunks,
       embeddings,
@@ -128,7 +153,7 @@ export async function storeDocumentEmbeddings({
       message.includes("failed to connect to chromadb")
     ) {
       throw new Error(
-        `Unable to reach ${getChromaConnectionLabel()}. Configure Chroma Cloud env vars or start a local ChromaDB instance before indexing study material.`,
+        Unable to reach . Configure Chroma Cloud env vars or start a local ChromaDB instance before indexing study material.,
       );
     }
     throw error;

@@ -17,7 +17,7 @@ import { retrieveStudyContext } from "../services/study/retriever.js";
 export const uploadStudyMaterial = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 15 * 1024 * 1024,
+    fileSize: 5 * 1024 * 1024,
   },
 });
 

@@ -7,7 +7,12 @@ import { consumeAICredits } from "../middlewares/aiQuotaGuard.js";
 import { AI_QUOTA } from "../config/aiQuota.js";
 import { getGeminiModel } from "../services/geminiClient.js";
 
-export const uploadResume = multer({ storage: multer.memoryStorage() });
+export const uploadResume = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024,
+  },
+});
 
 const MAX_PROMPT_CHARS = AI_QUOTA.resumeMaxChars;
 
