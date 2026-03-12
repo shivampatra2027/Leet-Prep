@@ -63,11 +63,7 @@ async function postWithRetry(url, data, config, options = {}) {
 export function getUserCollectionName(userId) {
   const safeId = String(userId).replace(/[^a-zA-Z0-9_-]/g, "_");
   return `leetprep_study_${safeId}`;
-}(userId) {
-  const safeId = String(userId).replace(/[^a-zA-Z0-9_-]/g, "_");
-  return `leetprep_study_${safeId}`;
 }
-
 export function splitTextIntoChunks(text, chunkSize = 1000, overlap = 200) {
   const normalized = text.replace(/\r/g, "").trim();
   if (!normalized) return [];
@@ -99,7 +95,7 @@ export async function embedTexts(texts) {
 
   const apiKey = getGeminiApiKey();
   const modelPath = getModelPath(getEmbeddingModel());
-  const batchSize = Math.max(1, Number(process.env.GEMINI_EMBED_BATCH_SIZE) || 30);
+  const batchSize = Math.max(1, Number(process.env.GEMINI_EMBED_BATCH_SIZE) || 20);
 
   const batches = chunkArray(filtered, batchSize);
   const embeddings = [];
@@ -219,6 +215,7 @@ export async function storeDocumentEmbeddings({
   materialId,
   filename,
   text,
+  onProgress,
 }) {
   const chunks = splitTextIntoChunks(text);
   if (!chunks.length) {
@@ -229,23 +226,40 @@ export async function storeDocumentEmbeddings({
     const client = getChromaClient();
     const collectionName = getUserCollectionName(userId);
     const collection = await client.getOrCreateCollection({ name: collectionName });
-    const embeddings = await embedTexts(chunks);
     const now = Date.now();
+    const total = chunks.length;
+    let processed = 0;
+    const batchSize = Math.max(
+      1,
+      Number(process.env.STUDY_INDEX_BATCH_SIZE) ||
+        Number(process.env.GEMINI_EMBED_BATCH_SIZE) ||
+        20,
+    );
 
-    await collection.add({
-      ids: chunks.map(
-        (_, index) => `${materialId}-${now}-${index}-${crypto.randomUUID()}`,
-      ),
-      documents: chunks,
-      embeddings,
-      metadatas: chunks.map((_, index) => ({
-        userId: String(userId),
-        materialId: String(materialId),
-        filename,
-        chunkIndex: index,
-        createdAt: new Date(now).toISOString(),
-      })),
-    });
+    for (let i = 0; i < chunks.length; i += batchSize) {
+      const batch = chunks.slice(i, i + batchSize);
+      const embeddings = await embedTexts(batch);
+
+      await collection.add({
+        ids: batch.map(
+          (_, index) => `${materialId}-${now}-${i + index}-${crypto.randomUUID()}`,
+        ),
+        documents: batch,
+        embeddings,
+        metadatas: batch.map((_, index) => ({
+          userId: String(userId),
+          materialId: String(materialId),
+          filename,
+          chunkIndex: i + index,
+          createdAt: new Date(now).toISOString(),
+        })),
+      });
+
+      processed += batch.length;
+      if (onProgress) {
+        await onProgress(processed, total);
+      }
+    }
 
     return {
       collectionName,

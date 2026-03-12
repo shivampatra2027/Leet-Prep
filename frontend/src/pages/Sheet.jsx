@@ -85,20 +85,9 @@ export default function Sheet() {
               {sheetData?.title ?? "DSA Sheet"}
             </h1>
             <p className="text-sm sm:text-base text-muted-foreground mt-1">
-              Practice {totalProblems} DSA questions grouped by topic and open each one directly in a new tab
+              Love Babbar&apos;s curated list of {totalProblems} must-solve DSA problems
             </p>
             <div className="mt-2 flex flex-wrap items-center gap-3 text-xs sm:text-sm text-muted-foreground">
-              <span>Scraped: {scrapedAtText}</span>
-              {sheetData?.source ? (
-                <a
-                  href={sheetData.source}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
-                >
-                  Source <ExternalLink className="h-3.5 w-3.5" />
-                </a>
-              ) : null}
               {isLoading ? <span>Loading from DB...</span> : null}
               {!isLoading && loadError ? <span>{loadError}</span> : null}
             </div>
@@ -177,10 +166,7 @@ export default function Sheet() {
                     <CardContent className="px-4 sm:px-6 pb-4 pt-0">
                       <div className="border rounded-lg overflow-hidden">
                         {topicData.problems.map((problem, idx) => {
-                          const solveLink =
-                            problem.practice_link ||
-                            problem.leetcode_link ||
-                            problem.article_link;
+                          const solveLink = problem.practice_link || problem.leetcode_link;
                           return (
                             <div
                               key={problem.id}
@@ -188,20 +174,9 @@ export default function Sheet() {
                                 idx !== topicData.problems.length - 1 ? "border-b border-border" : ""
                               }`}
                             >
-                              {solveLink ? (
-                                <a
-                                  href={solveLink}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="flex-1 text-xs sm:text-sm leading-snug text-foreground underline-offset-4 transition hover:text-primary hover:underline"
-                                >
-                                  {problem.title}
-                                </a>
-                              ) : (
-                                <span className="flex-1 text-xs sm:text-sm leading-snug text-foreground">
-                                  {problem.title}
-                                </span>
-                              )}
+                              <span className="flex-1 text-xs sm:text-sm leading-snug text-foreground">
+                                {problem.title}
+                              </span>
                               <div className="flex items-center gap-1 shrink-0">
                                 {problem.article_link ? (
                                   <a

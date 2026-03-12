@@ -11,8 +11,14 @@ import {
   quizPrompt,
   summaryPrompt,
 } from "../services/study/prompts.js";
-import { storeDocumentEmbeddings, deleteMaterialEmbeddings, deleteUserEmbeddings } from "../services/study/embeddings.js";
+import {
+  storeDocumentEmbeddings,
+  deleteMaterialEmbeddings,
+  deleteUserEmbeddings,
+  splitTextIntoChunks,
+} from "../services/study/embeddings.js";
 import { retrieveStudyContext } from "../services/study/retriever.js";
+import { getCache, setCache } from "../utils/cache.js";
 
 export const uploadStudyMaterial = multer({
   storage: multer.memoryStorage(),
@@ -33,6 +39,35 @@ const MAX_CONTEXT_CHARS = Math.max(
   500,
   Number(process.env.GEMINI_MAX_CONTEXT_CHARS) || 4000,
 );
+const STUDY_CACHE_TTL = Math.max(
+  60,
+  Number(process.env.STUDY_CACHE_TTL) || 600,
+);
+
+function buildStudyCacheKey(prefix, prompt, matches) {
+  const materialIds = [...new Set(
+    matches.map((item) => item.metadata?.materialId).filter(Boolean),
+  )]
+    .map((id) => String(id))
+    .sort();
+
+  const hash = crypto
+    .createHash("sha256")
+    .update(`${prefix}:${prompt}:${materialIds.join(",")}`)
+    .digest("hex");
+
+  return `study:${hash}`;
+}
+
+function buildHighlights(matches, maxChars = 240) {
+  return matches
+    .map((item) => ({
+      source: item.metadata?.filename || "Unknown source",
+      chunkIndex: item.metadata?.chunkIndex,
+      snippet: String(item.document || "").slice(0, maxChars),
+    }))
+    .filter((item) => item.snippet);
+}
 
 function buildContextFromMatches(matches, maxChars = MAX_CONTEXT_CHARS) {
   const safeMax = Math.max(1, Number(maxChars) || 0);
@@ -61,21 +96,54 @@ function buildContextFromMatches(matches, maxChars = MAX_CONTEXT_CHARS) {
 
   return { context: parts.join("\n\n"), matches: selected };
 }
+
 function parseJsonResponse(raw, fallbackMessage) {
   const cleaned = String(raw || "")
-    .trim()
-    .replace(/^```json\s*/i, "")
-    .replace(/^```\s*/i, "")
-    .replace(/\s*```$/, "");
+    .replace(/```json/gi, "")
+    .replace(/```/g, "")
+    .trim();
+
+  const extracted = extractJsonBlock(cleaned);
+  const payload = extracted || cleaned;
 
   try {
-    return JSON.parse(cleaned);
+    return JSON.parse(payload);
   } catch {
     return {
       message: fallbackMessage,
       raw: cleaned,
     };
   }
+}
+
+function extractJsonBlock(text) {
+  const source = String(text || "");
+  const objStart = source.indexOf("{");
+  const arrStart = source.indexOf("[");
+
+  if (objStart === -1 && arrStart === -1) return null;
+
+  let start = objStart;
+  let openChar = "{";
+  let closeChar = "}";
+
+  if (arrStart !== -1 && (objStart === -1 || arrStart < objStart)) {
+    start = arrStart;
+    openChar = "[";
+    closeChar = "]";
+  }
+
+  let depth = 0;
+  for (let i = start; i < source.length; i += 1) {
+    const ch = source[i];
+    if (ch === openChar) depth += 1;
+    if (ch === closeChar) depth -= 1;
+    if (depth === 0) {
+      return source.slice(start, i + 1);
+    }
+  }
+
+  return null;
 }
 
 async function extractStudyText(req) {
@@ -286,33 +354,29 @@ export async function uploadMaterial(req, res, next) {
       });
     }
 
+    const chunks = splitTextIntoChunks(extracted.text);
+    if (!chunks.length) {
+      return res.status(400).json({
+        ok: false,
+        message: "No chunks generated from uploaded text",
+      });
+    }
+
     const material = await StudyMaterial.create({
       user: req.user._id,
       filename: extracted.filename,
       mimeType: extracted.mimeType,
       size: extracted.size,
       collectionName: "pending",
-      status: "indexed",
-      charCount: 0,
-      chunkCount: 0,
+      status: "indexing",
+      charCount: extracted.text.length,
+      chunkCount: chunks.length,
+      indexedChunks: 0,
     });
 
-    const stored = await storeDocumentEmbeddings({
-      userId: req.user._id,
-      materialId: material._id,
-      filename: extracted.filename,
-      text: extracted.text,
-    });
-
-    material.collectionName = stored.collectionName;
-    material.charCount = stored.charCount;
-    material.chunkCount = stored.chunkCount;
-    material.lastIndexedAt = new Date();
-    await material.save();
-
-    return res.status(201).json({
+    res.status(202).json({
       ok: true,
-      message: "Study material uploaded and indexed",
+      message: "Study material upload started",
       material: {
         id: material._id,
         filename: material.filename,
@@ -320,8 +384,53 @@ export async function uploadMaterial(req, res, next) {
         size: material.size,
         charCount: material.charCount,
         chunkCount: material.chunkCount,
+        indexedChunks: material.indexedChunks,
+        status: material.status,
         createdAt: material.createdAt,
       },
+    });
+
+    setImmediate(async () => {
+      try {
+        const stored = await storeDocumentEmbeddings({
+          userId: req.user._id,
+          materialId: material._id,
+          filename: extracted.filename,
+          text: extracted.text,
+          onProgress: async (processed, total) => {
+            await StudyMaterial.updateOne(
+              { _id: material._id },
+              {
+                $set: {
+                  indexedChunks: processed,
+                  chunkCount: total,
+                  status: "indexing",
+                },
+              },
+            );
+          },
+        });
+
+        await StudyMaterial.updateOne(
+          { _id: material._id },
+          {
+            $set: {
+              collectionName: stored.collectionName,
+              charCount: stored.charCount,
+              chunkCount: stored.chunkCount,
+              indexedChunks: stored.chunkCount,
+              status: "indexed",
+              lastIndexedAt: new Date(),
+            },
+          },
+        );
+      } catch (error) {
+        console.error("Study material indexing failed:", error?.message || error);
+        await StudyMaterial.updateOne(
+          { _id: material._id },
+          { $set: { status: "failed" } },
+        );
+      }
     });
   } catch (error) {
     next(error);
@@ -381,7 +490,9 @@ export async function deleteAllStudyMaterials(req, res, next) {
   } catch (error) {
     next(error);
   }
-}export async function askStudyQuestion(req, res, next) {
+}
+
+export async function askStudyQuestion(req, res, next) {
   try {
     const question = String(req.body?.question || "").trim();
     if (!question) {
@@ -404,6 +515,19 @@ export async function deleteAllStudyMaterials(req, res, next) {
       });
     }
 
+    const cacheKey = buildStudyCacheKey("ask", question, contextMatches);
+    const cached = await getCache(cacheKey);
+    if (cached) {
+      return res.json({
+        ok: true,
+        ...cached,
+        cacheHit: true,
+        quota: null,
+      });
+    }
+
+    const sources = buildSourceList(contextMatches);
+    const highlights = buildHighlights(contextMatches);
     let quota = null;
     let answer = "";
     let fallback = false;
@@ -423,17 +547,26 @@ export async function deleteAllStudyMaterials(req, res, next) {
       answer = buildFallbackAnswer(contextMatches, question);
     }
 
+    await setCache(
+      cacheKey,
+      { answer, sources, highlights, fallback },
+      STUDY_CACHE_TTL,
+    );
+
     return res.json({
       ok: true,
       answer,
-      sources: buildSourceList(contextMatches),
+      sources,
+      highlights,
       quota,
       fallback,
+      cacheHit: false,
     });
   } catch (error) {
     next(error);
   }
 }
+
 export async function summarizeStudyTopic(req, res, next) {
   try {
     const topic = String(req.body?.topic || "").trim();
@@ -457,6 +590,19 @@ export async function summarizeStudyTopic(req, res, next) {
       });
     }
 
+    const cacheKey = buildStudyCacheKey("summary", topic, contextMatches);
+    const cached = await getCache(cacheKey);
+    if (cached) {
+      return res.json({
+        ok: true,
+        ...cached,
+        cacheHit: true,
+        quota: null,
+      });
+    }
+
+    const sources = buildSourceList(contextMatches);
+    const highlights = buildHighlights(contextMatches);
     let quota = null;
     let summary = "";
     let fallback = false;
@@ -476,17 +622,26 @@ export async function summarizeStudyTopic(req, res, next) {
       summary = buildFallbackSummary(contextMatches, topic);
     }
 
+    await setCache(
+      cacheKey,
+      { summary, sources, highlights, fallback },
+      STUDY_CACHE_TTL,
+    );
+
     return res.json({
       ok: true,
       summary,
-      sources: buildSourceList(contextMatches),
+      sources,
+      highlights,
       quota,
       fallback,
+      cacheHit: false,
     });
   } catch (error) {
     next(error);
   }
 }
+
 export async function generateStudyQuiz(req, res, next) {
   try {
     const topic = String(req.body?.topic || "").trim();
@@ -512,6 +667,19 @@ export async function generateStudyQuiz(req, res, next) {
       });
     }
 
+    const cacheKey = buildStudyCacheKey(`quiz:${count}`, topic, contextMatches);
+    const cached = await getCache(cacheKey);
+    if (cached) {
+      return res.json({
+        ok: true,
+        ...cached,
+        cacheHit: true,
+        quota: null,
+      });
+    }
+
+    const sources = buildSourceList(contextMatches);
+    const highlights = buildHighlights(contextMatches);
     let quota = null;
     let quiz = null;
     let fallback = false;
@@ -532,12 +700,20 @@ export async function generateStudyQuiz(req, res, next) {
       quiz = buildFallbackQuiz(contextMatches, count);
     }
 
+    await setCache(
+      cacheKey,
+      { quiz, sources, highlights, fallback },
+      STUDY_CACHE_TTL,
+    );
+
     return res.json({
       ok: true,
       quiz,
-      sources: buildSourceList(contextMatches),
+      sources,
+      highlights,
       quota,
       fallback,
+      cacheHit: false,
     });
   } catch (error) {
     next(error);

@@ -35,6 +35,7 @@ export default function StudyAssistant() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
   const [quota, setQuota] = useState(null);
+
   async function loadMaterials() {
     try {
       const res = await studyAPI.listMaterials();
@@ -47,6 +48,17 @@ export default function StudyAssistant() {
   useEffect(() => {
     loadMaterials();
   }, []);
+
+  useEffect(() => {
+    const hasIndexing = materials.some((item) => item.status === "indexing");
+    if (!hasIndexing) return undefined;
+
+    const interval = setInterval(() => {
+      loadMaterials();
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [materials]);
 
   const handleUpload = async (e) => {
     e.preventDefault();
@@ -117,6 +129,7 @@ export default function StudyAssistant() {
       setDeletingAll(false);
     }
   };
+
   const handleAction = async (e) => {
     e.preventDefault();
     setError("");
@@ -241,6 +254,16 @@ export default function StudyAssistant() {
                           {(item.charCount || 0).toLocaleString()} chars •{" "}
                           {new Date(item.createdAt).toLocaleString()}
                         </p>
+                        {item.status === "indexing" && (
+                          <p className="mt-1 text-xs text-amber-600">
+                            Indexing {item.indexedChunks || 0}/{item.chunkCount || 0} chunks
+                          </p>
+                        )}
+                        {item.status === "failed" && (
+                          <p className="mt-1 text-xs text-destructive">
+                            Indexing failed. Try re-uploading.
+                          </p>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -298,6 +321,10 @@ export default function StudyAssistant() {
                   </p>
                 )}
 
+                {result?.cacheHit && (
+                  <p className="text-xs text-muted-foreground">Cached result</p>
+                )}
+
                 {error && <p className="text-sm text-destructive">{error}</p>}
 
                 {result?.answer && (
@@ -349,6 +376,18 @@ export default function StudyAssistant() {
                     <pre className="whitespace-pre-wrap text-xs text-muted-foreground">
                       {result.quiz.raw}
                     </pre>
+                  </div>
+                )}
+
+                {Array.isArray(result?.highlights) && result.highlights.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-semibold text-foreground">Highlights</p>
+                    {result.highlights.map((item, index) => (
+                      <div key={`${item.source}-${index}`} className="rounded-lg border p-3">
+                        <p className="text-xs text-muted-foreground">{item.source}</p>
+                        <p className="mt-1 text-sm text-foreground">{item.snippet}</p>
+                      </div>
+                    ))}
                   </div>
                 )}
 
