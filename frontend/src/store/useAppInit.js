@@ -18,6 +18,17 @@ export default function useAppInit() {
   const setAppReady = useUIStore((s) => s.setAppReady);
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const path = window.location.pathname;
+      const token = new URLSearchParams(window.location.search).get("token");
+      const isTokenBootstrapRoute =
+        token &&
+        (path === "/oauth-success" || path === "/login" || path === "/signup");
+      if (isTokenBootstrapRoute) {
+        return;
+      }
+    }
+
     initAuth();
   }, [initAuth]);
 
@@ -43,4 +54,3 @@ export default function useAppInit() {
     setAppReady,
   ]);
 }
-

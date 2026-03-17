@@ -2,6 +2,7 @@ import { create } from "zustand";
 import {
   authAPI,
   clearAccessToken,
+  getAccessToken,
   profileAPI,
   refreshAccessToken,
 } from "@/lib/api";
@@ -17,6 +18,18 @@ export const useAuthStore = create((set, get) => ({
     set({ initializing: true, loading: true });
 
     try {
+      // Prefer an already available in-memory/dev-persisted token first.
+      if (getAccessToken()) {
+        const res = await profileAPI.getProfile();
+        set({
+          user: res.data || null,
+          loading: false,
+          initialized: true,
+          initializing: false,
+        });
+        return;
+      }
+
       await refreshAccessToken();
       const res = await profileAPI.getProfile();
       set({
@@ -26,6 +39,16 @@ export const useAuthStore = create((set, get) => ({
         initializing: false,
       });
     } catch {
+      // If user state is already resolved by another flow, keep it intact.
+      if (get().user) {
+        set({
+          loading: false,
+          initialized: true,
+          initializing: false,
+        });
+        return;
+      }
+
       clearAccessToken();
       set({
         user: null,

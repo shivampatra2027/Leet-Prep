@@ -13,25 +13,27 @@ export default function OAuthSuccess() {
   const applyReferral = useReferralStore((s) => s.applyReferral);
 
   useEffect(() => {
+    let active = true;
+
     const run = async () => {
       const params = new URLSearchParams(window.location.search);
       const token = params.get("token");
 
-      if (!token) {
-        navigate("/login", { replace: true });
-        return;
+      if (token) {
+        setAccessToken(token);
+        // Keep this page URL clean after we bootstrap auth from the query param.
+        window.history.replaceState({}, "", "/oauth-success");
       }
-
-      setAccessToken(token);
-      window.history.replaceState({}, "", "/oauth-success");
 
       const pendingReferral = localStorage.getItem("pendingReferral");
       if (pendingReferral) {
         await applyReferral(pendingReferral).catch(() => null);
+        if (!active) return;
         localStorage.removeItem("pendingReferral");
       }
 
       const user = await refreshUser();
+      if (!active) return;
       if (!user) {
         navigate("/login", { replace: true });
         return;
@@ -44,12 +46,18 @@ export default function OAuthSuccess() {
       const redirectPath =
         premiumRes?.redirectPath ||
         (user.tier === "premium" ? "/dashboard" : "/freedashboard");
+      if (!active) return;
       navigate(redirectPath, { replace: true });
     };
 
     run().catch(() => {
+      if (!active) return;
       navigate("/login", { replace: true });
     });
+
+    return () => {
+      active = false;
+    };
   }, [applyReferral, fetchPremium, fetchReferral, navigate, refreshUser]);
 
   return (

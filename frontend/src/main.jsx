@@ -22,9 +22,15 @@ axios.interceptors.response.use(
 );
 
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
+  import.meta.env.DEV ? (
     <UIProvider>
-    <App />
+      <App />
     </UIProvider>
-  </StrictMode>
+  ) : (
+    <StrictMode>
+      <UIProvider>
+        <App />
+      </UIProvider>
+    </StrictMode>
+  )
 )

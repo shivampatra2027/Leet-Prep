@@ -21,7 +21,35 @@ function resolveApiBaseUrl() {
 }
 
 const API_BASE_URL = resolveApiBaseUrl();
-let accessToken = null;
+const DEV_ACCESS_TOKEN_KEY = "leetprep_dev_access_token";
+
+function shouldPersistDevToken() {
+  return typeof window !== "undefined" && import.meta.env.DEV;
+}
+
+function readPersistedDevToken() {
+  if (!shouldPersistDevToken()) return null;
+  try {
+    return window.sessionStorage.getItem(DEV_ACCESS_TOKEN_KEY) || null;
+  } catch {
+    return null;
+  }
+}
+
+function persistDevToken(token) {
+  if (!shouldPersistDevToken()) return;
+  try {
+    if (token) {
+      window.sessionStorage.setItem(DEV_ACCESS_TOKEN_KEY, token);
+    } else {
+      window.sessionStorage.removeItem(DEV_ACCESS_TOKEN_KEY);
+    }
+  } catch {
+    // Ignore storage errors in private mode or restricted contexts.
+  }
+}
+
+let accessToken = readPersistedDevToken();
 let refreshPromise = null;
 
 // Create axios instance
@@ -47,6 +75,7 @@ const isAuthPagePath = (path = "") =>
 
 export function setAccessToken(token) {
   accessToken = token || null;
+  persistDevToken(accessToken);
 }
 
 export function getAccessToken() {
@@ -55,6 +84,7 @@ export function getAccessToken() {
 
 export function clearAccessToken() {
   accessToken = null;
+  persistDevToken(null);
 }
 
 export async function refreshAccessToken() {
