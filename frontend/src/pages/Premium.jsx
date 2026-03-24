@@ -8,7 +8,8 @@ import { useNavigate } from "react-router-dom";
 import Seo from "@/components/Seo.jsx";
 import { usePremiumStore } from "@/store/usePremiumStore";
 import { useAuthStore } from "@/store/useAuthStore";
-import { getCurrency } from "@/utils/currencyPricing";
+
+const PRICING_REGION_KEY = "pricingRegion";
 
 const Pricing4 = ({
   title = "Upgrade to Premium",
@@ -20,7 +21,14 @@ const Pricing4 = ({
   const premiumLoading = usePremiumStore((s) => s.loading);
   const authLoading = useAuthStore((s) => s.loading);
   const initialized = useAuthStore((s) => s.initialized);
-  const [currency, setCurrency] = useState("USD");
+  const [region, setRegion] = useState(() => {
+    try {
+      const savedRegion = localStorage.getItem(PRICING_REGION_KEY);
+      return savedRegion === "IN" ? "IN" : "INTL";
+    } catch {
+      return "INTL";
+    }
+  });
 
   useEffect(() => {
     if (premium) {
@@ -29,28 +37,14 @@ const Pricing4 = ({
   }, [navigate, premium]);
 
   useEffect(() => {
-    let isMounted = true;
+    try {
+      localStorage.setItem(PRICING_REGION_KEY, region);
+    } catch (error) {
+      console.warn("Unable to persist pricing region:", error);
+    }
+  }, [region]);
 
-    const loadCurrency = async () => {
-      try {
-        const detectedCurrency = await getCurrency();
-        if (isMounted) {
-          setCurrency(detectedCurrency);
-        }
-      } catch (error) {
-        console.error("Failed to load currency, defaulting to USD:", error);
-        if (isMounted) {
-          setCurrency("USD");
-        }
-      }
-    };
-
-    loadCurrency();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const currency = region === "IN" ? "INR" : "USD";
 
   const trialPrice = currency === "INR" ? "₹25" : "$1";
   const trialAmount = currency === "INR" ? 2500 : 100;
@@ -159,6 +153,34 @@ const Pricing4 = ({
                 <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
                   {description}
                 </p>
+                <div className="flex items-center justify-center gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setRegion("IN")}
+                    aria-pressed={region === "IN"}
+                    className={`rounded-md border px-3 py-2 text-sm font-medium transition-colors ${region === "IN"
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border bg-background text-foreground"
+                      }`}
+                  ><img 
+                    src="https://flagcdn.com/w20/in.png" 
+                    alt="India" 
+                    className="inline mr-2"
+                  />
+                    (INR)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRegion("INTL")}
+                    aria-pressed={region === "INTL"}
+                    className={`rounded-md border px-3 py-2 text-sm font-medium transition-colors ${region === "INTL"
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border bg-background text-foreground"
+                      }`}
+                  >
+                    🌍 (USD)
+                  </button>
+                </div>
               </div>
               <div
                 className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8 max-w-6xl mx-auto"
