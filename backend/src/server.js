@@ -18,6 +18,7 @@ import contestRoutes from "./routes/contestRoutes.js";
 import referralRoutes from "./routes/referralRoutes.js";
 import sheetRoutes from "./routes/sheetRoutes.js";
 import studyRoutes from "./routes/studyRoutes.js";
+import locationRoutes from "./routes/locationRoutes.js";
 import "./jobs/contestJob.js"; // Start contest cron job
 import "./jobs/referralJob.js"; // Start referral weekly reset cron job
 import { apiLimiter } from "./middlewares/rateLimiters.js";
@@ -132,6 +133,7 @@ app.use("/api/contests", contestRoutes);
 app.use("/api/referral", referralRoutes);
 app.use("/api/sheets", sheetRoutes);
 app.use("/api/study", studyRoutes);
+app.use("/api/location", locationRoutes);
 
 app.get("/", (req, res) => {
   res.send("Backend is running");

@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import {UIProvider} from './contexts/UIContext';
 import App from './App.jsx'
+import { getCurrency } from './utils/currencyPricing';
 
 import axios from 'axios';
 axios.defaults.withCredentials = true;
@@ -22,14 +23,25 @@ const checkCacheVersion = () => {
   if (version !== CACHE_VERSION) {
     localStorage.removeItem(COUNTRY_STORAGE_KEY);
     localStorage.setItem(CACHE_VERSION_KEY, CACHE_VERSION);
+    return true;
   }
+
+  return false;
 };
 
-if (isHardReload()) {
+const hardReloaded = isHardReload();
+if (hardReloaded) {
   localStorage.removeItem(COUNTRY_STORAGE_KEY);
 }
 
-checkCacheVersion();
+const cacheVersionReset = checkCacheVersion();
+
+if (hardReloaded || cacheVersionReset) {
+  // Re-populate country cache immediately after reset.
+  getCurrency().catch((error) => {
+    console.warn('Country re-cache failed during startup:', error);
+  });
+}
 
 axios.defaults.baseURL =
   import.meta.env.VITE_API_URL ||

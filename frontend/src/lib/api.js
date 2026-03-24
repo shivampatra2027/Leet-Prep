@@ -198,6 +198,10 @@ export const premiumAPI = {
   checkDashboard: () => api.get("/api/premium/check-dashboard"),
 };
 
+export const locationAPI = {
+  getCountry: () => api.get("/api/location"),
+};
+
 export const referralAPI = {
   getMe: () => api.get("/api/referral/me"),
   join: () => api.post("/api/referral/join"),

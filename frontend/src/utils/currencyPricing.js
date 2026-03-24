@@ -1,3 +1,5 @@
+import { locationAPI } from "@/lib/api";
+
 const COUNTRY_STORAGE_KEY = "detectedCountry";
 
 const getStoredCountry = () => {
@@ -28,20 +30,15 @@ const detectCountry = async () => {
   if (cached) return cached;
 
   try {
-    const res = await fetch("https://ipwho.is/");
-    if (!res.ok) {
-      throw new Error(`IP lookup failed with status ${res.status}`);
-    }
+    const response = await locationAPI.getCountry();
+    const code = response?.data?.country?.toUpperCase();
 
-    const data = await res.json();
-
-    if (data?.success && data?.country_code) {
-      const code = data.country_code.toUpperCase();
+    if (/^[A-Z]{2}$/.test(code)) {
       storeCountry(code);
       return code;
     }
   } catch (err) {
-    console.error("IP detection failed:", err);
+    console.error("Country detection via backend failed:", err);
   }
 
   return "US";
