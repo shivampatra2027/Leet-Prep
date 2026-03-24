@@ -33,25 +33,41 @@ export const createOrder = async (req, res) => {
       return res.status(401).json({ error: "User not authenticated" });
     }
 
-    const { amount: rawAmount, currency = "INR", notes } = req.body ?? {};
+    const {
+      amount: rawAmount,
+      currency: rawCurrency = "INR",
+      notes,
+    } = req.body ?? {};
+
+    const currency =
+      typeof rawCurrency === "string" ? rawCurrency.toUpperCase() : "INR";
+    const supportedCurrencies = new Set(["INR", "USD"]);
+
+    if (!supportedCurrencies.has(currency)) {
+      return res.status(400).json({
+        error: "Unsupported currency",
+        message: "Only INR and USD are supported",
+      });
+    }
 
     // Step 2: Validate and sanitize amount
     const amount = Number.isFinite(Number(rawAmount))
-      ? Math.floor(Number(rawAmount)) // Ensure integer (paise)
+      ? Math.floor(Number(rawAmount)) // Ensure integer in smallest currency unit
       : 99900;
 
     if (amount <= 0) {
       return res.status(400).json({
         error: "Invalid amount",
-        message: "Amount must be a positive integer (in paise)",
+        message:
+          "Amount must be a positive integer in the smallest currency unit",
       });
     }
 
-    // Minimum amount: ₹1.00 (100 paise)
+    // Minimum amount: 100 in smallest unit (e.g., ₹1.00 or $1.00)
     if (amount < 100) {
       return res.status(400).json({
         error: "Amount too small",
-        message: "Minimum amount is ₹1.00 (100 paise)",
+        message: "Minimum amount is 100 in the smallest currency unit",
       });
     }
 
@@ -129,7 +145,8 @@ export const createOrder = async (req, res) => {
     ) {
       hint = "Check internet connection and Razorpay server status";
     } else if (errorDescription.includes("amount")) {
-      hint = "Verify amount is a positive integer in paise (₹1 = 100 paise)";
+      hint =
+        "Verify amount is a positive integer in the smallest unit (e.g., INR paise or USD cents)";
     }
 
     res.status(statusCode).json({

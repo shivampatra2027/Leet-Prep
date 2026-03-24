@@ -14,7 +14,7 @@ function PaymentButton({ amount, currency = "INR", duration, durationType = "mon
             // Step 1: Create Razorpay order (as per official docs Section 1.1)
             const response = await paymentAPI.createOrder({ 
                 amount: amount, // Amount in paise
-                currency,
+                currency: String(currency).toUpperCase(),
                 notes: {
                     duration: duration, // 1 or 2 (months/days)
                     durationType: durationType, // "months" or "days"
@@ -30,7 +30,7 @@ function PaymentButton({ amount, currency = "INR", duration, durationType = "mon
 
             // Step 2: Configure Razorpay Checkout (as per official docs Section 1.2)
             const options = {
-                key: import.meta.env.VITE_RAZORPAY_KEY_ID, // Your API Key ID
+                key: data.key || import.meta.env.VITE_RAZORPAY_KEY_ID,
                 amount: data.order.amount, // Amount from order
                 currency: data.order.currency,
                 name: "Leet-Prep", // Your business name
