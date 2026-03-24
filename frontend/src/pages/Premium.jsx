@@ -117,7 +117,7 @@ const Pricing4 = ({
       ],
       buttonText: "Get 2 Month Access",
       isPopular: true,
-      savings: "Most Popular - Save ₹49",
+      savings: "Most Popular - Save, 20% off",
     },
   ];
 
