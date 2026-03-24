@@ -3,11 +3,12 @@ import { Badge } from "@/components/ui/badge.jsx";
 import { Separator } from "@/components/ui/separator.jsx";
 import PaymentButton from "../components/PaymentButton";
 import Navbar from "../components/Navbar";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Seo from "@/components/Seo.jsx";
 import { usePremiumStore } from "@/store/usePremiumStore";
 import { useAuthStore } from "@/store/useAuthStore";
+import { getCurrency } from "@/utils/currencyPricing";
 
 const Pricing4 = ({
   title = "Upgrade to Premium",
@@ -19,6 +20,7 @@ const Pricing4 = ({
   const premiumLoading = usePremiumStore((s) => s.loading);
   const authLoading = useAuthStore((s) => s.loading);
   const initialized = useAuthStore((s) => s.initialized);
+  const [currency, setCurrency] = useState("USD");
 
   useEffect(() => {
     if (premium) {
@@ -26,12 +28,44 @@ const Pricing4 = ({
     }
   }, [navigate, premium]);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadCurrency = async () => {
+      try {
+        const detectedCurrency = await getCurrency();
+        if (isMounted) {
+          setCurrency(detectedCurrency);
+        }
+      } catch (error) {
+        console.error("Failed to load currency, defaulting to USD:", error);
+        if (isMounted) {
+          setCurrency("USD");
+        }
+      }
+    };
+
+    loadCurrency();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const trialPrice = currency === "INR" ? "₹25" : "$1";
+  const trialAmount = currency === "INR" ? 2500 : 100;
+  const monthlyPrice = currency === "INR" ? "₹299" : "$7";
+  const monthlyAmount = currency === "INR" ? 29900 : 700;
+  const biMonthlyPrice = currency === "INR" ? "₹349" : "$12";
+  const biMonthlyAmount = currency === "INR" ? 34900 : 1200;
+
   const plans = [
     {
       name: "1 Day Trial Premium",
       badge: "Trial",
-      price: "₹25",
-      amount: 2500, // in paise
+      price: trialPrice,
+      amount: trialAmount,
+      currency,
       duration: 1,
       durationType: "days",
       displayDuration: "24 Hours",
@@ -48,8 +82,9 @@ const Pricing4 = ({
     {
       name: "1 Month Premium",
       badge: "Monthly",
-      price: "₹199",
-      amount: 19900, // in paise
+      price: monthlyPrice,
+      amount: monthlyAmount,
+      currency,
       duration: 1,
       durationType: "months",
       displayDuration: "1 Month",
@@ -66,8 +101,9 @@ const Pricing4 = ({
     {
       name: "2 Month Premium",
       badge: "Best Deal",
-      price: "₹349",
-      amount: 34900, // in paise
+      price: biMonthlyPrice,
+      amount: biMonthlyAmount,
+      currency,
       duration: 2,
       durationType: "months",
       displayDuration: "2 Months",
@@ -176,6 +212,7 @@ const Pricing4 = ({
                       </ul>
                       <PaymentButton
                         amount={plan.amount}
+                        currency={plan.currency || "INR"}
                         duration={plan.duration}
                         durationType={plan.durationType || "months"}
                         planName={plan.name}

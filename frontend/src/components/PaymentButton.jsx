@@ -3,7 +3,7 @@ import { Button } from "./ui/button";
 import { paymentAPI } from "../lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
 
-function PaymentButton({ amount, duration, durationType = "months", planName }) {
+function PaymentButton({ amount, currency = "INR", duration, durationType = "months", planName }) {
     const [loading, setLoading] = useState(false);
     const userProfile = useAuthStore((s) => s.user);
 
@@ -14,7 +14,7 @@ function PaymentButton({ amount, duration, durationType = "months", planName }) 
             // Step 1: Create Razorpay order (as per official docs Section 1.1)
             const response = await paymentAPI.createOrder({ 
                 amount: amount, // Amount in paise
-                currency: "INR",
+                currency,
                 notes: {
                     duration: duration, // 1 or 2 (months/days)
                     durationType: durationType, // "months" or "days"
