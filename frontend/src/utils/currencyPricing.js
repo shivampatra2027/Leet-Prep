@@ -2,62 +2,52 @@ const COUNTRY_STORAGE_KEY = "detectedCountry";
 
 const getStoredCountry = () => {
   try {
-    const storedCountry = localStorage.getItem(COUNTRY_STORAGE_KEY);
-    if (storedCountry) {
-      const normalizedCountry = storedCountry.toUpperCase();
-      if (/^[A-Z]{2}$/.test(normalizedCountry)) {
-        return normalizedCountry;
+    const stored = localStorage.getItem(COUNTRY_STORAGE_KEY);
+    if (stored) {
+      const code = stored.toUpperCase();
+      if (/^[A-Z]{2}$/.test(code)) {
+        return code;
       }
-
-      localStorage.removeItem(COUNTRY_STORAGE_KEY);
     }
   } catch (error) {
-    console.warn("Unable to read country from localStorage:", error);
+    console.warn("Unable to read detected country:", error);
   }
-
   return null;
 };
 
-const storeCountry = (countryCode) => {
+const storeCountry = (code) => {
   try {
-    localStorage.setItem(COUNTRY_STORAGE_KEY, countryCode.toUpperCase());
+    localStorage.setItem(COUNTRY_STORAGE_KEY, code.toUpperCase());
   } catch (error) {
-    console.warn("Unable to store country in localStorage:", error);
+    console.warn("Unable to store detected country:", error);
   }
 };
 
 const detectCountry = async () => {
-  const cachedCountry = getStoredCountry();
-  if (cachedCountry) {
-    return cachedCountry;
-  }
+  const cached = getStoredCountry();
+  if (cached) return cached;
 
   try {
-    const response = await fetch("https://ipwho.is/");
-    if (!response.ok) {
-      throw new Error(`IP lookup failed with status ${response.status}`);
+    const res = await fetch("https://ipwho.is/");
+    if (!res.ok) {
+      throw new Error(`IP lookup failed with status ${res.status}`);
     }
 
-    const data = await response.json();
-    if (data?.success === false) {
-      throw new Error(data?.message || "IP lookup failed");
-    }
+    const data = await res.json();
 
-    const countryCode = data?.country_code?.toUpperCase();
-
-    if (/^[A-Z]{2}$/.test(countryCode)) {
-      storeCountry(countryCode);
-      return countryCode;
+    if (data?.success && data?.country_code) {
+      const code = data.country_code.toUpperCase();
+      storeCountry(code);
+      return code;
     }
-  } catch (error) {
-    console.error("Country detection failed:", error);
+  } catch (err) {
+    console.error("IP detection failed:", err);
   }
 
-  // Fallback to USD path without caching so next visit can retry detection.
   return "US";
 };
 
 export const getCurrency = async () => {
-  const countryCode = await detectCountry();
-  return countryCode === "IN" ? "INR" : "USD";
+  const country = await detectCountry();
+  return country === "IN" ? "INR" : "USD";
 };

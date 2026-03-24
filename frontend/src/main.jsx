@@ -7,6 +7,30 @@ import App from './App.jsx'
 import axios from 'axios';
 axios.defaults.withCredentials = true;
 
+const COUNTRY_STORAGE_KEY = 'detectedCountry';
+const CACHE_VERSION_KEY = 'cache_version';
+const CACHE_VERSION = 'v1';
+
+const isHardReload = () => {
+  const navEntry = performance.getEntriesByType('navigation')[0];
+  return navEntry?.type === 'reload';
+};
+
+const checkCacheVersion = () => {
+  const version = localStorage.getItem(CACHE_VERSION_KEY);
+
+  if (version !== CACHE_VERSION) {
+    localStorage.removeItem(COUNTRY_STORAGE_KEY);
+    localStorage.setItem(CACHE_VERSION_KEY, CACHE_VERSION);
+  }
+};
+
+if (isHardReload()) {
+  localStorage.removeItem(COUNTRY_STORAGE_KEY);
+}
+
+checkCacheVersion();
+
 axios.defaults.baseURL =
   import.meta.env.VITE_API_URL ||
   import.meta.env.VITE_BACKEND_URL ||
