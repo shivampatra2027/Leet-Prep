@@ -13,6 +13,8 @@ export const getUserProfile = async (req, res) => {
       if (user.tier === "premium" && user.premiumExpiresAt) {
         if (new Date() > new Date(user.premiumExpiresAt)) {
           user.tier = "free";
+          user.subscriptionStatus = "expired";
+          user.subscriptionEndDate = null;
           user.premiumExpiresAt = null;
           await user.save();
           console.log(`User ${user._id} premium expired - downgraded to free`);
@@ -23,11 +25,15 @@ export const getUserProfile = async (req, res) => {
         _id: user._id,
         username: user.name,
         email: user.email,
+        createdAt: user.createdAt,
         avatarUrl:
           user.avatar || user.avatarUrl || "https://github.com/shadcn.png",
         tier: user.tier || "free", // 'free' or 'premium'
         isPremium: user.tier === "premium", // For backward compatibility
         premiumExpiresAt: user.premiumExpiresAt, // Send expiry date to frontend
+        subscriptionStatus: user.subscriptionStatus,
+        subscriptionStartDate: user.subscriptionStartDate,
+        subscriptionEndDate: user.subscriptionEndDate,
         isAdmin: user.isAdmin,
         solvedProblemsCount: user.solvedProblems?.length || 0,
       });

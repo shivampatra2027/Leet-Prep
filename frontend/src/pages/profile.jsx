@@ -14,6 +14,16 @@ import Navbar from "@/components/Navbar.jsx";
 import api from "@/lib/api.js";
 import { calculatePremiumTimeRemaining, formatPremiumExpiryDate } from "@/utils/premiumTimer.js";
 
+const formatProfileDate = (value) => {
+  if (!value) return "N/A";
+
+  return new Date(value).toLocaleDateString("en-IN", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
+
 const Profile = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -102,6 +112,25 @@ const Profile = () => {
           </CardHeader>
 
           <CardContent className="space-y-6">
+            <div className="border-t pt-6 space-y-3">
+              <div className="flex items-center justify-between rounded-lg bg-muted/40 px-4 py-3">
+                <span className="text-sm text-muted-foreground">Joined</span>
+                <span className="text-sm font-medium text-foreground">
+                  {formatProfileDate(user.createdAt)}
+                </span>
+              </div>
+
+              {user.tier === "premium" && user.premiumExpiresAt && (
+                <div className="flex items-center justify-between rounded-lg bg-muted/40 px-4 py-3">
+                  <span className="text-sm text-muted-foreground">
+                    Premium Expires
+                  </span>
+                  <span className="text-sm font-medium text-foreground">
+                    {formatPremiumExpiryDate(user.premiumExpiresAt)}
+                  </span>
+                </div>
+              )}
+            </div>
 
             {/* ---------- TIER ---------- */}
             <div className="border-t pt-6">

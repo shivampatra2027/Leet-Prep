@@ -44,9 +44,13 @@ const UserSchema = new Schema(
     leetcodeUsername: { type: String, sparse: true },
     solvedProblems: [{ type: String }], // Array of LeetCode problem slugs or IDs
     lastLeetcodeSync: { type: Date },
-    expireAt: {
+    dataDeletionAt: {
       type: Date,
-      default: () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      default: () => {
+        const deletionDate = new Date();
+        deletionDate.setMonth(deletionDate.getMonth() + 3);
+        return deletionDate;
+      },
     },
     // Subscription fields
     subscriptionId: { type: String, sparse: true },
@@ -116,7 +120,7 @@ const UserSchema = new Schema(
 );
 
 // TTL index
-UserSchema.index({ expireAt: 1 }, { expireAfterSeconds: 0 });
+UserSchema.index({ dataDeletionAt: 1 }, { expireAfterSeconds: 0 });
 UserSchema.index({ weeklyPoints: -1 });
 UserSchema.index({ referralPoints: -1 });
 
