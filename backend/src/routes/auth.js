@@ -2,6 +2,7 @@ import express from "express";
 import bcrypt from "bcrypt";
 import User from "../models/User.js";
 import passport from "../auth/google.js";
+import { isGoogleAuthConfigured } from "../auth/google.js";
 import {
   signAccessToken,
   signRefreshToken,
@@ -11,6 +12,15 @@ import {
 
 const router = express.Router();
 const REFRESH_COOKIE = "refreshToken";
+
+function requireGoogleOAuth(req, res, next) {
+  if (!isGoogleAuthConfigured()) {
+    return res.status(503).json({
+      error: "Google OAuth is not configured on this server.",
+    });
+  }
+  return next();
+}
 
 function normalizeDomain(value = "") {
   const raw = value.trim().toLowerCase();
@@ -209,6 +219,7 @@ router.post("/login", async (req, res) => {
 
 router.get(
   "/google",
+  requireGoogleOAuth,
   redirectToCanonicalApi,
   passport.authenticate("google", {
     scope: ["profile", "email"],
@@ -218,6 +229,7 @@ router.get(
 
 router.get(
   "/google/callback",
+  requireGoogleOAuth,
   redirectToCanonicalApi,
   passport.authenticate("google", {
     failureRedirect: "/auth/fail",

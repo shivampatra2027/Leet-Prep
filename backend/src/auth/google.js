@@ -2,7 +2,26 @@ import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import User from "../models/User.js";
 
+function hasGoogleOAuthConfig() {
+  return Boolean(
+    process.env.GOOGLE_CLIENT_ID &&
+      process.env.GOOGLE_CLIENT_SECRET &&
+      process.env.GOOGLE_CALLBACK_URL,
+  );
+}
+
+export function isGoogleAuthConfigured() {
+  return hasGoogleOAuthConfig();
+}
+
 export function configureGoogleStrategy() {
+  if (!hasGoogleOAuthConfig()) {
+    console.warn(
+      "Google OAuth is disabled: GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET / GOOGLE_CALLBACK_URL missing",
+    );
+    return false;
+  }
+
   passport.use(
     new GoogleStrategy(
       {
@@ -60,7 +79,7 @@ export function configureGoogleStrategy() {
       },
     ),
   );
-
+  return true;
 }
 
 export default passport;
