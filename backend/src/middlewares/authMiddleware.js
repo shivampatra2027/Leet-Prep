@@ -2,6 +2,12 @@ import User from "../models/User.js";
 import { recordActiveDayEvent } from "../controllers/referralController.js";
 import { verifyAccessToken } from "../utils/jwt.js";
 
+function getDataDeletionAt() {
+  const deletionDate = new Date();
+  deletionDate.setMonth(deletionDate.getMonth() + 3);
+  return deletionDate;
+}
+
 // Track a login for the user: increment count and record today's date.
 // Also fires active_next_day referral event if eligible.
 // Fire-and-forget — never blocks the request.
@@ -29,11 +35,37 @@ const downgradeExpiredPremium = async (user) => {
 
   if (new Date() > new Date(user.premiumExpiresAt)) {
     user.tier = "free";
+    user.subscriptionStatus = "expired";
+    user.subscriptionEndDate = null;
     user.premiumExpiresAt = null;
     await user.save();
     console.log(`User ${user._id} premium expired - downgraded to free`);
   }
 };
+
+function refreshDataRetention(user) {
+  if (!user?._id) return;
+
+  const nextDeletionAt = getDataDeletionAt();
+  const currentDeletionAt = user.dataDeletionAt
+    ? new Date(user.dataDeletionAt)
+    : null;
+  const minAcceptableDeletionAt = new Date();
+  minAcceptableDeletionAt.setDate(minAcceptableDeletionAt.getDate() + 75);
+
+  if (
+    currentDeletionAt &&
+    Number.isFinite(currentDeletionAt.getTime()) &&
+    currentDeletionAt > minAcceptableDeletionAt
+  ) {
+    return;
+  }
+
+  user.dataDeletionAt = nextDeletionAt;
+  User.findByIdAndUpdate(user._id, {
+    $set: { dataDeletionAt: nextDeletionAt },
+  }).catch(() => {});
+}
 
 export const protect = async (req, res, next) => {
   try {
@@ -58,6 +90,7 @@ export const protect = async (req, res, next) => {
     }
 
     await downgradeExpiredPremium(user);
+    refreshDataRetention(user);
     req.user = user;
 
     // Fire-and-forget login tracking + active_next_day reward

@@ -27,6 +27,19 @@ const PaymentSchema = new Schema(
       type: Number,
       required: true,
     },
+    planName: {
+      type: String,
+      trim: true,
+    },
+    planDuration: {
+      type: Number,
+      min: 1,
+    },
+    planDurationType: {
+      type: String,
+      enum: ["days", "months"],
+      default: "months",
+    },
     currency: {
       type: String,
       default: "INR",

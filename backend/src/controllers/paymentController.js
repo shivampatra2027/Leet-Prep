@@ -20,6 +20,19 @@ function getRazorpay() {
 
 const RZP_WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET?.trim();
 
+function parsePlanMetadata(notes = {}) {
+  const rawDuration = Number.parseInt(notes.duration, 10);
+  const duration =
+    Number.isFinite(rawDuration) && rawDuration > 0 ? rawDuration : 1;
+  const durationType = notes.durationType === "days" ? "days" : "months";
+  const planName =
+    typeof notes.planName === "string" && notes.planName.trim()
+      ? notes.planName.trim()
+      : `${duration} ${durationType}`;
+
+  return { duration, durationType, planName };
+}
+
 /**
  * Create a new Razorpay order
  * @route POST /api/payment/create-order
@@ -366,6 +379,8 @@ export const processRefund = async (req, res) => {
     if (!amount || amount >= payment.amount) {
       await User.findByIdAndUpdate(req.user._id, {
         tier: "free",
+        subscriptionStatus: "expired",
+        subscriptionEndDate: null,
         premiumExpiresAt: null,
       });
     }
@@ -550,8 +565,7 @@ async function handlePaymentSuccess(paymentEntity) {
 
     // 2. Extract plan metadata from payment notes
     const notes = paymentEntity.notes || {};
-    const duration = parseInt(notes.duration || 1);
-    const durationType = notes.durationType || "months"; // "months" or "days"
+    const { duration, durationType, planName } = parsePlanMetadata(notes);
     const userId = notes.userId;
 
     if (!userId) {
@@ -568,6 +582,9 @@ async function handlePaymentSuccess(paymentEntity) {
       orderId: paymentEntity.order_id,
       paymentId: paymentEntity.id,
       amount: paymentEntity.amount,
+      planName,
+      planDuration: duration,
+      planDurationType: durationType,
       currency: paymentEntity.currency,
       status: paymentEntity.status, // captured
       paymentMethod: paymentEntity.method,
@@ -589,6 +606,9 @@ async function handlePaymentSuccess(paymentEntity) {
 
     await User.findByIdAndUpdate(userId, {
       tier: "premium",
+      subscriptionStatus: "active",
+      subscriptionStartDate: new Date(),
+      subscriptionEndDate: premiumExpiresAt,
       premiumExpiresAt,
     });
 
@@ -626,11 +646,15 @@ async function handlePaymentFailed(paymentEntity) {
 
     // Record failed payment for analytics (optional but useful)
     const notes = paymentEntity.notes || {};
+    const { duration, durationType, planName } = parsePlanMetadata(notes);
     await Payment.create({
       user: notes.userId,
       orderId: paymentEntity.order_id,
       paymentId: paymentEntity.id,
       amount: paymentEntity.amount,
+      planName,
+      planDuration: duration,
+      planDurationType: durationType,
       currency: paymentEntity.currency,
       status: "failed",
       paymentMethod: paymentEntity.method,
@@ -665,6 +689,8 @@ async function handleRefundProcessed(refundEntity) {
       if (refundEntity.amount >= payment.amount) {
         await User.findByIdAndUpdate(payment.user, {
           tier: "free",
+          subscriptionStatus: "expired",
+          subscriptionEndDate: null,
           premiumExpiresAt: null,
         });
       }
