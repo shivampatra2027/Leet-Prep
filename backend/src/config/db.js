@@ -46,18 +46,19 @@ async function migrateUserRetention() {
 }
 
 export const connectDb = async () => {
-  try {
-    const uri = process.env.MONGODB_URI;
-    if (!uri) {
-      throw new Error("MONGODB_URI is not defined in .env");
-    }
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    console.error("MongoDB connection error: MONGODB_URI is not defined");
+    return false;
+  }
 
+  try {
     await mongoose.connect(uri);
     await migrateUserRetention();
-
     console.log("MongoDB connected successfully");
+    return true;
   } catch (error) {
     console.error("MongoDB connection error:", error.message);
-    process.exit(1);
+    return false;
   }
 };

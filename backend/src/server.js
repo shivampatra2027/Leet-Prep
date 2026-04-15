@@ -142,15 +142,24 @@ app.use(errorHandler);
 // Export the app for Vercel serverless
 export default app;
 
+const DB_RETRY_MS = Number(process.env.DB_RETRY_MS || 15000);
+
+async function connectDbWithRetry() {
+  const isConnected = await connectDb();
+  if (!isConnected) {
+    console.warn(`Retrying MongoDB connection in ${DB_RETRY_MS}ms...`);
+    setTimeout(connectDbWithRetry, DB_RETRY_MS);
+  }
+}
+
 // Only start the server if not running in Vercel serverless environment
 if (process.env.VERCEL !== "1") {
   const PORT = process.env.PORT || 8080;
-  connectDb().then(() => {
-    app.listen(PORT, () => {
-      console.log(`Server running on port: ${PORT}`);
-    });
+  app.listen(PORT, () => {
+    console.log(`Server running on port: ${PORT}`);
+    connectDbWithRetry();
   });
 } else {
   // In Vercel, connect to DB immediately.
-  connectDb();
+  connectDbWithRetry();
 }
