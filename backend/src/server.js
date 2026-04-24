@@ -1,5 +1,6 @@
 import "dotenv/config";
 import express from "express";
+import { createServer } from "node:http";
 import dotenv from "dotenv";
 import cors from "cors";
 import helmet from "helmet";
@@ -18,6 +19,7 @@ import contestRoutes from "./routes/contestRoutes.js";
 import referralRoutes from "./routes/referralRoutes.js";
 import sheetRoutes from "./routes/sheetRoutes.js";
 import studyRoutes from "./routes/studyRoutes.js";
+import { initializeSocket } from "./socket.js";
 import "./jobs/contestJob.js"; // Start contest cron job
 import "./jobs/referralJob.js"; // Start referral weekly reset cron job
 import { apiLimiter } from "./middlewares/rateLimiters.js";
@@ -155,7 +157,11 @@ async function connectDbWithRetry() {
 // Only start the server if not running in Vercel serverless environment
 if (process.env.VERCEL !== "1") {
   const PORT = process.env.PORT || 8080;
-  app.listen(PORT, () => {
+  const httpServer = createServer(app);
+
+  initializeSocket(httpServer, allowedOrigins);
+
+  httpServer.listen(PORT, () => {
     console.log(`Server running on port: ${PORT}`);
     connectDbWithRetry();
   });

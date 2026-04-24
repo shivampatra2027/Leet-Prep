@@ -2,9 +2,10 @@ import * as React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ModeToggle } from "./mode-toggle";
 import { Button } from "@/components/ui/button.jsx";
-import { LogOut, Heart, Menu, X } from "lucide-react";
+import { LogOut, Heart, Menu, Users, X } from "lucide-react";
 import axios from "axios";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useOnlineUsers } from "@/hooks/useOnlineUsers.jsx";
 
 export default function Navbar() {
   const sidebarRef = React.useRef(null);
@@ -12,6 +13,7 @@ export default function Navbar() {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const isLoggedIn = Boolean(user);
+  const onlineUsers = useOnlineUsers();
 
   const [likes, setLikes] = React.useState(0);
   const [hasLiked, setHasLiked] = React.useState(false);
@@ -133,6 +135,12 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-2">
+            <div className="hidden min-h-[40px] items-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-2.5 text-emerald-700 dark:text-emerald-300 sm:min-h-[48px] sm:px-3 md:flex">
+              <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="text-xs font-semibold tabular-nums sm:text-sm">{onlineUsers}</span>
+              <span className="hidden text-xs opacity-80 lg:inline">online</span>
+            </div>
+
             <Link to="/premium" className="block">
               <button className="relative inline-flex h-12 overflow-hidden rounded-full p-[1px] focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50">
                 <span className="absolute inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#E2CBFF_0%,#393BB2_50%,#E2CBFF_100%)]" />
@@ -224,6 +232,10 @@ export default function Navbar() {
               <div className="flex flex-1 flex-col space-y-6 pt-4">
                 <div className="space-y-2">
                   <p className="px-1 text-sm text-muted-foreground">Account</p>
+                  <div className="flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-emerald-700 dark:text-emerald-300">
+                    <Users className="h-4 w-4" />
+                    <span className="text-sm font-medium tabular-nums">{onlineUsers} online now</span>
+                  </div>
                   {mobileAccountLinks.map((link) => (
                     <Link
                       key={link.to}
