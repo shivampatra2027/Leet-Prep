@@ -176,7 +176,7 @@ export default function Contests() {
   if (loading) {
     return (
       <>
-        <Navbar />
+        {/* <Navbar /> */}
         <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="text-center">
@@ -192,7 +192,7 @@ export default function Contests() {
   if (error) {
     return (
       <>
-        <Navbar />
+        {/* <Navbar /> */}
         <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
           <div className="text-center py-12">
             <p className="text-red-500">{error}</p>
@@ -205,7 +205,7 @@ export default function Contests() {
 
   return (
     <>
-      <Navbar />
+      {/* <Navbar /> */}
       <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
         <section className="relative overflow-hidden rounded-3xl border bg-card/85 p-5 shadow-glow sm:p-7">
           <div className="absolute inset-0 bg-grid opacity-25" />

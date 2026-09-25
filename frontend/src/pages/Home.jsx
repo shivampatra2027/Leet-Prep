@@ -243,7 +243,7 @@ export default function Home() {
         }}
       />
       <div className="pointer-events-none absolute inset-0 bg-grid opacity-[0.05]" />
-      <Navbar />
+      {/* <Navbar /> */}
 
       <div className="relative">
         {/* Hero Section */}

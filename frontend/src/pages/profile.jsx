@@ -78,7 +78,7 @@ const Profile = () => {
   if (loading) {
     return (
       <div className="flex min-h-screen flex-col">
-        <Navbar />
+        {/* <Navbar /> */}
         <div className="flex flex-1 items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
@@ -91,7 +91,7 @@ const Profile = () => {
   // ---------------- UI ----------------
   return (
     <div className="flex min-h-screen flex-col bg-muted/30">
-      <Navbar />
+      {/* <Navbar /> */}
 
       <div className="flex flex-1 justify-center p-4">
         <Card className="w-full max-w-md border-none shadow-xl">

@@ -130,7 +130,7 @@ export default function Dashboard() {
 
   return (
     <>
-      <Navbar />
+      {/* <Navbar /> */}
         <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
           <div className="max-w-7xl mx-auto">
             {/* Header */}

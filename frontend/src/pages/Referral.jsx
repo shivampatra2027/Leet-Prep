@@ -131,7 +131,7 @@ export default function Referral() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
-        <Navbar />
+        {/* <Navbar /> */}
         <div className="flex-1 flex items-center justify-center">
           <div className="h-10 w-10 rounded-full border-4 border-primary/25 border-t-primary animate-spin" />
         </div>
@@ -142,7 +142,7 @@ export default function Referral() {
   if (error) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
-        <Navbar />
+        {/* <Navbar /> */}
         <div className="flex-1 flex items-center justify-center text-muted-foreground">{error}</div>
       </div>
     );
@@ -152,7 +152,7 @@ export default function Referral() {
   if (data?.joined === false) {
     return (
       <div className="min-h-screen bg-background text-foreground flex flex-col">
-        <Navbar />
+        {/* <Navbar /> */}
         <main className="flex-1">
 
           {/* Same hero as joined view */}
@@ -251,7 +251,7 @@ export default function Referral() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
-      <Navbar />
+      {/* <Navbar /> */}
 
       <main className="flex-1">
         {/* Hero */}

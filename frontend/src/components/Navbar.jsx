@@ -135,43 +135,52 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="hidden min-h-[40px] items-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-2.5 text-emerald-700 dark:text-emerald-300 sm:min-h-[48px] sm:px-3 md:flex">
-              <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span className="text-xs font-semibold tabular-nums sm:text-sm">{onlineUsers}</span>
-              <span className="hidden text-xs opacity-80 lg:inline">online</span>
+            <div className="hidden md:flex items-center gap-2 px-1">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
+              </span>
+
+              <span className="text-sm font-medium text-emerald-500">
+                {onlineUsers} online
+              </span>
             </div>
 
             <Link to="/premium" className="block">
-              <button className="relative inline-flex h-12 overflow-hidden rounded-full p-[1px] focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50">
-                <span className="absolute inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#E2CBFF_0%,#393BB2_50%,#E2CBFF_100%)]" />
-                <span className="inline-flex h-full w-full cursor-pointer items-center justify-center rounded-full bg-slate-950 px-3 py-1 text-sm font-medium text-white backdrop-blur-3xl">
-                  Premium
-                </span>
+              <button
+                className="flex items-center gap-2 min-h-[40px] sm:min-h-[48px] 
+             px-4 rounded-xl font-semibold 
+             text-black bg-gradient-to-r from-emerald-600 to-emerald-400 
+             hover:from-emerald-700 hover:to-emerald-500 
+             dark:from-emerald-500 dark:to-emerald-300 
+             border-none ring-0 outline-none transition-colors"
+              >
+                <span className="text-xs sm:text-sm">Premium</span>
               </button>
             </Link>
 
             <Button
-              variant="outline"
-              size="sm"
+              variant="ghost"
               onClick={handleLike}
               disabled={hasLiked || loading}
-              className={`relative flex min-h-[40px] items-center gap-1.5 rounded-xl border px-2 transition-all duration-300 sm:min-h-[48px] sm:gap-2 sm:px-3 ${
-                hasLiked
-                  ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                  : "hover:border-foreground/30"
-              } ${error ? "border-red-500/50 text-red-600 dark:text-red-400" : ""}`}
+              className={`flex items-center gap-1.5 px-1.5 hover:bg-transparent ${hasLiked
+                  ? "text-emerald-500"
+                  : "text-muted-foreground hover:text-emerald-500"
+                }`}
               aria-label={hasLiked ? "Thank you for your support!" : "Support this project"}
             >
               <Heart
-                className={`h-3.5 w-3.5 transition-all duration-300 sm:h-4 sm:w-4 ${
-                  hasLiked ? "fill-current scale-110" : ""
-                } ${loading ? "animate-pulse" : ""}`}
+                className={`h-4 w-4 transition-all duration-300 ${hasLiked ? "fill-current scale-110" : ""
+                  } ${loading ? "animate-pulse" : ""}`}
               />
-              <span className="font-semibold tabular-nums text-xs sm:text-sm">{error ? "!" : likes}</span>
-              {hasLiked && <span className="hidden text-xs opacity-80 sm:inline">Thanks!</span>}
-              {loading && (
-                <span className="absolute inset-0 flex items-center justify-center">
-                  <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+
+              <span className="text-sm font-medium tabular-nums">
+                {likes}
+              </span>
+
+              {hasLiked && (
+                <span className="text-xs text-emerald-500">
+                  Thanks!
                 </span>
               )}
             </Button>

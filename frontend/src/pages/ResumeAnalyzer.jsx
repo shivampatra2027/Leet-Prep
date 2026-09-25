@@ -71,7 +71,7 @@ export default function ResumeAnalyzer() {
         description="Get a quick, structured review of your resume: ATS hints, strengths, gaps, and quick wins."
         canonical={`${import.meta.env.VITE_SITE_URL || "https://leetcodepremium.xyz"}/resume-analyzer`}
       />
-      <Navbar />
+      {/* <Navbar /> */}
       <main className="min-h-screen bg-background">
         <div className="max-w-5xl mx-auto px-4 py-10 space-y-8">
           <div className="flex flex-col gap-3">
@@ -139,8 +139,8 @@ export default function ResumeAnalyzer() {
                   {quotaInfo && (
                     <p className="text-xs text-muted-foreground">
                       {quotaInfo.remainingCredits ?? 0} AI credits left today
-                      {quotaInfo.nextResetAt ? ` • resets ${new Date(quotaInfo.nextResetAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : ""}
-                      {cacheHit ? " • cached result (no credits used)" : ""}
+                      {quotaInfo.nextResetAt ? ` ï¿½ resets ${new Date(quotaInfo.nextResetAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : ""}
+                      {cacheHit ? " ï¿½ cached result (no credits used)" : ""}
                     </p>
                   )}
                   <p className="text-xs text-muted-foreground">

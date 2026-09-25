@@ -192,7 +192,7 @@ const Pricing4 = ({
         description="Unlock all 1,800+ curated problems, company filters, analytics, and daily focus lanes with Leet-Prep Premium."
         canonical={`${import.meta.env.VITE_SITE_URL || "https://leetcodepremium.xyz"}/premium`}
       />
-      <Navbar />
+      {/* <Navbar /> */}
       <main>
         <section
           className={`py-16 md:py-24 ${className}`}

@@ -72,7 +72,7 @@ export default function PaymentProcessing() {
 
   return (
     <>
-      <Navbar />
+      {/* <Navbar /> */}
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black p-4 sm:p-6 lg:p-8">
         <Card className="w-full max-w-md mx-4 border-white/20 bg-white/10 backdrop-blur-md">
           <CardHeader className="text-center space-y-3 sm:space-y-4 pb-6 sm:pb-8">

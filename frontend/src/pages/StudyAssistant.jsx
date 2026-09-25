@@ -165,7 +165,7 @@ export default function StudyAssistant() {
         description="Upload your notes and use grounded AI for study Q&A, summaries, and quizzes."
         canonical={`${import.meta.env.VITE_SITE_URL || "https://leetcodepremium.xyz"}/study-assistant`}
       />
-      <Navbar />
+      {/* <Navbar /> */}
       <main className="min-h-screen bg-background">
         <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8">
           <section className="space-y-3">
